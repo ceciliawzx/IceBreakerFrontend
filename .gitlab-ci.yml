@@ -1,0 +1,29 @@
+stages:
+  - build
+  - test
+  - deploy
+
+# variables:
+  # Define your environment-specific variables here
+
+before_script:
+  - npm install
+
+cache:
+  paths:
+    - node_modules/
+
+build:
+  stage: build
+  script:
+    - npm run build
+
+test:
+  stage: test
+  script:
+    - npm test
+
+deploy:
+  stage: deploy
+  script:
+    - echo "Deploying your app here"
