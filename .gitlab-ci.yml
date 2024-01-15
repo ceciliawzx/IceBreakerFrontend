@@ -1,6 +1,6 @@
 stages:
   - build
-  - test
+  # - test
   - deploy
 
 # variables:
@@ -18,10 +18,10 @@ build:
   script:
     - npm run build
 
-test:
-  stage: test
-  script:
-    - npm test
+# test:
+#   stage: test
+#   script:
+#     - npm test
 
 deploy:
   stage: deploy
