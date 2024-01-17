@@ -16,14 +16,14 @@ const Homepage: React.FC = () => {
     <div className="home-page">
       <h1>Welcome to the Room Page</h1>
       <div className="button-container">
-        <button className="button" onClick={handleCreateRoom}>
+        <button className="button" onClick={handleCreateRoom} data-testid="create-room-button">
           Create Room
         </button>
-        <button className="button" onClick={handleJoinRoom}>
+        <button className="button" onClick={handleJoinRoom} data-testid="join-room-button">
           Join Room
         </button>
       </div>
-      {log && <p>{log}</p>}
+      {log && <p data-testid="log-message">{log}</p>}
     </div>
   );
 };
