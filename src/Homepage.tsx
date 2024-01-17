@@ -8,7 +8,7 @@ function Homepage() {
   const handleCreateRoom = () => {
     console.log('Create Room clicked');
     const holderName = 'John Doe';
-    navigate('Roompage');
+    navigate('CreateRoompage');
   };
 
   const handleJoinRoom = () => {

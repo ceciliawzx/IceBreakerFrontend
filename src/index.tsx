@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './index.css';
 import Homepage from './Homepage';
-import CreateRoomPage from './CreateRoompage';
+import CreateRoomPage from './CreateRoomPage';
 import JoinRoompage from './JoinRoomPage';
 import UserProfilePage from './UserProfilePage';
 import reportWebVitals from './reportWebVitals';
