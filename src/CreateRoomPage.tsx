@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
-interface RoomPageProps {}
-
-function RoomPage() {
+function CreateRoomPage() {
   const navigate = useNavigate();
   const { holderName } = useParams<{ holderName: string }>();
   const [joinLink, setJoinLink] = useState<string>(''); // State to store the join link
@@ -13,7 +11,7 @@ function RoomPage() {
   };
 
   return (
-    <div className="room-page">
+    <div className="create-room-page">
       <h1>{holderName}'s Room</h1>
       <div className="join-link">
         <p>Share this link to invite others:</p>
@@ -30,4 +28,4 @@ function RoomPage() {
   );
 }
 
-export default RoomPage;
+export default CreateRoomPage;

@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './index.css';
 import Homepage from './Homepage';
-import Roompage from './Roompage';
+import CreateRoomPage from './CreateRoompage';
 import JoinRoompage from './JoinRoomPage';
 import UserProfilePage from './UserProfilePage';
 import reportWebVitals from './reportWebVitals';
@@ -16,7 +16,7 @@ root.render(
     <Router>
       <Routes>
         <Route path="/" element={<Homepage />} />
-        <Route path="Roompage" element={<Roompage />} />
+        <Route path="CreateRoomPage" element={<CreateRoomPage />} />
         <Route path="JoinRoompage" element={<JoinRoompage />} />
         <Route path="UserProfilePage" element={<UserProfilePage />} />
       </Routes>
