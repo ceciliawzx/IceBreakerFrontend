@@ -4,11 +4,25 @@ import './JoinRoomPage.css';
 const JoinRoomPage = () => {
     const [displayName, setDisplayName] = useState('');
     const [roomCode, setRoomCode] = useState('');
+    const [message, setMessage] = useState('');
 
-    const handleSubmit = (event: React.FormEvent) => {
+    const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
-        // Add validation and navigation logic here
+
+        try {
+            const response = await fetch(`http://ljthey.co.uk:8080/joinRoom?roomNumber=${roomCode}`);
+            const data = await response.text();
+
+            if (data.includes("You have joined room")) {
+                setMessage(data); // Success message
+            } else {
+                setMessage("Join Room Failed"); // Error message
+            }
+        } catch (error) {
+            setMessage("Join Room Failed"); // Error message
+        }
     };
+
 
     return (
         <div className="form-container">
@@ -28,6 +42,7 @@ const JoinRoomPage = () => {
                     placeholder="Room Code" 
                 />
                 <button type="submit" className="submit-button">Join Room</button>
+                {message && <p className="message">{message}</p>}
             </form>
         </div>
     );    
