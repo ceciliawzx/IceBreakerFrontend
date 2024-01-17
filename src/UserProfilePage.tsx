@@ -14,7 +14,6 @@ const UserProfilePage = () => {
         }
     };
 
-    // ... other handlers and form submission logic
 
     return (
         <div className="user-profile-container">

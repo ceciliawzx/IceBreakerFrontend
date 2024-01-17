@@ -1,31 +1,36 @@
 import React, { useState } from 'react';
-// import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 // import { useParams } from 'react-router-dom';
 import './CreateRoomPage.css';
 
 function CreateRoomPage() {
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
   const [joinLink, setJoinLink] = useState('');
   const [message, setMessage] = useState('');
   const [isRoomCreated, setIsRoomCreated] = useState(false);
   
   const createRoom = async () => {
     try {
-      const response = await fetch('http://ljthey.co.uk:8080/createRoom', {method: 'GET'});
+      const response = await fetch('http://ljthey.co.uk:8080/createRoom');
       const data = await response.text();
 
       if (data.includes("Room Created!!!")) {
-        setJoinLink(data); // Assuming data is the success message with room number
-        setIsRoomCreated(true); // Disable the button as room is created successfully
+        setJoinLink(data);
+        setIsRoomCreated(true);
+
+        // Navigate to WaitRoomPage with joinLink as a parameter
+        navigate('/WaitRoomPage', { state: { joinLink: data } });
+
       } else {
-        setMessage(data); // Assuming data is the error message
-        setIsRoomCreated(false); // Keep the button active as creation failed
+        setMessage(data);
+        setIsRoomCreated(false);
       }
     } catch (error: any) {
       setMessage('Error creating room: ' + error.message);
-      setIsRoomCreated(false); // Keep the button active as creation failed
+      setIsRoomCreated(false);
     }
   };
+
 
   return (
     <div className="create-room-page">

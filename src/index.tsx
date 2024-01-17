@@ -17,10 +17,10 @@ root.render(
     <Router>
       <Routes>
         <Route path="/" element={<Homepage />} />
-        <Route path="CreateRoomPage" element={<CreateRoomPage />} />
-        <Route path="JoinRoompage" element={<JoinRoomPage />} />
-        <Route path="WaitRoomPage" element={<WaitRoomPage />} />
-        <Route path="UserProfilePage" element={<UserProfilePage />} />
+        <Route path="/CreateRoomPage" element={<CreateRoomPage />} />
+        <Route path="/JoinRoompage" element={<JoinRoomPage />} />
+        <Route path="/WaitRoomPage" element={<WaitRoomPage />} />
+        <Route path="/UserProfilePage" element={<UserProfilePage />} />
       </Routes>
     </Router>
   </React.StrictMode>

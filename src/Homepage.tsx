@@ -8,12 +8,12 @@ function Homepage() {
   const handleCreateRoom = () => {
     console.log('Create Room clicked');
     const holderName = 'John Doe';
-    navigate('CreateRoomPage');
+    navigate('/CreateRoomPage');
   };
 
   const handleJoinRoom = () => {
     console.log('Join Room clicked');
-    navigate('JoinRoomPage');
+    navigate('/JoinRoomPage');
   };
 
   return (
