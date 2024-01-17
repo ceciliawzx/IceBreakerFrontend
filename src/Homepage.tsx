@@ -13,6 +13,7 @@ function Homepage() {
 
   const handleJoinRoom = () => {
     console.log('Join Room clicked');
+    navigate('JoinRoompage');
   };
 
   return (
