@@ -1,30 +1,33 @@
-import React, { Component } from 'react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Homepage.css';
 
-class Homepage extends Component {
-  handleCreateRoom() {
+function Homepage() {
+  const navigate = useNavigate();
+
+  const handleCreateRoom = () => {
     console.log('Create Room clicked');
-  }
+    const holderName = 'John Doe';
+    navigate('Roompage');
+  };
 
-  handleJoinRoom() {
+  const handleJoinRoom = () => {
     console.log('Join Room clicked');
-  }
+  };
 
-  render() {
-    return (
-      <div className="home-page">
-        <h1>Welcome to the Room Page</h1>
-        <div className="button-container">
-          <button className="button" onClick={this.handleCreateRoom}>
-            Create Room
-          </button>
-          <button className="button" onClick={this.handleJoinRoom}>
-            Join Room
-          </button>
-        </div>
+  return (
+    <div className="home-page">
+      <h1>Welcome to the Room Page</h1>
+      <div className="button-container">
+        <button className="button" onClick={handleCreateRoom}>
+          Create Room
+        </button>
+        <button className="button" onClick={handleJoinRoom}>
+          Join Room
+        </button>
       </div>
-    );
-  }
+    </div>
+  );
 }
 
 export default Homepage;
