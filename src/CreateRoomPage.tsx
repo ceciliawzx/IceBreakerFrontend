@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
+// import { useParams } from 'react-router-dom';
 import './CreateRoomPage.css';
 
 function CreateRoomPage() {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [joinLink, setJoinLink] = useState('');
   const [message, setMessage] = useState('');
   const [isRoomCreated, setIsRoomCreated] = useState(false);
