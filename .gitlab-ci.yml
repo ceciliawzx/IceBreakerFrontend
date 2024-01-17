@@ -1,9 +1,11 @@
+image: node:16
+
 stages:
   - build
+  - test
   - deploy
 
 build-app:
-  image: node:16
   stage: build
   script:
     - npm install
@@ -11,6 +13,12 @@ build-app:
   artifacts:
     paths:
       - build/
+
+test:
+  stage: test
+  script:
+    - npm install
+    - npm test
       
 deploy_to_lab:
   stage: deploy
