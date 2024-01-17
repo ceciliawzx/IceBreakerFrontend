@@ -3,11 +3,11 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './index.css';
 import Homepage from './Homepage';
-import CreateRoomPage from './CreateRoomPage';
 import JoinRoomPage from './JoinRoomPage';
 import WaitRoomPage from './WaitRoomPage';
 import UserProfilePage from './UserProfilePage';
 import reportWebVitals from './reportWebVitals';
+import CreateRoomPage from './CreateRoomPage';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
