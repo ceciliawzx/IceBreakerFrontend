@@ -4,7 +4,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './index.css';
 import Homepage from './Homepage';
 import CreateRoomPage from './CreateRoomPage';
-import JoinRoompage from './JoinRoomPage';
+import JoinRoomPage from './JoinRoomPage';
+import WaitRoomPage from './WaitRoomPage';
 import UserProfilePage from './UserProfilePage';
 import reportWebVitals from './reportWebVitals';
 
@@ -17,7 +18,8 @@ root.render(
       <Routes>
         <Route path="/" element={<Homepage />} />
         <Route path="CreateRoomPage" element={<CreateRoomPage />} />
-        <Route path="JoinRoompage" element={<JoinRoompage />} />
+        <Route path="JoinRoompage" element={<JoinRoomPage />} />
+        <Route path="WaitRoomPage" element={<WaitRoomPage />} />
         <Route path="UserProfilePage" element={<UserProfilePage />} />
       </Routes>
     </Router>

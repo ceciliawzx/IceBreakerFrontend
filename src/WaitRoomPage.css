@@ -1,0 +1,18 @@
+.wait-room-page {
+  text-align: center;
+  margin-top: 50px;
+}
+
+.room-code {
+  margin-top: 20px;
+}
+
+.guest-list {
+  margin-top: 20px;
+}
+
+.start-room-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 16px;
+}
