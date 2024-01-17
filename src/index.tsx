@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './index.css';
 import Homepage from './Homepage';
-import Roompage from './Roompage';
+import CreateRoomPage from './CreateRoompage';
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(
@@ -14,7 +14,7 @@ root.render(
     <Router>
       <Routes>
         <Route path="/" element={<Homepage />} />
-        <Route path="Roompage" element={<Roompage />} />
+        <Route path="CreateRoomPage" element={<CreateRoomPage />} />
       </Routes>
     </Router>
   </React.StrictMode>
