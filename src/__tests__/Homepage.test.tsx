@@ -1,7 +1,12 @@
 import { render, fireEvent, screen } from '@testing-library/react';
+import { BrowserRouter as Router } from 'react-router-dom';
 import Homepage from '../Homepage';
 
-const homepageComponent = <Homepage />;
+const homepageComponent = (
+  <Router>
+    <Homepage />
+  </Router>
+);
 
 it('should show welcome words', () => {
   const { getByText } = render(homepageComponent);
