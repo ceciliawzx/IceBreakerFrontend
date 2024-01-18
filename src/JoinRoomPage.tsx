@@ -24,6 +24,8 @@ const JoinRoomPage = () => {
     };
 
     return (
+      <div className="join-room-page">
+        <h1>Join a New Room</h1>
         <div className="form-container">
             <form onSubmit={handleSubmit} className="form">
                 <input 
@@ -44,6 +46,7 @@ const JoinRoomPage = () => {
                 {message && <p className="message">{message}</p>}
             </form>
         </div>
+      </div>
     );    
 };
 

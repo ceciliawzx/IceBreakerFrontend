@@ -8,7 +8,7 @@ function CreateRoomPage() {
   const [joinLink, setJoinLink] = useState('');
   const [message, setMessage] = useState('');
   const [isRoomCreated, setIsRoomCreated] = useState(false);
-  const [nickname, setNickname] = useState('');
+  const [nickname, setDisplayname] = useState('');
   
   const createRoom = async () => {
     try {
@@ -36,14 +36,17 @@ function CreateRoomPage() {
     <div className="create-room-page">
       <h1>Create a New Room</h1>
       <div>
-        <label>Nickname:</label>
         <input
           type="text"
+          className="form-input"
           value={nickname}
-          onChange={(e) => setNickname(e.target.value)}
+          onChange={(e) => setDisplayname(e.target.value)}
+          placeholder="Display Name" 
         />
       </div>
-      <button onClick={createRoom} disabled={isRoomCreated}>Create Room</button>
+      <button onClick={createRoom} disabled={isRoomCreated} className="submit-button">
+        Create Room
+      </button>
       {message && <p className="error-message">{message}</p>}
     </div>
   );
