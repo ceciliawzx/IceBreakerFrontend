@@ -1,34 +1,36 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import './Homepage.css';
 
-function Homepage() {
-  const navigate = useNavigate();
+const Homepage: React.FC = () => {
+  const [log, setLog] = useState<string | null>(null);
 
   const handleCreateRoom = () => {
-    console.log('Create Room clicked');
+    setLog('Create Room clicked');
     const holderName = 'John Doe';
     navigate('/CreateRoomPage');
   };
 
   const handleJoinRoom = () => {
-    console.log('Join Room clicked');
+    setLog('Join Room clicked');
     navigate('/JoinRoomPage');
   };
 
+>>>>>>> src/Homepage.tsx
   return (
     <div className="home-page">
       <h1>Welcome to the Room Page</h1>
-      <div className="button-container">
-        <button className="button" onClick={handleCreateRoom}>
+      <div className="button-container"
+        <button className="button" onClick={handleCreateRoom} data-testid="create-room-button">
           Create Room
         </button>
-        <button className="button" onClick={handleJoinRoom}>
+        <button className="button" onClick={handleJoinRoom} data-testid="join-room-button">
           Join Room
         </button>
       </div>
+      {log && <p data-testid="log-message">{log}</p>}
     </div>
   );
-}
+};
+>>>>>>> src/Homepage.tsx
 
 export default Homepage;
