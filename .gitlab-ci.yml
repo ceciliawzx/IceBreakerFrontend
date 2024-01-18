@@ -4,13 +4,16 @@ stages:
   - build
   - test
   - deploy
+  
+variables:
+  CI: "false"
 
 build-app:
   stage: build
   script:
     - npm install
     - npm run build
-  artifacts:
+  artifacts: 
     paths:
       - build/
 
