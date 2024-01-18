@@ -8,7 +8,6 @@ const Homepage: React.FC = () => {
 
   const handleCreateRoom = () => {
     setLog('Create Room clicked');
-    const holderName = 'John Doe';
     navigate('/CreateRoomPage');
   };
 

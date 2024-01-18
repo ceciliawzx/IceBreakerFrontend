@@ -1,20 +1,24 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import './WaitRoomPage.css';
 
 function WaitRoomPage() {
   const location = useLocation();
+  const navigate = useNavigate();
   const joinLink = location.state?.joinLink || 'No join link available';
+  const nickname = location.state?.displayname
   const [guests, setGuests] = useState<string[]>([]);
 
   const handleStartRoom = () => {
-    // Handle logic to start the room
+    
     console.log('Room started!');
+    navigate('/UserProfilePage');
   };
 
   return (
     <div className="wait-room-page">
-      <h1>Wait Room</h1>
+      <h1>Welcome, {nickname}!</h1>
       <div className="room-code">
         <p>Room Code: {joinLink}</p>
       </div>
