@@ -5,6 +5,7 @@ import './WaitRoomPage.css';
 function WaitRoomPage() {
   const location = useLocation();
   const joinLink = location.state?.joinLink || 'No join link available';
+  const nickname = location.state?.nickname || 'Creator';
   const [guests, setGuests] = useState<string[]>([]);
 
   const handleStartRoom = () => {
@@ -14,7 +15,7 @@ function WaitRoomPage() {
 
   return (
     <div className="wait-room-page">
-      <h1>Wait Room</h1>
+      <h1>Welcome, {nickname}!</h1>
       <div className="room-code">
         <p>Room Code: {joinLink}</p>
       </div>

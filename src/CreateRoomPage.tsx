@@ -8,6 +8,7 @@ function CreateRoomPage() {
   const [joinLink, setJoinLink] = useState('');
   const [message, setMessage] = useState('');
   const [isRoomCreated, setIsRoomCreated] = useState(false);
+  const [nickname, setNickname] = useState('');
   
   const createRoom = async () => {
     try {
@@ -19,7 +20,7 @@ function CreateRoomPage() {
         setIsRoomCreated(true);
 
         // Navigate to WaitRoomPage with joinLink as a parameter
-        navigate('/WaitRoomPage', { state: { joinLink: data } });
+        navigate('/WaitRoomPage', { state: { joinLink: data, nickname } });
 
       } else {
         setMessage(data);
@@ -34,10 +35,16 @@ function CreateRoomPage() {
   return (
     <div className="create-room-page">
       <h1>Create a New Room</h1>
+      <div>
+        <label>Nickname:</label>
+        <input
+          type="text"
+          value={nickname}
+          onChange={(e) => setNickname(e.target.value)}
+        />
+      </div>
       <button onClick={createRoom} disabled={isRoomCreated}>Create Room</button>
-      {joinLink && <p>{joinLink}</p>}
       {message && <p className="error-message">{message}</p>}
-      {/* Rest of your component */}
     </div>
   );
 }
