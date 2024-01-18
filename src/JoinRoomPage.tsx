@@ -5,9 +5,16 @@ const JoinRoomPage = () => {
     const [displayName, setDisplayName] = useState('');
     const [roomCode, setRoomCode] = useState('');
     const [message, setMessage] = useState('');
+    const [showPopup, setShowPopup] = useState(false);
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
+
+        if (!displayName.trim()) {
+          // Display popup or alert for empty nickname
+          setShowPopup(true);
+          return;
+        }
 
         try {
             const response = await fetch(`http://ljthey.co.uk:8080/joinRoom?roomNumber=${roomCode}`, {method: 'GET'});
@@ -46,6 +53,12 @@ const JoinRoomPage = () => {
                 {message && <p className="message">{message}</p>}
             </form>
         </div>
+        {showPopup && (
+        <div className="popup">
+          <p>Please enter a displayname.</p>
+          <button onClick={() => setShowPopup(false)}>OK</button>
+        </div>
+      )}
       </div>
     );    
 };

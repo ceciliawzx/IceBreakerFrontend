@@ -8,9 +8,17 @@ function CreateRoomPage() {
   const [joinLink, setJoinLink] = useState('');
   const [message, setMessage] = useState('');
   const [isRoomCreated, setIsRoomCreated] = useState(false);
-  const [nickname, setDisplayname] = useState('');
+  const [displayname, setDisplayname] = useState('');
+  const [showPopup, setShowPopup] = useState(false);
   
   const createRoom = async () => {
+
+    if (!displayname.trim()) {
+      // Display popup or alert for empty nickname
+      setShowPopup(true);
+      return;
+    }
+
     try {
       const response = await fetch('http://ljthey.co.uk:8080/createRoom', {method: 'POST'});
       const data = await response.text();
@@ -20,7 +28,7 @@ function CreateRoomPage() {
         setIsRoomCreated(true);
 
         // Navigate to WaitRoomPage with joinLink as a parameter
-        navigate('/WaitRoomPage', { state: { joinLink: data, nickname } });
+        navigate('/WaitRoomPage', { state: { joinLink: data, displayname } });
 
       } else {
         setMessage(data);
@@ -39,7 +47,7 @@ function CreateRoomPage() {
         <input
           type="text"
           className="form-input"
-          value={nickname}
+          value={displayname}
           onChange={(e) => setDisplayname(e.target.value)}
           placeholder="Display Name" 
         />
@@ -48,6 +56,12 @@ function CreateRoomPage() {
         Create Room
       </button>
       {message && <p className="error-message">{message}</p>}
+      {showPopup && (
+        <div className="popup">
+          <p>Please enter a displayname.</p>
+          <button onClick={() => setShowPopup(false)}>OK</button>
+        </div>
+      )}
     </div>
   );
 }

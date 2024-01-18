@@ -7,7 +7,7 @@ function WaitRoomPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const joinLink = location.state?.joinLink || 'No join link available';
-  const nickname = location.state?.nickname || 'Creator';
+  const nickname = location.state?.displayname
   const [guests, setGuests] = useState<string[]>([]);
 
   const handleStartRoom = () => {
