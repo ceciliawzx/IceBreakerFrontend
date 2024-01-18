@@ -3,7 +3,8 @@ image: node:16
 stages:
   - build
   - test
-  - deploy
+  - deploy_dev
+  - deploy_master
 
 build-app:
   stage: build
@@ -20,8 +21,8 @@ test:
     - npm install
     - npm test
       
-deploy_to_lab:
-  stage: deploy
+master_deploy:
+  stage: deploy_master
   before_script:
     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
@@ -34,3 +35,18 @@ deploy_to_lab:
     - scp -r build/* zw4021@texel02:/vol/project/2023/60021/g236002112/web
   only:
     - master
+
+dev_deploy:
+  stage: deploy_dev
+  before_script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - 'echo -e "Host texel02\n\tHostName shell2.doc.ic.ac.uk\n\tUser zw4021\n\tRequestTTY yes\n\tIdentityFile ~/.ssh/id_rsa\n\tRemoteCommand ssh texel02" > ~/.ssh/config'
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+  script:
+    - rm -f zw4021@texel02:/vol/project/2023/60021/g236002112/dev/*
+    - scp -r build/* zw4021@texel02:/vol/project/2023/60021/g236002112/dev
+  only:
+    - dev
