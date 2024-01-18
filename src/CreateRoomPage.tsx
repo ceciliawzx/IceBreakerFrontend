@@ -31,7 +31,6 @@ function CreateRoomPage() {
     }
   };
 
-
   return (
     <div className="create-room-page">
       <h1>Create a New Room</h1>
