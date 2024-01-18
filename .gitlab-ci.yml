@@ -48,5 +48,5 @@ dev_deploy:
   script:
     - rm -f zw4021@texel02:/vol/project/2023/60021/g236002112/dev/*
     - scp -r build/* zw4021@texel02:/vol/project/2023/60021/g236002112/dev
-  only:
+  except:
     - dev
