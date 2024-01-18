@@ -10,7 +10,7 @@ const JoinRoomPage = () => {
         event.preventDefault();
 
         try {
-            const response = await fetch(`http://ljthey.co.uk:8080/joinRoom?roomNumber=${roomCode}`);
+            const response = await fetch(`http://ljthey.co.uk:8080/joinRoom?roomNumber=${roomCode}`, {method: 'POST'});
             const data = await response.text();
 
             if (data.includes("You have joined room")) {

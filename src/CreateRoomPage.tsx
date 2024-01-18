@@ -11,7 +11,7 @@ function CreateRoomPage() {
   
   const createRoom = async () => {
     try {
-      const response = await fetch('http://ljthey.co.uk:8080/createRoom');
+      const response = await fetch('http://ljthey.co.uk:8080/createRoom', {method: 'POST'});
       const data = await response.text();
 
       if (data.includes("Room Created!!!")) {
