@@ -32,7 +32,7 @@ const ChatRoomBar: React.FC = () => {
     <div className={`chat-room-page ${isEnlarged ? 'enlarged' : ''}`}>
       {isEnlarged ? (
       <div className="chat-room-bar">
-        <button className="toggle-button" onClick={toggleSize}>
+        <button className="toggle-top" onClick={toggleSize}>
           chat
         </button>
         <div className="message-display">
