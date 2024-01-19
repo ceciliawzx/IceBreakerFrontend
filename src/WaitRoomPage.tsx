@@ -7,7 +7,7 @@ const WaitRoomPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const userID = location.state?.userID
-  const roomCode = location.state?.roomID || "No join link available";
+  const roomCode = location.state?.roomCode || "No join link available";
   const displayName = location.state?.displayName;
   const [guests, setGuests] = useState<string[]>([]);
 

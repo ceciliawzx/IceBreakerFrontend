@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./JoinRoomPage.css";
+import { serverPort } from "./MacroConst";
 
 const JoinRoomPage = () => {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ const JoinRoomPage = () => {
 
     try {
       const response = await fetch(
-        `http://ljthey.co.uk:8080/joinRoom?roomNumber=${roomCode}`,
+        serverPort + `/joinRoom?roomNumber=${roomCode}`,
         { method: "GET" }
       );
       const data = await response.text();

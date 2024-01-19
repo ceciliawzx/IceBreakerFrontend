@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { serverPort } from "./MacroConst";
 import "./CreateRoomPage.css";
 
 const CreateRoomPage = () => {
@@ -18,7 +19,7 @@ const CreateRoomPage = () => {
 
     try {
 
-      const response = await fetch("http://ljthey.co.uk:8080/createRoom?name=" + displayName, {
+      const response = await fetch( serverPort + "/createRoom?name=" + displayName, {
         method: "POST"
       });
     
@@ -28,12 +29,14 @@ const CreateRoomPage = () => {
 
       const jsonResponse = await response.json();
 
-      const { userID, roomID } = jsonResponse;
+      console.log(jsonResponse);
+      
+      const { userID, roomCode } = jsonResponse;
 
-      if (userID && roomID) {
+      if (userID && roomCode) {
         // Navigate to WaitRoomPage with userID, roomID, and displayName as parameters
         navigate("/WaitRoomPage", {
-          state: { userID, roomID, displayName },
+          state: { userID, roomCode, displayName },
         });
       } else {
         throw new Error("Invalid response format: userID and roomID are required.");
