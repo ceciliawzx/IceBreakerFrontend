@@ -1,23 +1,25 @@
-import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
-import './WaitRoomPage.css';
+import { useState } from "react";
+import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import "./WaitRoomPage.css";
 
 const WaitRoomPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const joinLink = location.state?.joinLink || 'No join link available';
-  const displayName = location.state?.displayName
+  const joinLink = location.state?.roomCode || "No join link available";
+  const displayName = location.state?.displayName;
   const [guests, setGuests] = useState<string[]>([]);
 
   const handleStartRoom = () => {
-    console.log('Room started!');
-    navigate('/UserProfilePage');
+    console.log("Room started!");
+    navigate("/UserProfilePage");
   };
 
   return (
     <div className="wait-room-page">
-      <h1>Welcome to wait room, {displayName}!</h1>
+      <h1>
+        Welcome to wait room {joinLink}, {displayName}!
+      </h1>
       <div className="room-code">
         <p>Room Code: {joinLink}</p>
       </div>
@@ -34,6 +36,6 @@ const WaitRoomPage = () => {
       </button>
     </div>
   );
-}
+};
 
 export default WaitRoomPage;
