@@ -17,37 +17,26 @@ const CreateRoomPage = () => {
     }
 
     try {
-      const response = await fetch("http://ljthey.co.uk:8080/createRoom", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json", // Specify the content type as JSON
-        },
-        body: JSON.stringify({
-          name: displayName,
-        }),
+
+      const response = await fetch("http://ljthey.co.uk:8080/createRoom?name=" + displayName, {
+        method: "POST"
       });
-      const data = await response.json();
+    
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
 
-      console.log(data)
+      const jsonResponse = await response.json();
 
-      if (data.includes("Room Created!!!")) {
+      const { userID, roomID } = jsonResponse;
 
-        // Parse roomCode
-        const roomNumberPattern = /Room Number is (.+)/;
-        const match = data.match(roomNumberPattern);
-        // Check if there is a match and extract the room number
-        if (match && match[1]) {
-          const trimmedRoomCode = match[1].trim();
-
-          // Navigate to WaitRoomPage with joinLink as a parameter
-          navigate("/WaitRoomPage", {
-            state: { roomCode: trimmedRoomCode, displayName },
-          });
-        } else {
-          throw new Error("No room number found in the sentence.");
-        }
+      if (userID && roomID) {
+        // Navigate to WaitRoomPage with userID, roomID, and displayName as parameters
+        navigate("/WaitRoomPage", {
+          state: { userID, roomID, displayName },
+        });
       } else {
-        setMessage(data);
+        throw new Error("Invalid response format: userID and roomID are required.");
       }
     } catch (error: any) {
       setMessage("Error creating room: " + error.message);
