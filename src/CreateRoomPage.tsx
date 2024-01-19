@@ -19,8 +19,16 @@ const CreateRoomPage = () => {
     try {
       const response = await fetch("http://ljthey.co.uk:8080/createRoom", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json", // Specify the content type as JSON
+        },
+        body: JSON.stringify({
+          name: displayName,
+        }),
       });
-      const data = await response.text();
+      const data = await response.json();
+
+      console.log(data)
 
       if (data.includes("Room Created!!!")) {
 

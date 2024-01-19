@@ -11,7 +11,6 @@ const WaitRoomPage = () => {
   const [guests, setGuests] = useState<string[]>([]);
 
   const handleStartRoom = () => {
-    console.log("Room started!");
     navigate("/UserProfilePage");
   };
 
