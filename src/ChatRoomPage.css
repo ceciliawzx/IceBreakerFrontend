@@ -1,6 +1,6 @@
 .chat-room-page {
   display: flex;
-  height: 100vh; /* Adjust the height as needed */
+  height: 100vh;
 }
 
 .chat-room-bar {
@@ -11,7 +11,7 @@
   border: 1px solid #ccc;
   border-radius: 8px;
   overflow: hidden;
-  margin-left: auto; /* Push the chat room bar to the right */
+  margin-left: auto;
 }
 
 .message-display {
@@ -51,4 +51,18 @@ button {
 
 button:hover {
   background-color: #45a049;
+}
+
+.toggle-button {
+  align-self: flex-end;
+  margin: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-left: auto;
 }
