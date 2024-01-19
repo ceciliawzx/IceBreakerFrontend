@@ -20,9 +20,6 @@ const WaitRoomPage = () => {
       <h1>
         Welcome to Wait Room {roomCode}, {displayName}!
       </h1>
-      <div className="room-code">
-        <p>Room Code: {roomCode}</p>
-      </div>
       <div className="guest-list">
         <h2>Joined Guests:</h2>
         <ul>

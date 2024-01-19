@@ -9,9 +9,7 @@ const JoinRoomPage = () => {
   const [message, setMessage] = useState("");
   const [showPopup, setShowPopup] = useState(false);
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-
+  const handleSubmit = async () => {
     if (!displayName.trim()) {
       // Display popup or alert for empty nickname
       setShowPopup(true);
@@ -26,8 +24,10 @@ const JoinRoomPage = () => {
       const data = await response.text();
 
       if (data.includes("You have joined room")) {
-        setMessage(data); // Success message
-        navigate("/WaitRoomPage", { state: { joinLink: data, displayName } });
+        // Navigate to WaitRoomPage with joinLink as a parameter
+        navigate("/WaitRoomPage", {
+          state: { roomCode, displayName },
+        });
       } else {
         setMessage("Join Room Failed"); // Error message
       }

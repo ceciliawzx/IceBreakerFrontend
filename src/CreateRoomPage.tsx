@@ -4,14 +4,11 @@ import "./CreateRoomPage.css";
 
 const CreateRoomPage = () => {
   const navigate = useNavigate();
-  const [roomCode, setRoomCode] = useState("");
   const [message, setMessage] = useState("");
-  const [isRoomCreated, setIsRoomCreated] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [showPopup, setShowPopup] = useState(false);
 
-  const createRoom = async (event: React.FormEvent) => {
-    event.preventDefault();
+  const createRoom = async () => {
 
     if (!displayName.trim()) {
       // Display popup or alert for empty nickname
@@ -26,15 +23,13 @@ const CreateRoomPage = () => {
       const data = await response.text();
 
       if (data.includes("Room Created!!!")) {
-        setIsRoomCreated(true);
 
         // Parse roomCode
-        const roomNumberPattern = /Room Number is (\d+)/;
+        const roomNumberPattern = /Room Number is (.+)/;
         const match = data.match(roomNumberPattern);
         // Check if there is a match and extract the room number
         if (match && match[1]) {
           const trimmedRoomCode = match[1].trim();
-          setRoomCode(trimmedRoomCode);
 
           // Navigate to WaitRoomPage with joinLink as a parameter
           navigate("/WaitRoomPage", {
@@ -45,11 +40,9 @@ const CreateRoomPage = () => {
         }
       } else {
         setMessage(data);
-        setIsRoomCreated(false);
       }
     } catch (error: any) {
       setMessage("Error creating room: " + error.message);
-      setIsRoomCreated(false);
     }
   };
 
@@ -67,7 +60,6 @@ const CreateRoomPage = () => {
       </div>
       <button
         onClick={createRoom}
-        disabled={isRoomCreated}
         className="submit-button"
       >
         Create Room
