@@ -10,7 +10,6 @@ const CreateRoomPage = () => {
   const [showPopup, setShowPopup] = useState(false);
 
   const createRoom = async () => {
-
     if (!displayName.trim()) {
       // Display popup or alert for empty nickname
       setShowPopup(true);
@@ -18,20 +17,18 @@ const CreateRoomPage = () => {
     }
 
     try {
+      const response = await fetch(
+        serverPort + `/createRoom?name=${displayName}`,
+        {
+          method: "POST",
+        }
+      );
 
-      const response = await fetch( serverPort + "/createRoom?name=" + displayName, {
-        method: "POST"
-      });
-    
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
-      const jsonResponse = await response.json();
-
-      console.log(jsonResponse);
-      
-      const { userID, roomCode } = jsonResponse;
+      const { userID, roomCode } = await response.json();
 
       if (userID && roomCode) {
         // Navigate to WaitRoomPage with userID, roomID, and displayName as parameters
@@ -39,7 +36,9 @@ const CreateRoomPage = () => {
           state: { userID, roomCode, displayName },
         });
       } else {
-        throw new Error("Invalid response format: userID and roomID are required.");
+        throw new Error(
+          "Invalid response format: userID and roomID are required."
+        );
       }
     } catch (error: any) {
       setMessage("Error creating room: " + error.message);
@@ -58,10 +57,7 @@ const CreateRoomPage = () => {
           placeholder="Display Name"
         />
       </div>
-      <button
-        onClick={createRoom}
-        className="submit-button"
-      >
+      <button onClick={createRoom} className="submit-button">
         Create Room
       </button>
       {message && <p className="error-message">{message}</p>}

@@ -19,18 +19,22 @@ const JoinRoomPage = () => {
 
     try {
       const response = await fetch(
-        serverPort + `/joinRoom?roomNumber=${roomCode}`,
-        { method: "GET" }
+        serverPort + `/joinRoom?roomCode=${roomCode}&name=${displayName}`,
+        { method: "POST" }
       );
-      const data = await response.text();
 
-      if (data.includes("You have joined room")) {
-        // Navigate to WaitRoomPage with joinLink as a parameter
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const {userID} = await response.json();
+
+      if (userID) {
         navigate("/WaitRoomPage", {
-          state: { roomCode, displayName },
+          state: { userID, roomCode, displayName },
         });
       } else {
-        setMessage("Join Room Failed"); // Error message
+        setMessage("Wrong room code"); // Error message
       }
     } catch (error) {
       setMessage("Join Room Failed"); // Error message
