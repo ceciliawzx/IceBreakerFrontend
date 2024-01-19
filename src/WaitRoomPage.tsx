@@ -6,7 +6,7 @@ import "./WaitRoomPage.css";
 const WaitRoomPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const joinLink = location.state?.roomCode || "No join link available";
+  const roomCode = location.state?.roomCode || "No join link available";
   const displayName = location.state?.displayName;
   const [guests, setGuests] = useState<string[]>([]);
 
@@ -18,10 +18,10 @@ const WaitRoomPage = () => {
   return (
     <div className="wait-room-page">
       <h1>
-        Welcome to wait room {joinLink}, {displayName}!
+        Welcome to Wait Room {roomCode}, {displayName}!
       </h1>
       <div className="room-code">
-        <p>Room Code: {joinLink}</p>
+        <p>Room Code: {roomCode}</p>
       </div>
       <div className="guest-list">
         <h2>Joined Guests:</h2>
