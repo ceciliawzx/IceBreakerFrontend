@@ -8,6 +8,7 @@ import WaitRoomPage from "./WaitRoomPage";
 import UserProfilePage from "./UserProfilePage";
 import reportWebVitals from "./reportWebVitals";
 import CreateRoomPage from "./CreateRoomPage";
+import ChatRoomPage from "./ChatRoomPage";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -16,11 +17,12 @@ root.render(
   <React.StrictMode>
     <Router>
       <Routes>
-        <Route path="/" element={<Homepage />} />
+        <Route path="/home" element={<Homepage />} />
         <Route path="/CreateRoomPage" element={<CreateRoomPage />} />
         <Route path="/JoinRoompage" element={<JoinRoomPage />} />
         <Route path="/WaitRoomPage" element={<WaitRoomPage />} />
         <Route path="/UserProfilePage" element={<UserProfilePage />} />
+        <Route path="/" element = {<ChatRoomPage/>} />
       </Routes>
     </Router>
   </React.StrictMode>
