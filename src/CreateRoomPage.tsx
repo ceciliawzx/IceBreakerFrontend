@@ -1,19 +1,18 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-// import { useParams } from 'react-router-dom';
 import './CreateRoomPage.css';
 
-function CreateRoomPage() {
+const CreateRoomPage = () => {
   const navigate = useNavigate();
   const [joinLink, setJoinLink] = useState('');
   const [message, setMessage] = useState('');
   const [isRoomCreated, setIsRoomCreated] = useState(false);
-  const [displayname, setDisplayname] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [showPopup, setShowPopup] = useState(false);
   
   const createRoom = async () => {
 
-    if (!displayname.trim()) {
+    if (!displayName.trim()) {
       // Display popup or alert for empty nickname
       setShowPopup(true);
       return;
@@ -28,7 +27,7 @@ function CreateRoomPage() {
         setIsRoomCreated(true);
 
         // Navigate to WaitRoomPage with joinLink as a parameter
-        navigate('/WaitRoomPage', { state: { joinLink: data, displayname } });
+        navigate('/WaitRoomPage', { state: { joinLink: data, displayName } });
 
       } else {
         setMessage(data);
@@ -47,8 +46,8 @@ function CreateRoomPage() {
         <input
           type="text"
           className="form-input"
-          value={displayname}
-          onChange={(e) => setDisplayname(e.target.value)}
+          value={displayName}
+          onChange={(e) => setDisplayName(e.target.value)}
           placeholder="Display Name" 
         />
       </div>
