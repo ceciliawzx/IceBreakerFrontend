@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import "./UserProfilePage.css";
 
 const UserProfilePage = () => {
+  const [displayName, setDisplayName] = useState("");
+  const [roomCode, setRoomCode] = useState("");
+  const [message, setMessage] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [city, setCity] = useState("");
@@ -12,6 +15,36 @@ const UserProfilePage = () => {
     if (event.target.files && event.target.files[0]) {
       setSelfie(event.target.files[0]);
     }
+  };
+
+  const handleSubmit = () => {
+    const userData = {
+      firstName: firstName,
+      lastName: lastName,
+      city: city,
+      country: country,
+      selfie: selfie,
+    };
+    const userDataJSON = JSON.stringify(userData);
+    const apiUrl = "https://example.com/api/user";
+
+    // Send the JSON data to the backend using the fetch API
+    fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: userDataJSON,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        // Handle the response from the backend
+        console.log("Response:", data);
+      })
+      .catch((error) => {
+        // Handle errors
+        console.error("Error:", error);
+      });
   };
 
   return (
@@ -55,7 +88,7 @@ const UserProfilePage = () => {
           <input type="file" onChange={handleSelfieChange} accept="image/*" />
         </div>
       </form>
-      <button type="submit" className="submit-button">
+      <button type="submit" className="submit-button" onClick={handleSubmit}>
         Submit
       </button>
     </div>

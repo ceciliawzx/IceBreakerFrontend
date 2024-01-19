@@ -12,7 +12,9 @@ const WaitRoomPage = () => {
   const [guests, setGuests] = useState<string[]>([]);
 
   const handleStartRoom = () => {
-    navigate("/UserProfilePage");
+    navigate("/UserProfilePage", {
+      state: { userID, roomCode, displayName },
+    });
   };
 
   return (
