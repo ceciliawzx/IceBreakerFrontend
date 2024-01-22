@@ -15,12 +15,70 @@ const WaitRoomPage = () => {
   const [admin, setAdmin] = useState<string>("");
   const [isAdmin, setIsAdmin] = useState(false);
 
-  const handleStartRoom = () => {
-    navigate("/UserProfilePage", {
-      state: { user },
+  const handleStartRoom = async () => {
+    // Tell server that to start room
+    const response = await fetch(
+      `${serverPort}/startInput?roomCode=${roomCode}`,
+      {
+        method: "POST",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+  };
+
+  const handleChatRoom = () => {
+    navigate("/ChatRoomPage", {
+      state: { userID, roomCode, displayName },
     });
   };
 
+  // Check if the user is the admin
+  const checkAdminStatus = async () => {
+    const url = `${serverPort}/isAdmin?userID=${userID}&roomCode=${roomCode}`;
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      setIsAdmin(data === true);
+    } catch (error) {
+      console.error("Error checking admin status:", error);
+    }
+  };
+
+  // Fetch the players & check if room start from the backend
+  const checkRoomStatus = async () => {
+    const url = `${serverPort}/getPlayers?roomCode=${roomCode}`;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error("Room cannot be found");
+      }
+
+      const data = await response.json();
+      if (data.admin) {
+        setAdmin(data.admin.displayName);
+      }
+      if (data.otherPlayers) {
+        setGuests(
+          data.otherPlayers.map(
+            (player: { displayName: any }) => player.displayName
+          )
+        );
+      }
+      // if moderator starts game, navigate to input phase
+      if (data.gameStatus) {
+        navigate("/UserProfilePage", {
+          state: { user },
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching players:", error);
+    }
+  };
+
+  // Periodically check room status
   useEffect(() => {
     // Check if the user is the admin
     const checkAdminStatus = async () => {
@@ -59,10 +117,11 @@ const WaitRoomPage = () => {
     };
 
     checkAdminStatus();
-    
-    // Update the player list every 1 seconds
-    const intervalId = setInterval(fetchPlayers, refreshTime);
 
+    // Update the player list every interval
+    const intervalId = setInterval(checkRoomStatus, refreshTime);
+
+    // Clear timer and count again
     return () => clearInterval(intervalId);
   }, [userID, roomCode]);
 
@@ -102,6 +161,11 @@ const WaitRoomPage = () => {
           Start Room
         </button>
       )}
+      {
+        <button className="start-room-button" onClick={handleChatRoom}>
+          Chat Room
+        </button>
+      }
     </div>
   );
 };
