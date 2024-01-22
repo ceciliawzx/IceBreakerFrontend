@@ -80,7 +80,6 @@ const WaitRoomPage = () => {
 
   // Periodically check room status
   useEffect(() => {
-    // run only once when launch
     checkAdminStatus();
 
     // Update the player list every interval

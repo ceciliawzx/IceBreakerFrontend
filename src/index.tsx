@@ -21,7 +21,7 @@ root.render(
         <Route path="/JoinRoompage" element={<JoinRoomPage />} />
         <Route path="/WaitRoomPage" element={<WaitRoomPage />} />
         <Route path="/UserProfilePage" element={<UserProfilePage />} />
-        <Route path="/ChatRoomPage" element = {<ChatRoomPage/>} />
+        <Route path="/ChatRoomPage" element={<ChatRoomPage />} />
       </Routes>
     </Router>
 );
