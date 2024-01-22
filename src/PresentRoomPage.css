@@ -1,0 +1,75 @@
+.wait-room-page {
+  margin-top: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.room-code {
+  margin-top: 20px;
+}
+
+.moderator-avatar {
+  /* Your existing styles for the moderator section */
+
+  /* Set a background image and make it circular */
+  background-image: url('../public/pic.jpg');
+  background-size: cover;
+  background-position: center;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%; /* Make the image circular */
+}
+
+.guest-avatar {
+  /* Your existing styles for the moderator section */
+
+  /* Set a background image and make it circular */
+  background-image: url('../public/pic.jpg');
+  background-size: cover;
+  background-position: center;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%; /* Make the image circular */
+}
+
+.guest-container {
+  display: flex; /* Aligns children of guest-container in a row */
+  justify-content: center; /* Center the items horizontally */
+  align-items: center; /* Center the items vertically */
+  flex-wrap: wrap; /* Wrap items to next line if space is not enough */
+}
+
+.guest {
+  display: flex; /* Aligns children of guest vertically */
+  flex-direction: column; /* Stack items vertically */
+  align-items: center; /* Center items horizontally in the column */
+  margin: 10px; /* Add some space around each guest */
+}
+
+.river {
+  height: 50px; /* Adjust the height as needed */
+  background-image: url('../public/river.png');
+  background-size: 100% 100%;
+
+}
+
+.guest-list {
+  margin-top: 20px;
+}
+
+.start-room-button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.start-room-button:hover {
+  background-color: #45a049;
+}
