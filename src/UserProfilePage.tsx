@@ -1,10 +1,13 @@
 import React, { useState } from "react";
+import { useLocation } from "react-router-dom";
 import "./UserProfilePage.css";
+import { UserProfile } from "./UserProfile";
+import { serverPort } from "./MacroConst";
 
 const UserProfilePage = () => {
-  const [displayName, setDisplayName] = useState("");
-  const [roomCode, setRoomCode] = useState("");
   const [message, setMessage] = useState("");
+  const location = useLocation();
+  const user = location.state?.user;
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [city, setCity] = useState("");
@@ -17,34 +20,38 @@ const UserProfilePage = () => {
     }
   };
 
-  const handleSubmit = () => {
-    const userData = {
-      firstName: firstName,
-      lastName: lastName,
-      city: city,
-      country: country,
-      selfie: selfie,
-    };
-    const userDataJSON = JSON.stringify(userData);
-    const apiUrl = "https://example.com/api/user";
+  const handleSubmit = async () => {
+    const userProfile = new UserProfile(
+      user,
+      firstName,
+      lastName,
+      country,
+      city,
+      "1", // Add an empty string for the 'feeling' argument
+      "1", // Add an empty string for the 'favFood' argument
+      "1", // Add an empty string for the 'favActivity' argument
+      "1" // Add an empty string for the 'profileImage' argument
+    );
 
-    // Send the JSON data to the backend using the fetch API
-    fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: userDataJSON,
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        // Handle the response from the backend
-        console.log("Response:", data);
-      })
-      .catch((error) => {
-        // Handle errors
-        console.error("Error:", error);
+    try {
+      const response = await fetch(`${serverPort}/updatePerson`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userProfile)
       });
+
+      console.log(response);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`); // Error message
+      }
+      const msg = await response.text();
+      setMessage(msg);
+      console.log(msg);
+    } catch (error) {
+      console.error("Error updating person:", error);
+    }
   };
 
   return (
@@ -91,6 +98,7 @@ const UserProfilePage = () => {
       <button type="submit" className="submit-button" onClick={handleSubmit}>
         Submit
       </button>
+      {message && <p className="message">{message}</p>}
     </div>
   );
 };

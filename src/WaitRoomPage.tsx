@@ -44,12 +44,12 @@ const WaitRoomPage = () => {
         }
         const data = await response.json();
         if (data.admin) {
-          setAdmin(data.admin.nickname);
+          setAdmin(data.admin.displayName);
         }
         if (data.otherPlayers) {
           setGuests(
             data.otherPlayers.map(
-              (player: { nickname: any }) => player.nickname
+              (player: { displayName: any }) => player.displayName
             )
           );
         }
