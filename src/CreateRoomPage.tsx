@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { serverPort } from "./MacroConst";
+import { User } from "./User";
 import "./CreateRoomPage.css";
 
 const CreateRoomPage = () => {
@@ -10,6 +11,7 @@ const CreateRoomPage = () => {
   const [showPopup, setShowPopup] = useState(false);
 
   const createRoom = async () => {
+    // Get display name
     if (!displayName.trim()) {
       // Display popup or alert for empty nickname
       setShowPopup(true);
@@ -17,8 +19,9 @@ const CreateRoomPage = () => {
     }
 
     try {
+      // Get userID and assigned roomCode from backend
       const response = await fetch(
-        serverPort + `/createRoom?name=${displayName}`,
+        `${serverPort}/createRoom?name=${displayName}`,
         {
           method: "POST",
         }
@@ -31,9 +34,11 @@ const CreateRoomPage = () => {
       const { userID, roomCode } = await response.json();
 
       if (userID && roomCode) {
-        // Navigate to WaitRoomPage with userID, roomID, and displayName as parameters
+        // Navigate to with user detail
+        // Creating room is admin
+        const user = new User(roomCode, userID, displayName, true);
         navigate("/WaitRoomPage", {
-          state: { userID, roomCode, displayName },
+          state: { user },
         });
       } else {
         throw new Error(
@@ -41,7 +46,7 @@ const CreateRoomPage = () => {
         );
       }
     } catch (error: any) {
-      setMessage("Error creating room: " + error.message);
+      setMessage("Error creating room: " + error.message); // Error message
     }
   };
 
