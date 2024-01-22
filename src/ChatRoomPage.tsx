@@ -58,7 +58,9 @@ const ChatRoom: React.FC = () => {
       <div className="chat-room-bar">
         <div className="chat-room-header">
         <div className="room-details">
-          Room Code: {roomCode} | Display Name: {displayName}
+          Room Code: 
+          <span className="highlighted-sender">{roomCode}</span> | Display Name: 
+           <span className="highlighted-sender">{displayName}</span>  
         </div>
         </div>
         <div className="message-display">
