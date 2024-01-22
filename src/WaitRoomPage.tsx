@@ -80,7 +80,42 @@ const WaitRoomPage = () => {
 
   // Periodically check room status
   useEffect(() => {
-    // run only once when launch
+    // Check if the user is the admin
+    const checkAdminStatus = async () => {
+      const url = serverPort + `/isAdmin?userID=${userID}&roomCode=${roomCode}`;
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        setIsAdmin(data === true);
+      } catch (error) {
+        console.error("Error checking admin status:", error);
+      }
+    };
+
+    // Fetch the players in the room from the backend
+    const fetchPlayers = async () => {
+      const url = serverPort + `/getPlayers?roomCode=${roomCode}`;
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error("Room cannot be found");
+        }
+        const data = await response.json();
+        if (data.admin) {
+          setAdmin(data.admin.displayName);
+        }
+        if (data.otherPlayers) {
+          setGuests(
+            data.otherPlayers.map(
+              (player: { displayName: any }) => player.displayName
+            )
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching players:", error);
+      }
+    };
+
     checkAdminStatus();
 
     // Update the player list every interval
