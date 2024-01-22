@@ -41,20 +41,35 @@ const ChatRoom: React.FC = () => {
     }
   };
 
+  const extractMessage = (fullMessage: string) => {
+    if (fullMessage.includes("Server has received your message")) {
+      const parts = fullMessage.split(':');
+      if (parts.length === 2) {
+        const message = parts[1].trim();
+        return `${message}`;
+      }
+    } else {
+      return fullMessage
+    }
+  } 
+
   return (
     <div className={`chat-room-page`}>
       <div className="chat-room-bar">
         <div className="chat-room-header">
-          <div className="room-details">
-            Room Code: {roomCode} | Display Name: {displayName}
-          </div>
+        <div className="room-details">
+          Room Code: {roomCode} | Display Name: {displayName}
+        </div>
         </div>
         <div className="message-display">
           {chatHistory.map((msg, index) => (
             <div key={index} className="message">
-              {msg.sender}: {msg.content}
+              <span className={msg.sender === displayName ? 'green-sender' : 'yellow-sender'}>{msg.sender}:</span>
+              
+              <span>{extractMessage(msg.content)}</span>
             </div>
           ))}
+          
         </div>
         <div className="input-container" onKeyDown={handleKeyPress}>
           <input type="text" value={message} onChange={e => setMessage(e.target.value)} placeholder="Type a message..." />

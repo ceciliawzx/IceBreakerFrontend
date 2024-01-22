@@ -53,3 +53,14 @@ button {
 button:hover {
   background-color: #45a049;
 }
+
+.green-sender {
+  color: rgb(21, 159, 21);
+  /* Add any other styles for the green sender */
+}
+
+.yellow-sender {
+  color: #da7414
+  /* Add any other styles for the yellow sender */
+}
+
