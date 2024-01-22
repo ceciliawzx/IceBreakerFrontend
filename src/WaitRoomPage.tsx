@@ -29,6 +29,12 @@ const WaitRoomPage = () => {
     } 
   };
 
+  const handleChatRoom = () => {
+    navigate("/ChatRoomPage", {
+      state: { userID, roomCode, displayName },
+    });
+  };
+
   // Check if the user is the admin
   const checkAdminStatus = async () => {
     const url =`${serverPort}/isAdmin?userID=${userID}&roomCode=${roomCode}`;

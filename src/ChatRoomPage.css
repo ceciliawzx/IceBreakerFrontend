@@ -30,6 +30,7 @@
 .input-container {
   display: flex;
   padding: 10px;
+  flex-direction: column;
 }
 
 input {
@@ -51,27 +52,4 @@ button {
 
 button:hover {
   background-color: #45a049;
-}
-
-.toggle-button {
-  align-self: flex-end;
-  margin: 10px;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s;
-  margin-left: auto;
-}
-
-.toggle-top {
-  height: 40px;
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s;
 }

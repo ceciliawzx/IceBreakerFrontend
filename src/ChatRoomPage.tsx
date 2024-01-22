@@ -1,19 +1,37 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { connect, sendMsg } from "./ChatService";
 import "./ChatRoomPage.css";
 
-const ChatRoomBar: React.FC = () => {
-  const [message, setMessage] = useState<string>("");
-  const [messages, setMessages] = useState<string[]>([]);
-  const [isEnlarged, setIsEnlarged] = useState<boolean>(false);
 
-  const handleMessageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setMessage(e.target.value);
-  };
+interface ChatMessage {
+  roomNumber: number;
+  content: string;
+  timestamp: string;
+  sender: string;
+}
+
+
+const ChatRoom: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const userID = location.state?.userID
+  const displayName = location.state?.displayName
+  const roomCode = location.state?.roomCode
+  const [message, setMessage] = useState<string>('');
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+
+  useEffect(() => {
+    connect(roomCode, (msg: ChatMessage) => {
+      setChatHistory(prevHistory => [...prevHistory, msg]);
+    });
+  }, []);
 
   const handleSendMessage = () => {
     if (message.trim() !== "") {
-      setMessages([...messages, message]);
-      setMessage("");
+      sendMsg({ roomCode, content: message, timestamp: new Date().toISOString(), sender: displayName });
+      setMessage('');
     }
   };
 
@@ -23,41 +41,28 @@ const ChatRoomBar: React.FC = () => {
     }
   };
 
-  const toggleSize = () => {
-    setIsEnlarged(!isEnlarged);
-  };
-
   return (
-    // <div className="chat-room-page">
-    <div className={`chat-room-page ${isEnlarged ? 'enlarged' : ''}`}>
-      {isEnlarged ? (
+    <div className={`chat-room-page`}>
       <div className="chat-room-bar">
-        <button className="toggle-top" onClick={toggleSize}>
-          chat
-        </button>
-        <div className="message-display">
-            {messages.map((msg, index) => (
-              <div key={index} className="message">
-                {msg}
-              </div>
-            ))}
-          </div><div className="input-container">
-              <input
-                type="text"
-                placeholder="Type your message..."
-                onKeyDown={handleKeyPress}
-                value={message}
-                onChange={handleMessageChange} />
-              <button onClick={handleSendMessage}>Send</button>
-            </div>
+        <div className="chat-room-header">
+          <div className="room-details">
+            Room Code: {roomCode} | Display Name: {displayName}
           </div>
-        ) : (
-          <button className="toggle-button" onClick={toggleSize}>
-            chat
-          </button>
-        )}
+        </div>
+        <div className="message-display">
+          {chatHistory.map((msg, index) => (
+            <div key={index} className="message">
+              {msg.sender}: {msg.content}
+            </div>
+          ))}
+        </div>
+        <div className="input-container" onKeyDown={handleKeyPress}>
+          <input type="text" value={message} onChange={e => setMessage(e.target.value)} placeholder="Type a message..." />
+          <button onClick={handleSendMessage}>Send</button>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default ChatRoomBar;
+export default ChatRoom;
