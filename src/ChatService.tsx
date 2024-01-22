@@ -1,10 +1,11 @@
 import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
+import { serverPort } from "./MacroConst";
 
 let client: Client | null = null;
 
 const connect = (roomNumber: number, onMessageReceived: (msg: any) => void) => {
-    const socket = new SockJS('http://ljthey.co.uk:8081/chat');
+    const socket = new SockJS(serverPort + '/chat');
     client = new Client({
       brokerURL: 'ws://ljthey.co.uk:8081/chat',
       webSocketFactory: () => socket,

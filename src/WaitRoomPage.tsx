@@ -17,6 +17,12 @@ const WaitRoomPage = () => {
     });
   };
 
+  const handleChatRoom = () => {
+    navigate("/ChatRoomPage", {
+      state: { userID, roomCode, displayName },
+    });
+  };
+
   return (
     <div className="wait-room-page">
       <h1>
@@ -35,6 +41,9 @@ const WaitRoomPage = () => {
       </div>
       <button className="start-room-button" onClick={handleStartRoom}>
         Start Room
+      </button>
+      <button className="start-room-button" onClick={handleChatRoom}>
+        Chat Room
       </button>
     </div>
   );

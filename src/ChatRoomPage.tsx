@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
-import "./ChatRoomPage.css";
+import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { connect, sendMsg } from "./ChatService";
+import "./ChatRoomPage.css";
+
 
 interface ChatMessage {
   roomNumber: number;
@@ -11,22 +14,24 @@ interface ChatMessage {
 
 
 const ChatRoom: React.FC = () => {
-  const [roomNumber, setRoomNumber] = useState<number>(0);
-  const [name, setName] = useState<string>('');
+  const location = useLocation();
+  const navigate = useNavigate();
+  const userID = location.state?.userID
+  const displayName = location.state?.displayName
+  const roomCode = location.state?.roomCode
   const [message, setMessage] = useState<string>('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
 
   useEffect(() => {
-    connect(roomNumber, (msg: ChatMessage) => {
+    connect(roomCode, (msg: ChatMessage) => {
       setChatHistory(prevHistory => [...prevHistory, msg]);
     });
   }, []);
 
   const handleSendMessage = () => {
     if (message.trim() !== "") {
-      sendMsg({ roomNumber, content: message, timestamp: new Date().toISOString(), sender: name });
+      sendMsg({ roomCode, content: message, timestamp: new Date().toISOString(), sender: displayName });
       setMessage('');
-
     }
   };
 
@@ -39,6 +44,11 @@ const ChatRoom: React.FC = () => {
   return (
     <div className={`chat-room-page`}>
       <div className="chat-room-bar">
+        <div className="chat-room-header">
+          <div className="room-details">
+            Room Code: {roomCode} | Display Name: {displayName}
+          </div>
+        </div>
         <div className="message-display">
           {chatHistory.map((msg, index) => (
             <div key={index} className="message">
@@ -47,8 +57,6 @@ const ChatRoom: React.FC = () => {
           ))}
         </div>
         <div className="input-container" onKeyDown={handleKeyPress}>
-          <input type="number" value={roomNumber} onChange={e => setRoomNumber(parseInt(e.target.value))} placeholder="Room Number" />
-          <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Your Name" />
           <input type="text" value={message} onChange={e => setMessage(e.target.value)} placeholder="Type a message..." />
           <button onClick={handleSendMessage}>Send</button>
         </div>
