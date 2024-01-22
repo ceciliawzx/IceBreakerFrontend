@@ -1,20 +1,20 @@
 import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
-import { serverPort } from "./MacroConst";
+import { serverPort, websocketPort } from "./MacroConst";
 
 let client: Client | null = null;
 
-const connect = (roomNumber: number, onMessageReceived: (msg: any) => void) => {
-    const socket = new SockJS(serverPort + '/chat');
+const connect = (roomCode: string, onMessageReceived: (msg: any) => void) => {
+    const socket = new SockJS( `${serverPort}/chat`);
     client = new Client({
-      brokerURL: 'ws://ljthey.co.uk:8081/chat',
+      brokerURL: `${websocketPort}/chat`,
       webSocketFactory: () => socket,
       onConnect: () => {
         console.log("Connected to STOMP server"); // Logging connection
         setTimeout(() => {
           if (client && client.connected) {
             console.log("Subscribing to /topic/room");
-            client.subscribe(`/topic/room/${roomNumber}`, (message) => {
+            client.subscribe(`/topic/room/${roomCode}`, (message) => {
                 onMessageReceived(JSON.parse(message.body));
               });
           } else {
@@ -34,7 +34,7 @@ const connect = (roomNumber: number, onMessageReceived: (msg: any) => void) => {
 
 const sendMsg = (msg: any) => {
   if (client && client.connected) {
-    client.publish({ destination: `/app/room/${msg.roomNumber}/sendMessage`, body: JSON.stringify(msg) });
+    client.publish({ destination: `/app/room/${msg.roomCode}/sendMessage`, body: JSON.stringify(msg) });
   }
 };
 

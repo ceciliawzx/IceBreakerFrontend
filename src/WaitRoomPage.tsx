@@ -26,7 +26,7 @@ const WaitRoomPage = () => {
 
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
-    } 
+    }
   };
 
   const handleChatRoom = () => {
@@ -37,7 +37,7 @@ const WaitRoomPage = () => {
 
   // Check if the user is the admin
   const checkAdminStatus = async () => {
-    const url =`${serverPort}/isAdmin?userID=${userID}&roomCode=${roomCode}`;
+    const url = `${serverPort}/isAdmin?userID=${userID}&roomCode=${roomCode}`;
     try {
       const response = await fetch(url);
       const data = await response.json();
@@ -45,7 +45,6 @@ const WaitRoomPage = () => {
     } catch (error) {
       console.error("Error checking admin status:", error);
     }
-
   };
 
   // Fetch the players & check if room start from the backend
@@ -77,14 +76,13 @@ const WaitRoomPage = () => {
     } catch (error) {
       console.error("Error fetching players:", error);
     }
-
   };
 
   // Periodically check room status
   useEffect(() => {
     // run only once when launch
     checkAdminStatus();
-    
+
     // Update the player list every interval
     const intervalId = setInterval(checkRoomStatus, refreshTime);
 
@@ -128,6 +126,11 @@ const WaitRoomPage = () => {
           Start Room
         </button>
       )}
+      {
+        <button className="start-room-button" onClick={handleChatRoom}>
+          Chat Room
+        </button>
+      }
     </div>
   );
 };
