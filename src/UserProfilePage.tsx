@@ -6,10 +6,11 @@ import { UserProfile } from "./UserProfile";
 import { serverPort } from "./MacroConst";
 
 const UserProfilePage = () => {
-  const [message, setMessage] = useState("");
-  const navigate = useNavigate();
   const location = useLocation();
+  const navigate = useNavigate();
   const user = location.state?.user;
+  const displayName = user.displayName;
+  const [message, setMessage] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [city, setCity] = useState("");
@@ -52,7 +53,7 @@ const UserProfilePage = () => {
       setMessage(msg);
       console.log(msg);
 
-      navigate("/PrepareRoomPage", {
+      navigate("/WaitRoomPage", {
         state: { user },
       });
 
@@ -63,7 +64,7 @@ const UserProfilePage = () => {
 
   return (
     <div className="user-profile-container">
-      <h2 className="form-title">Please enter your details</h2>
+      <h2 className="form-title">Hi {displayName},please enter your details</h2>
       <form className="form">
         <div className="form-row">
           <label>First Name:</label>

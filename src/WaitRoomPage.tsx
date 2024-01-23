@@ -31,7 +31,13 @@ const WaitRoomPage = () => {
 
   const handleChatRoom = () => {
     navigate("/ChatRoomPage", {
-      state: { userID, roomCode, displayName },
+      state: { user },
+    });
+  };
+
+  const handleUserInformation = () => {
+    navigate("/UserProfilePage", {
+      state: { user },
     });
   };
 
@@ -67,12 +73,6 @@ const WaitRoomPage = () => {
           )
         );
       }
-      // if moderator starts game, navigate to input phase
-      if (data.gameStatus) {
-        navigate("/UserProfilePage", {
-          state: { user },
-        });
-      }
     } catch (error) {
       console.error("Error fetching players:", error);
     }
@@ -94,7 +94,6 @@ const WaitRoomPage = () => {
       <h1>
         Welcome to Wait Room {roomCode}, {displayName}!
       </h1>
-      <h1>Your ID is {userID}</h1>
       <div className="moderator">
         <h2>Moderator:</h2>
         <img
@@ -128,6 +127,11 @@ const WaitRoomPage = () => {
       {
         <button className="start-room-button" onClick={handleChatRoom}>
           Chat Room
+        </button>
+      }
+      {
+        <button className="start-room-button" onClick={handleUserInformation}>
+          Enter your information
         </button>
       }
     </div>
