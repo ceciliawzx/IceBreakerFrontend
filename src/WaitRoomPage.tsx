@@ -73,6 +73,13 @@ const WaitRoomPage = () => {
           )
         );
       }
+
+      // If start present, into present page
+      // if (data.gameStatus) {
+      //   navigate("/PresentPage", {
+      //     state: { user },
+      //   });
+      // }
     } catch (error) {
       console.error("Error fetching players:", error);
     }
