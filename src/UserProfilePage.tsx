@@ -19,10 +19,26 @@ const UserProfilePage = () => {
   const [favFood, setFavFood] = useState("");
   const [favActivity, setfavActivity] = useState("");
   const [selfie, setSelfie] = useState<File | null>(null);
+  const [selfieBase64, setSelfieBase64] = useState("");
+
+  // const handleSelfieChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   if (event.target.files && event.target.files[0]) {
+  //     setSelfie(event.target.files[0]);
+  //   }
+  // };
 
   const handleSelfieChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      setSelfie(event.target.files[0]);
+    const file = event.target.files?.[0];
+
+    if (file) {
+      const reader = new FileReader();
+
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setSelfieBase64(result);
+      };
+
+      reader.readAsDataURL(file); // Start reading the file as a data URL
     }
   };
 
@@ -36,8 +52,10 @@ const UserProfilePage = () => {
       "1", // Add an empty string for the 'feeling' argument
       "1", // Add an empty string for the 'favFood' argument
       "1", // Add an empty string for the 'favActivity' argument
-      "1" // Add an empty string for the 'profileImage' argument
+      selfieBase64 // Add an empty string for the 'profileImage' argument
     );
+
+    console.log(userProfile.profileImage);
 
     try {
       const response = await fetch(`${serverPort}/updatePerson`, {
@@ -45,10 +63,11 @@ const UserProfilePage = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(userProfile)
+        body: JSON.stringify(userProfile),
       });
 
       console.log(response);
+
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`); // Error message
       }
@@ -59,7 +78,6 @@ const UserProfilePage = () => {
       navigate("/WaitRoomPage", {
         state: { user },
       });
-
     } catch (error) {
       console.error("Error updating person:", error);
     }
