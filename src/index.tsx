@@ -9,7 +9,6 @@ import UserProfilePage from "./UserProfilePage";
 import reportWebVitals from "./reportWebVitals";
 import CreateRoomPage from "./CreateRoomPage";
 import ChatRoomPage from "./ChatRoomPage";
-import PrepareRoomPage from "./PrepareRoomPage";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -23,7 +22,6 @@ root.render(
         <Route path="/JoinRoompage" element={<JoinRoomPage />} />
         <Route path="/WaitRoomPage" element={<WaitRoomPage />} />
         <Route path="/UserProfilePage" element={<UserProfilePage />} />
-        <Route path="/PrepareRoomPage" element={<PrepareRoomPage />} />
         <Route path="/ChatRoomPage" element={<ChatRoomPage />} />
       </Routes>
     </Router>

@@ -52,10 +52,6 @@ const UserProfilePage = () => {
       setMessage(msg);
       console.log(msg);
 
-      navigate("/PrepareRoomPage", {
-        state: { user },
-      });
-
     } catch (error) {
       console.error("Error updating person:", error);
     }
