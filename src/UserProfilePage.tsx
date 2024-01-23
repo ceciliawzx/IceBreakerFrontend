@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./UserProfilePage.css";
 import { UserProfile } from "./UserProfile";
 import { serverPort } from "./MacroConst";
 
 const UserProfilePage = () => {
   const [message, setMessage] = useState("");
+  const navigate = useNavigate();
   const location = useLocation();
   const user = location.state?.user;
   const [firstName, setFirstName] = useState("");
@@ -49,6 +51,11 @@ const UserProfilePage = () => {
       const msg = await response.text();
       setMessage(msg);
       console.log(msg);
+
+      navigate("/PrepareRoomPage", {
+        state: { user },
+      });
+
     } catch (error) {
       console.error("Error updating person:", error);
     }

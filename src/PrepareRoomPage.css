@@ -1,4 +1,4 @@
-.wait-room-page {
+.present-room-page {
   margin-top: 50px;
   display: flex;
   flex-direction: column;
@@ -53,14 +53,13 @@
   height: 50px; /* Adjust the height as needed */
   background-image: url('../public/river.png');
   background-size: 100% 100%;
-
 }
 
 .guest-list {
   margin-top: 20px;
 }
 
-.start-room-button {
+.start-present-button {
   background-color: #4caf50;
   color: white;
   border: none;
@@ -70,6 +69,6 @@
   border-radius: 5px;
 }
 
-.start-room-button:hover {
+.start-present-button:hover {
   background-color: #45a049;
 }

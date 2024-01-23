@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import "./WaitRoomPage.css";
+import "./PrepareRoomPage.css";
 import { refreshTime, serverPort } from "./MacroConst";
 
-const WaitRoomPage = () => {
+const PrepareRoomPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const user = location.state?.user;
@@ -15,7 +15,7 @@ const WaitRoomPage = () => {
   const [admin, setAdmin] = useState<string>("");
   const [isAdmin, setIsAdmin] = useState(false);
 
-  const handleStartRoom = async () => {
+  const handleStartPresent = async () => {
     // Tell server that to start room
     const response = await fetch(
       `${serverPort}/startInput?roomCode=${roomCode}`,
@@ -67,12 +67,6 @@ const WaitRoomPage = () => {
           )
         );
       }
-      // if moderator starts game, navigate to input phase
-      if (data.gameStatus) {
-        navigate("/UserProfilePage", {
-          state: { user },
-        });
-      }
     } catch (error) {
       console.error("Error fetching players:", error);
     }
@@ -90,13 +84,13 @@ const WaitRoomPage = () => {
   }, [userID, roomCode]);
 
   return (
-    <div className="wait-room-page">
+    <div className="present-room-page">
       <h1>
-        Welcome to Wait Room {roomCode}, {displayName}!
+        Welcome to Prepare Room {roomCode}, {displayName}!
       </h1>
-      <h1>Your ID is {userID}</h1>
+
       <div className="moderator">
-        <h2>Moderator:</h2>
+        <h2>Presenter:</h2>
         <img
           src="/pic.jpg" // {admin.profileImage}
           alt="Moderator's Image"
@@ -105,7 +99,7 @@ const WaitRoomPage = () => {
         <p>{admin}</p>
       </div>
       <div className="guest-list">
-        <h2>Joined Guests:</h2>
+        <h2>Audience:</h2>
         <div className="guest-container">
           {guests.map((guest, index) => (
             <div key={index} className="guest">
@@ -121,12 +115,12 @@ const WaitRoomPage = () => {
         <div className="river"></div>
       </div>
       {isAdmin && (
-        <button className="start-room-button" onClick={handleStartRoom}>
-          Start Room
+        <button className="start-present-button" onClick={handleStartPresent}>
+          Start Present
         </button>
       )}
       {
-        <button className="start-room-button" onClick={handleChatRoom}>
+        <button className="start-present-button" onClick={handleChatRoom}>
           Chat Room
         </button>
       }
@@ -134,4 +128,4 @@ const WaitRoomPage = () => {
   );
 };
 
-export default WaitRoomPage;
+export default PrepareRoomPage;
