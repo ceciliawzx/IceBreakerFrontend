@@ -15,7 +15,6 @@ const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
 );
 root.render(
-  <React.StrictMode>
     <Router>
       <Routes>
         <Route path="/" element={<Homepage />} />
@@ -27,6 +26,5 @@ root.render(
         <Route path="/ChatRoomPage" element={<ChatRoomPage />} />
       </Routes>
     </Router>
-  </React.StrictMode>
 );
 reportWebVitals();

@@ -14,6 +14,15 @@
   margin-left: auto;
 }
 
+.chat-room-header {
+  background-color: #4caf50;
+  border-bottom: 1px solid #ccc;
+}
+
+.room-details {
+  color: white;
+}
+
 .message-display {
   flex-grow: 1;
   overflow-y: auto;
@@ -53,3 +62,18 @@ button {
 button:hover {
   background-color: #45a049;
 }
+
+.highlighted-sender {
+  color: black
+}
+
+.green-sender {
+  color: rgb(21, 159, 21);
+  /* Add any other styles for the green sender */
+}
+
+.yellow-sender {
+  color: #da7414
+  /* Add any other styles for the yellow sender */
+}
+
