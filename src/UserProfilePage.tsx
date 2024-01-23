@@ -15,6 +15,9 @@ const UserProfilePage = () => {
   const [lastName, setLastName] = useState("");
   const [city, setCity] = useState("");
   const [country, setCountry] = useState("");
+  const [feeling, setFeeling] = useState("");
+  const [favFood, setFavFood] = useState("");
+  const [favActivity, setfavActivity] = useState("");
   const [selfie, setSelfie] = useState<File | null>(null);
 
   const handleSelfieChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,6 +99,30 @@ const UserProfilePage = () => {
             type="text"
             value={country}
             onChange={(e) => setCountry(e.target.value)}
+          />
+        </div>
+        <div className="form-row">
+          <label>Current Feeling:</label>
+          <input
+            type="text"
+            value={feeling}
+            onChange={(e) => setFeeling(e.target.value)}
+          />
+        </div>
+        <div className="form-row">
+          <label>Favourite food:</label>
+          <input
+            type="text"
+            value={favFood}
+            onChange={(e) => setFavFood(e.target.value)}
+          />
+        </div>
+        <div className="form-row">
+          <label>Favourite activity:</label>
+          <input
+            type="text"
+            value={favActivity}
+            onChange={(e) => setfavActivity(e.target.value)}
           />
         </div>
         <div className="form-row">
