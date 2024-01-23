@@ -10,6 +10,7 @@ interface ChatMessage {
   content: string;
   timestamp: string;
   sender: string;
+  senderId: string;
 }
 
 
@@ -30,7 +31,7 @@ const ChatRoom: React.FC = () => {
 
   const handleSendMessage = () => {
     if (message.trim() !== "") {
-      sendMsg({ roomCode, content: message, timestamp: new Date().toISOString(), sender: displayName });
+      sendMsg({ roomCode, content: message, timestamp: new Date().toISOString(), sender: displayName , senderId: userID});
       setMessage('');
     }
   };
