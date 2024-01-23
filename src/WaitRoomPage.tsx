@@ -94,15 +94,28 @@ const WaitRoomPage = () => {
       <h1>
         Welcome to Wait Room {roomCode}, {displayName}!
       </h1>
-      <h1>Your ID is {userID}</h1>
-      <div className="moderator">
-        <h2>Moderator:</h2>
-        <img
-          src="/pic.jpg" // {admin.profileImage}
-          alt="Moderator's Image"
-          className="moderator-avatar"
-        />
-        <p>{admin}</p>
+      <div className="first-row-container">
+        {/* Moderator */}
+        <div className="moderator">
+          <h2>Moderator:</h2>
+          <img
+            src="/pic.jpg" // {admin.profileImage}
+            alt="Moderator's Image"
+            className="moderator-avatar"
+          />
+          <p>{admin}</p>
+        </div>
+
+        {/* Presenter */}
+        <div className="presenter">
+          <h2>Presenter:</h2>
+          <img
+            src="/pic.jpg" // {presenter.profileImage}
+            alt="Presenter 's Image"
+            className="presenter-avatar"
+          />
+          <p>{admin}</p>
+        </div>
       </div>
       <div className="guest-list">
         <h2>Joined Guests:</h2>
