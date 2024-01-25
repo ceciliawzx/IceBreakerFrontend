@@ -15,6 +15,7 @@ const WaitRoomPage = () => {
   const [guests, setGuests] = useState<User[]>([]);
   const [admin, setAdmin] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isUserInRoom, setIsUserInRoom] = useState(true);
   const [showDismissPopup, setShowDismissPopup] = useState(false);
   const [showKickPopup, setShowKickPopup] = useState(false);
 
@@ -56,8 +57,6 @@ const WaitRoomPage = () => {
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
-
-    // TODO: send http request to that user and popup
   };
 
   const handleLeaveRoom = async () => {
@@ -79,7 +78,7 @@ const WaitRoomPage = () => {
         setShowDismissPopup(true);
       }
     } else {
-      // kick this user
+      // user leave room
       const response = await fetch(
         `${serverPort}/kickPerson?roomCode=${roomCode}&userID=${userID}`,
         {
@@ -159,13 +158,33 @@ const WaitRoomPage = () => {
     }
   };
 
+  const checkKickOut = async () => {
+    const url = `${serverPort}/getPlayer?userID=${userID}&roomCode=${roomCode}`;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error("Room cannot be found");
+      }
+
+      const data = await response.text();
+      if (data == "Person Not Found") {
+        setShowKickPopup(true);
+      }
+    } catch (error) {
+      console.error("Error fetching player:", error);
+    }
+  };
+
   // Periodically check room status
   useEffect(() => {
     checkAdminStatus();
     checkRoomStatus();
 
     // Update the player list every interval
-    const intervalId = setInterval(checkRoomStatus, refreshTime);
+    const intervalId = setInterval(() => {
+      checkRoomStatus();
+      checkKickOut();
+    }, refreshTime);
 
     // Clear timer and count again
     return () => clearInterval(intervalId);
