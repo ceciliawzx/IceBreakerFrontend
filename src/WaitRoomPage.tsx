@@ -3,7 +3,6 @@ import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import "./WaitRoomPage.css";
 import { refreshTime, serverPort } from "./MacroConst";
-import { User } from "./User";
 
 const WaitRoomPage = () => {
   const location = useLocation();
@@ -12,11 +11,10 @@ const WaitRoomPage = () => {
   const userID = user.userID;
   const roomCode = user.roomCode;
   const displayName = user.displayName;
-  const [guests, setGuests] = useState<User[]>([]);
-  const [admin, setAdmin] = useState<User | null>(null);
+  const [isDrawer, setIsDrawer] = useState(false);
+  const [guests, setGuests] = useState<string[]>([]);
+  const [admin, setAdmin] = useState<string>("");
   const [isAdmin, setIsAdmin] = useState(false);
-  const [showDismissPopup, setShowDismissPopup] = useState(false);
-  const [showKickPopup, setShowKickPopup] = useState(false);
 
   const handleStartRoom = async () => {
     // Tell server that to start room
@@ -32,72 +30,23 @@ const WaitRoomPage = () => {
     }
   };
 
-  const handlePictionaryRoom = () => {
-    navigate("/ChatRoomPage", {
-      state: { isDrawer: true },
-    });
-  }
-
   const handleChatRoom = () => {
     navigate("/ChatRoomPage", {
-      state: { user },
+      state: { userID, roomCode, displayName },
     });
   };
 
-  const handleUserInformation = () => {
-    navigate("/UserProfilePage", {
-      state: { user },
-    });
-  };
-
-  const handleKickUser = async (userID: string) => {
-    // kick this user
+  const handlePictionaryRoom = async () => {
+    setIsDrawer(true);
+    // Tell server that to start room
     const response = await fetch(
-      `${serverPort}/kickPerson?roomCode=${roomCode}&userID=${userID}`,
+      `${serverPort}/startInput?roomCode=${roomCode}`,
       {
-        method: "DELETE",
+        method: "POST",
       }
     );
-
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-
-    // TODO: send http request to that user and popup
-  };
-
-  const handleLeaveRoom = async () => {
-    // If admin leaves, send http request to delete room and all user should be kicked out
-    if (isAdmin) {
-      // TODO: send http request
-
-      // Destroy room
-      const response = await fetch(
-        `${serverPort}/destroyRoom?roomCode=${roomCode}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      } else {
-        setShowDismissPopup(true);
-      }
-    } else {
-      // kick this user
-      const response = await fetch(
-        `${serverPort}/kickPerson?roomCode=${roomCode}&userID=${userID}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      } else {
-        navigate("/");
-      }
     }
   };
 
@@ -124,42 +73,34 @@ const WaitRoomPage = () => {
 
       const data = await response.json();
       if (data.admin) {
-        setAdmin(
-          new User(
-            roomCode,
-            data.admin.userID,
-            data.admin.displayName,
-            true,
-            data.admin.profileImage
-          )
-        );
+        setAdmin(data.admin.displayName);
       }
       if (data.otherPlayers) {
         setGuests(
           data.otherPlayers.map(
-            (player: any) =>
-              new User(
-                roomCode,
-                player.userID,
-                player.displayName,
-                false,
-                player.profileImage
-              )
+            (player: { displayName: any }) => player.displayName
           )
         );
       }
-
-      // If start present, into present page
-      // if (data.gameStatus == START_PRESENT) {
-      //   navigate("/PresentPage", {
+      // if moderator starts game, navigate to input phase
+      // if (data.gameStatus) {
+      //   navigate("/UserProfilePage", {
       //     state: { user },
       //   });
-      // }
+      
 
-      // If room destroyed, should pop up and kick out
-      // if (data.gameStatuss == ROOM_DISMISSED) {
-      // setShowPopup(true);
-      // }
+      // isDrawer has sync issue
+
+      if (data.gameStatus) {
+        console.log("user: ", user);
+        setIsDrawer(true);
+        console.log("isDrawer: ", isDrawer);
+        navigate("/PictionaryRoomPage", {
+          state: { isDrawer: true, user },
+        });
+      }
+
+
     } catch (error) {
       console.error("Error fetching players:", error);
     }
@@ -168,7 +109,6 @@ const WaitRoomPage = () => {
   // Periodically check room status
   useEffect(() => {
     checkAdminStatus();
-    checkRoomStatus();
 
     // Update the player list every interval
     const intervalId = setInterval(checkRoomStatus, refreshTime);
@@ -186,11 +126,11 @@ const WaitRoomPage = () => {
       <div className="moderator">
         <h2>Moderator:</h2>
         <img
-          src={admin?.profileImage ? `${admin.profileImage}` : "/pic.jpg"}
+          src="/pic.jpg" // {admin.profileImage}
           alt="Moderator's Image"
           className="moderator-avatar"
         />
-        <p>{admin?.displayName}</p>
+        <p>{admin}</p>
       </div>
       <div className="guest-list">
         <h2>Joined Guests:</h2>
@@ -198,23 +138,11 @@ const WaitRoomPage = () => {
           {guests.map((guest, index) => (
             <div key={index} className="guest">
               <img
-                src={guest?.profileImage ? `${guest.profileImage}` : "/pic.jpg"}
+                src="/pic.jpg"
                 alt={`${guest}'s avatar`}
                 className="guest-avatar"
               />
-              <p>{guest.displayName}</p>
-              {isAdmin && (
-                <button
-                  className="kick-button"
-                  onClick={() => handleKickUser(guest.userID)}
-                >
-                  <img
-                    src="/cross.png"
-                    alt="Kick"
-                    style={{ width: "30px", height: "30px" }} // Adjust the dimensions as needed
-                  />
-                </button>
-              )}
+              <p>{guest}</p>
             </div>
           ))}
         </div>
@@ -231,35 +159,10 @@ const WaitRoomPage = () => {
         </button>
       }
       {
-        <button className="start-room-button" onClick={handleUserInformation}>
-          Enter your information
+        <button className="start-room-button" onClick={handlePictionaryRoom}>
+          Pictionary
         </button>
       }
-      {
-        <button className="leave-room-button" onClick={handleLeaveRoom}>
-          Leave Room
-        </button>
-      }
-      {showDismissPopup && (
-        <div className="popup">
-          <p>
-            Room {roomCode} dismissed by moderator.
-            <br />
-            Returning to homepage.
-          </p>
-          <button onClick={() => navigate("/")}>OK</button>
-        </div>
-      )}
-      {showKickPopup && (
-        <div className="popup">
-          <p>
-            You are kicked out by moderator.
-            <br />
-            Returning to homepage.
-          </p>
-          <button onClick={() => navigate("/")}>OK</button>
-        </div>
-      )}
     </div>
   );
 };

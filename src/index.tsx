@@ -23,6 +23,7 @@ root.render(
         <Route path="/WaitRoomPage" element={<WaitRoomPage />} />
         <Route path="/UserProfilePage" element={<UserProfilePage />} />
         <Route path="/ChatRoomPage" element={<ChatRoomPage />} />
+        <Route path="/PictionaryRoomPage" element={<PictionaryPage />} />
       </Routes>
     </Router>
 );

@@ -19,23 +19,22 @@ const PictionaryPage = () => {
     setExternalDrawing(data);
   }, []);
 
-  const socketUrl = `${serverPort}/chat?userId=${userId}`;
-  const websocketUrl = `${websocketPort}/chat?userId=${userId}`;
-  const topic = `/topic/room/${roomCode}/drawing`;
-  const destination = `/app/room/${roomCode}/sendDrawing`;
-
   useEffect(() => {
+    const socketUrl = `${serverPort}/chat?userId=${userId}`;
+    const websocketUrl = `${websocketPort}/chat?userId=${userId}`;
+    const topic = `/topic/room/${roomCode}/drawing`;
     connect(socketUrl, websocketUrl, topic, handleReceivedDrawing);
   }, []);
 
   const handleDraw = useCallback(
     ({ x, y, drawing }: { x: number; y: number; drawing: boolean }) => {
+      const destination = `/app/room/${roomCode}/sendDrawing`;
       const drawingData = {
         x,
         y,
         drawing,
-        color: 'black', 
-        strokeWidth: 2, 
+        color: 'black',
+        strokeWidth: 2,
       };
       sendMsg(destination, {
         roomCode,
@@ -47,13 +46,14 @@ const PictionaryPage = () => {
     [roomCode]
   );
 
-
   // Now pass externalDrawing to DrawingCanvas
   return (
     <div className='App'>
-      <header className='App-header'>
-        <DrawingCanvas isDrawer={isDrawer} onDraw={handleDraw} externalDrawing={externalDrawing} />
-      </header>
+        <DrawingCanvas
+          isDrawer={isDrawer}
+          onDraw={handleDraw}
+          externalDrawing={externalDrawing}
+        />
     </div>
   );
 };
