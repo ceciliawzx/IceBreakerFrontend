@@ -42,6 +42,12 @@ const WaitRoomPage = () => {
     });
   };
 
+  const handleLeaveRoom = () => {
+    navigate("/", {
+      state: { user },
+    });
+  };
+
   // Check if the user is the admin
   const checkAdminStatus = async () => {
     const url = `${serverPort}/isAdmin?userID=${userID}&roomCode=${roomCode}`;
@@ -122,11 +128,7 @@ const WaitRoomPage = () => {
       <div className="moderator">
         <h2>Moderator:</h2>
         <img
-          src={
-            admin?.profileImage
-              ? `${admin.profileImage}`
-              : "/pic.jpg"
-          }
+          src={admin?.profileImage ? `${admin.profileImage}` : "/pic.jpg"}
           alt="Moderator's Image"
           className="moderator-avatar"
         />
@@ -138,11 +140,7 @@ const WaitRoomPage = () => {
           {guests.map((guest, index) => (
             <div key={index} className="guest">
               <img
-                src={
-                  guest?.profileImage
-                    ? `${guest.profileImage}`
-                    : "/pic.jpg"
-                }
+                src={guest?.profileImage ? `${guest.profileImage}` : "/pic.jpg"}
                 alt={`${guest}'s avatar`}
                 className="guest-avatar"
               />
@@ -165,6 +163,11 @@ const WaitRoomPage = () => {
       {
         <button className="start-room-button" onClick={handleUserInformation}>
           Enter your information
+        </button>
+      }
+      {
+        <button className="leave-room-button" onClick={handleLeaveRoom}>
+          Leave Room
         </button>
       }
     </div>

@@ -84,3 +84,20 @@
 .start-room-button:hover {
   background-color: #45a049;
 }
+
+.leave-room-button {
+  position: absolute;
+  top: 30px; /* Adjust the top distance as needed */
+  right: 30px; /* Adjust the right distance as needed */
+  background-color: #e3242b;
+  color: white;
+  border: none;
+  cursor: pointer;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.leave-room-button:hover {
+  background-color: #c01016;
+}
