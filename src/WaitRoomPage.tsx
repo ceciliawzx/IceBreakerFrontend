@@ -15,6 +15,7 @@ const WaitRoomPage = () => {
   const [guests, setGuests] = useState<User[]>([]);
   const [admin, setAdmin] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
 
   const handleStartRoom = async () => {
     // Tell server that to start room
@@ -43,21 +44,37 @@ const WaitRoomPage = () => {
   };
 
   const handleLeaveRoom = async () => {
-    // If admin leaves, send http request to kick all user, delete room
+    // If admin leaves, send http request to delete room and all user should be kicked out
+    if (isAdmin) {
+      // TODO: send http request
 
-    const response = await fetch(
-      `${serverPort}/kickPerson?roomCode=${roomCode}&userID=${userID}`,
-      {
-        method: "DELETE",
+      // Destroy room
+      const response = await fetch(
+        `${serverPort}/destroyRoom?roomCode=${roomCode}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      } else {
+        setShowPopup(true);
       }
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
     } else {
-      navigate("/", {
-        state: { user },
-      });
+      // kick this user
+      const response = await fetch(
+        `${serverPort}/kickPerson?roomCode=${roomCode}&userID=${userID}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      } else {
+        navigate("/");
+      }
     }
   };
 
@@ -110,10 +127,15 @@ const WaitRoomPage = () => {
       }
 
       // If start present, into present page
-      // if (data.gameStatus) {
+      // if (data.gameStatus == START_PRESENT) {
       //   navigate("/PresentPage", {
       //     state: { user },
       //   });
+      // }
+
+      // If room destroyed, should pop up and kick out
+      // if (data.gameStatuss == ROOM_DISMISSED) {
+      // setShowPopup(true);
       // }
     } catch (error) {
       console.error("Error fetching players:", error);
@@ -183,6 +205,16 @@ const WaitRoomPage = () => {
           Leave Room
         </button>
       }
+      {showPopup && (
+        <div className="popup">
+          <p>
+            Room {roomCode} dismissed by moderator.
+            <br />
+            Returning to homepage.
+          </p>
+          <button onClick={() => navigate("/")}>OK</button>
+        </div>
+      )}
     </div>
   );
 };
