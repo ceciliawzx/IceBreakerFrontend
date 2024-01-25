@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
-import { connect, sendMsg } from "./ChatService";
-import "./ChatRoomPage.css";
-
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { connect, sendMsg } from './ChatService';
+import { serverPort, websocketPort } from './MacroConst';
+import './ChatRoomPage.css';
 
 interface ChatMessage {
   roomNumber: number;
@@ -13,69 +13,96 @@ interface ChatMessage {
   senderId: string;
 }
 
-
 const ChatRoom: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const userID = location.state?.userID
-  const displayName = location.state?.displayName
-  const roomCode = location.state?.roomCode
+  const user = location.state?.user;
+  const userId = user?.userID;
+  const displayName = user?.displayName;
+  const roomCode = user?.roomCode;
   const [message, setMessage] = useState<string>('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
 
   useEffect(() => {
-    connect(roomCode, (msg: ChatMessage) => {
-      setChatHistory(prevHistory => [...prevHistory, msg]);
+    // connect(roomCode, (msg: ChatMessage) => {
+    //   setChatHistory(prevHistory => [...prevHistory, msg]);
+    // });
+
+    const socketUrl = `${serverPort}/chat?userId=${userId}`;
+    const websocketUrl = `${websocketPort}/chat?userId=${userId}`;
+    const topic = `/topic/room/${roomCode}`;
+
+    connect(socketUrl, websocketUrl, topic, (msg: ChatMessage) => {
+      setChatHistory((prevHistory) => [...prevHistory, msg]);
     });
   }, []);
 
+  const destination = `/app/room/${roomCode}/sendMessage`;
+
   const handleSendMessage = () => {
-    if (message.trim() !== "") {
-      sendMsg({ roomCode, content: message, timestamp: new Date().toISOString(), sender: displayName , senderId: userID});
+    if (message.trim() !== '') {
+      sendMsg(destination, {
+        roomCode,
+        content: message,
+        timestamp: new Date().toISOString(),
+        sender: displayName,
+        senderId: userId,
+      });
       setMessage('');
     }
   };
 
   const handleKeyPress = (e: any) => {
-    if (e.key === "Enter") {
+    if (e.key === 'Enter') {
       handleSendMessage();
     }
   };
 
   const extractMessage = (fullMessage: string) => {
-    if (fullMessage.includes("Server has received your message")) {
+    if (fullMessage.includes('Server has received your message')) {
       const parts = fullMessage.split(':');
       if (parts.length === 2) {
         const message = parts[1].trim();
         return `${message}`;
       }
     } else {
-      return fullMessage
+      return fullMessage;
     }
-  } 
+  };
 
   return (
     <div className={`chat-room-page`}>
-      <div className="chat-room-bar">
-        <div className="chat-room-header">
-        <div className="room-details">
-          Room Code: 
-          <span className="highlighted-sender">{roomCode}</span> | Display Name: 
-           <span className="highlighted-sender">{displayName}</span>  
+      <div className='chat-room-bar'>
+        <div className='chat-room-header'>
+          <div className='room-details'>
+            Room Code:
+            <span className='highlighted-sender'>{roomCode}</span> | Display
+            Name:
+            <span className='highlighted-sender'>{displayName}</span>
+          </div>
         </div>
-        </div>
-        <div className="message-display">
+        <div className='message-display'>
           {chatHistory.map((msg, index) => (
-            <div key={index} className="message">
-              <span className={msg.sender === displayName ? 'green-sender' : 'yellow-sender'}>{msg.sender}:</span>
-              
+            <div key={index} className='message'>
+              <span
+                className={
+                  msg.sender === displayName ? 'green-sender' : 'yellow-sender'
+                }
+              >
+                {msg.sender}:
+              </span>
+
               <span>{extractMessage(msg.content)}</span>
             </div>
           ))}
-          
         </div>
-        <div className="input-container" onKeyDown={handleKeyPress}>
-          <input type="text" value={message} onChange={e => setMessage(e.target.value)} placeholder="Type a message..." />
+        <div className='input-container' onKeyDown={handleKeyPress}>
+          <input
+            type='text'
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder='Type a message...'
+          />
           <button onClick={handleSendMessage}>Send</button>
         </div>
       </div>
