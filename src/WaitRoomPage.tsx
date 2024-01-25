@@ -63,7 +63,7 @@ const WaitRoomPage = () => {
           new UserProfile(
             data.admin.displayName,
             roomCode,
-            data.admin.id, // Assuming 'id' is the userID
+            data.admin.userID, // Assuming 'id' is the userID
             data.admin.profileImage,
             data.admin.firstName,
             data.admin.lastName,
@@ -75,6 +75,7 @@ const WaitRoomPage = () => {
           )
         );
         console.log(admin);
+        console.log(admin?.userID);
         console.log(admin?.profileImage);
       }
       if (data.otherPlayers) {
@@ -84,7 +85,7 @@ const WaitRoomPage = () => {
               new UserProfile(
                 player.displayName,
                 roomCode,
-                player.id, // Assuming 'id' is the userID
+                player.userID,
                 player.profileImage,
                 player.firstName,
                 player.lastName,

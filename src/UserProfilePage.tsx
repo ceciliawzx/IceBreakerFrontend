@@ -12,13 +12,13 @@ const UserProfilePage = () => {
   const [lastName, setLastName] = useState("");
   const [city, setCity] = useState("");
   const [country, setCountry] = useState("");
-  const [base64, setBase64] = useState<string>("");
+  const [selfieBase64, setSelfieBase64] = useState<string>("");
 
   const handleSelfieChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
       const base64String = (await convertToBase64(file)) as string;
-      setBase64(base64String);
+      setSelfieBase64(base64String);
     }
   };
 
@@ -36,12 +36,12 @@ const UserProfilePage = () => {
   };
 
   const handleSubmit = async () => {
-    console.log(base64);
+    console.log(selfieBase64);
     const userProfile = new UserProfile(
       user.displayName,
       user.roomCode,
       user.userID,
-      base64,// Add an empty string for the 'profileImage' argument
+      selfieBase64,
       firstName,
       lastName,
       country,
@@ -50,7 +50,9 @@ const UserProfilePage = () => {
       "1", // Add an empty string for the 'favFood' argument
       "1" // Add an empty string for the 'favActivity' argument
     );
-    console.log(userProfile);
+
+    console.log(userProfile.profileImage);
+
     try {
       const response = await fetch(`${serverPort}/updatePerson`, {
         method: "POST",
