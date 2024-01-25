@@ -21,24 +21,9 @@ const UserProfilePage = () => {
   const [selfie, setSelfie] = useState<File | null>(null);
   const [selfieBase64, setSelfieBase64] = useState("");
 
-  // const handleSelfieChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-  //   if (event.target.files && event.target.files[0]) {
-  //     setSelfie(event.target.files[0]);
-  //   }
-  // };
-
   const handleSelfieChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-
-    if (file) {
-      const reader = new FileReader();
-
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        setSelfieBase64(result);
-      };
-
-      reader.readAsDataURL(file); // Start reading the file as a data URL
+    if (event.target.files && event.target.files[0]) {
+      setSelfie(event.target.files[0]);
     }
   };
 
@@ -52,10 +37,8 @@ const UserProfilePage = () => {
       "1", // Add an empty string for the 'feeling' argument
       "1", // Add an empty string for the 'favFood' argument
       "1", // Add an empty string for the 'favActivity' argument
-      selfieBase64 // Add an empty string for the 'profileImage' argument
+      "1" // Add an empty string for the 'profileImage' argument
     );
-
-    console.log(userProfile.profileImage);
 
     try {
       const response = await fetch(`${serverPort}/updatePerson`, {
