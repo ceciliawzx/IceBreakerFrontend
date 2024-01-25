@@ -1,5 +1,3 @@
-import { User } from "./User";
-
 export { UserProfile };
 
 class UserProfile {
