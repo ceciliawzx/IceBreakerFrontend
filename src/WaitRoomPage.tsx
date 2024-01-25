@@ -42,10 +42,23 @@ const WaitRoomPage = () => {
     });
   };
 
-  const handleLeaveRoom = () => {
-    navigate("/", {
-      state: { user },
-    });
+  const handleLeaveRoom = async () => {
+    // If admin leaves, send http request to kick all user, delete room
+
+    const response = await fetch(
+      `${serverPort}/kickPerson?roomCode=${roomCode}&userID=${userID}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    } else {
+      navigate("/", {
+        state: { user },
+      });
+    }
   };
 
   // Check if the user is the admin
