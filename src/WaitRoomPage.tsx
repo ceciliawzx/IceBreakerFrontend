@@ -123,7 +123,8 @@ const WaitRoomPage = () => {
             data.admin.userID,
             data.admin.displayName,
             true,
-            data.admin.profileImage
+            data.admin.profileImage,
+            data.admin.completed
           )
         );
       }
@@ -136,7 +137,8 @@ const WaitRoomPage = () => {
                 player.userID,
                 player.displayName,
                 false,
-                player.profileImage
+                player.profileImage,
+                player.completed
               )
           )
         );
@@ -203,6 +205,7 @@ const WaitRoomPage = () => {
           alt="Moderator's Image"
           className="moderator-avatar"
         />
+
         <p>{admin?.displayName}</p>
       </div>
       <div className="guest-list">
@@ -210,11 +213,18 @@ const WaitRoomPage = () => {
         <div className="guest-container">
           {guests.map((guest, index) => (
             <div key={index} className="guest">
-              <img
-                src={guest?.profileImage ? `${guest.profileImage}` : "/pic.jpg"}
-                alt={`${guest}'s avatar`}
-                className="guest-avatar"
-              />
+              <div className="avatar-container">
+                <img
+                  src={
+                    guest?.profileImage ? `${guest.profileImage}` : "/pic.jpg"
+                  }
+                  alt={`${guest}'s avatar`}
+                  className="guest-avatar"
+                />
+                {guest.completed && (
+                  <div className="input-status-indicator">✓</div>
+                )}
+              </div>
               <p>{guest.displayName}</p>
               {isAdmin && (
                 <button

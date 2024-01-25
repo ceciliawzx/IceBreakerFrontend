@@ -54,6 +54,22 @@
   flex-wrap: wrap; /* Wrap items to next line if space is not enough */
 }
 
+.avatar-container {
+  position: relative;
+  display: inline-block;
+}
+
+.input-status-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  background-color: #1cc313; /* Green background or any color you prefer */
+  color: rgb(159, 17, 17);
+  border-radius: 50%;
+  padding: 5px;
+  font-size: 15px;
+} 
+
 .guest {
   display: flex; /* Aligns children of guest vertically */
   flex-direction: column; /* Stack items vertically */
