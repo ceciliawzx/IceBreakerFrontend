@@ -67,25 +67,22 @@ const WaitRoomPage = () => {
       if (data.admin) {
         setAdmin(
           new User(
-            data.admin.displayName,
             roomCode,
             data.admin.userID,
+            data.admin.displayName,
             true,
-            data.admin.profileImage,
+            data.admin.profileImage
           )
         );
-        console.log(admin);
-        console.log(admin?.userID);
-        console.log(admin?.profileImage);
       }
       if (data.otherPlayers) {
         setGuests(
           data.otherPlayers.map(
             (player: any) =>
               new User(
-                player.displayName,
                 roomCode,
                 player.userID,
+                player.displayName,
                 false,
                 player.profileImage
               )
@@ -107,6 +104,7 @@ const WaitRoomPage = () => {
   // Periodically check room status
   useEffect(() => {
     checkAdminStatus();
+    checkRoomStatus();
 
     // Update the player list every interval
     const intervalId = setInterval(checkRoomStatus, refreshTime);
@@ -126,7 +124,7 @@ const WaitRoomPage = () => {
         <img
           src={
             admin?.profileImage
-              ? `data:image/jpeg;base64,${admin.profileImage}`
+              ? `${admin.profileImage}`
               : "/pic.jpg"
           }
           alt="Moderator's Image"
@@ -142,7 +140,7 @@ const WaitRoomPage = () => {
               <img
                 src={
                   guest?.profileImage
-                    ? `data:image/jpeg;base64,${guest.profileImage}`
+                    ? `${guest.profileImage}`
                     : "/pic.jpg"
                 }
                 alt={`${guest}'s avatar`}

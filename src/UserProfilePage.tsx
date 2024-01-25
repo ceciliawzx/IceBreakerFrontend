@@ -18,7 +18,6 @@ const UserProfilePage = () => {
   const [feeling, setFeeling] = useState("");
   const [favFood, setFavFood] = useState("");
   const [favActivity, setfavActivity] = useState("");
-  const [selfie, setSelfie] = useState<File | null>(null);
   const [selfieBase64, setSelfieBase64] = useState("");
 
   const handleSelfieChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,7 +42,6 @@ const UserProfilePage = () => {
   };
 
   const handleSubmit = async () => {
-    console.log(selfieBase64);
     const userProfile = new UserProfile(
       user.displayName,
       user.roomCode,
@@ -58,8 +56,6 @@ const UserProfilePage = () => {
       "1" // Add an empty string for the 'favActivity' argument
     );
 
-    console.log(userProfile.profileImage);
-
     try {
       const response = await fetch(`${serverPort}/updatePerson`, {
         method: "POST",
@@ -68,8 +64,6 @@ const UserProfilePage = () => {
         },
         body: JSON.stringify(userProfile),
       });
-
-      console.log(response);
 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`); // Error message
