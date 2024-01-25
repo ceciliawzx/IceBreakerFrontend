@@ -17,20 +17,23 @@ class UserProfile {
   favFood: string;
   favActivity: string;
 
+  
   constructor(
-    user: User,
+    displayName: string,
+    roomCode: string,
+    userID: string,
+    profileImage: string,
     firstName: string,
     lastName: string,
     country: string,
     city: string,
     felling: string,
     favFood: string,
-    favActivity: string,
-    profileImage: string
-  ) {
-    this.roomCode = user.roomCode;
-    this.userID = user.userID;
-    this.displayName = user.displayName;
+    favActivity: string
+  ){
+    this.roomCode = roomCode;
+    this.userID = userID;
+    this.displayName = displayName;
     this.firstName = firstName;
     this.lastName = lastName;
     this.country = country;
@@ -40,4 +43,5 @@ class UserProfile {
     this.favActivity = favActivity;
     this.profileImage = profileImage;
   }
+
 }

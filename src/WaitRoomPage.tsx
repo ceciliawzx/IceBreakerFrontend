@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import "./WaitRoomPage.css";
 import { refreshTime, serverPort } from "./MacroConst";
+import { UserProfile } from "./UserProfile";
 
 const WaitRoomPage = () => {
   const location = useLocation();
@@ -11,8 +12,8 @@ const WaitRoomPage = () => {
   const userID = user.userID;
   const roomCode = user.roomCode;
   const displayName = user.displayName;
-  const [guests, setGuests] = useState<string[]>([]);
-  const [admin, setAdmin] = useState<string>("");
+  const [guests, setGuests] = useState<UserProfile[]>([]);
+  const [admin, setAdmin] = useState<UserProfile | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
   const handleStartRoom = async () => {
@@ -58,15 +59,45 @@ const WaitRoomPage = () => {
 
       const data = await response.json();
       if (data.admin) {
-        setAdmin(data.admin.displayName);
+        setAdmin(
+          new UserProfile(
+            data.admin.displayName,
+            roomCode,
+            data.admin.id, // Assuming 'id' is the userID
+            data.admin.profileImage,
+            data.admin.firstName,
+            data.admin.lastName,
+            data.admin.country,
+            data.admin.city,
+            data.admin.feeling,
+            data.admin.favFood,
+            data.admin.favActivity
+          )
+        );
+        console.log(admin);
+        console.log(admin?.profileImage);
       }
       if (data.otherPlayers) {
         setGuests(
           data.otherPlayers.map(
-            (player: { displayName: any }) => player.displayName
+            (player: any) =>
+              new UserProfile(
+                player.displayName,
+                roomCode,
+                player.id, // Assuming 'id' is the userID
+                player.profileImage,
+                player.firstName,
+                player.lastName,
+                player.country,
+                player.city,
+                player.feeling,
+                player.favFood,
+                player.favActivity
+              )
           )
         );
       }
+
       // if moderator starts game, navigate to input phase
       if (data.gameStatus) {
         navigate("/UserProfilePage", {
@@ -98,11 +129,15 @@ const WaitRoomPage = () => {
       <div className="moderator">
         <h2>Moderator:</h2>
         <img
-          src="/pic.jpg" // {admin.profileImage}
+          src={
+            admin?.profileImage
+              ? `data:image/jpeg;base64,${admin.profileImage}`
+              : "/pic.jpg"
+          }
           alt="Moderator's Image"
           className="moderator-avatar"
         />
-        <p>{admin}</p>
+        <p>{admin?.displayName}</p>
       </div>
       <div className="guest-list">
         <h2>Joined Guests:</h2>
@@ -110,11 +145,15 @@ const WaitRoomPage = () => {
           {guests.map((guest, index) => (
             <div key={index} className="guest">
               <img
-                src="/pic.jpg"
+                src={
+                  guest?.profileImage
+                    ? `data:image/jpeg;base64,${guest.profileImage}`
+                    : "/pic.jpg"
+                }
                 alt={`${guest}'s avatar`}
                 className="guest-avatar"
               />
-              <p>{guest}</p>
+              <p>{guest.displayName}</p>
             </div>
           ))}
         </div>

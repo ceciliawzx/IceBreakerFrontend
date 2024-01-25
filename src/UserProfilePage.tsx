@@ -12,34 +12,52 @@ const UserProfilePage = () => {
   const [lastName, setLastName] = useState("");
   const [city, setCity] = useState("");
   const [country, setCountry] = useState("");
-  const [selfie, setSelfie] = useState<File | null>(null);
+  const [base64, setBase64] = useState<string>("");
 
-  const handleSelfieChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSelfieChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
-      setSelfie(event.target.files[0]);
+      const file = event.target.files[0];
+      const base64String = (await convertToBase64(file)) as string;
+      setBase64(base64String);
     }
   };
 
+  const convertToBase64 = (file: File) => {
+    return new Promise((resolve, reject) => {
+      const fileReader = new FileReader();
+      fileReader.readAsDataURL(file);
+      fileReader.onload = () => {
+        resolve(fileReader.result);
+      };
+      fileReader.onerror = (error) => {
+        reject(error);
+      };
+    });
+  };
+
   const handleSubmit = async () => {
+    console.log(base64);
     const userProfile = new UserProfile(
-      user,
+      user.displayName,
+      user.roomCode,
+      user.userID,
+      base64,// Add an empty string for the 'profileImage' argument
       firstName,
       lastName,
       country,
       city,
       "1", // Add an empty string for the 'feeling' argument
       "1", // Add an empty string for the 'favFood' argument
-      "1", // Add an empty string for the 'favActivity' argument
-      "1" // Add an empty string for the 'profileImage' argument
+      "1" // Add an empty string for the 'favActivity' argument
     );
-
+    console.log(userProfile);
     try {
       const response = await fetch(`${serverPort}/updatePerson`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(userProfile)
+        body: JSON.stringify(userProfile),
       });
 
       console.log(response);
