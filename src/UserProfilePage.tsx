@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import "./UserProfilePage.css";
@@ -40,6 +40,32 @@ const UserProfilePage = () => {
       };
     });
   };
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch(`http://ljthey.co.uk:8080/getPlayer?userID=${user.userID}&roomCode=${user.roomCode}`);
+        if (!response.ok) {
+          throw new Error("Person Not Found");
+        }
+        const data = await response.json();
+
+        if (data && data.userInfo) {
+          setFirstName(data.userInfo.firstName || "");
+          setLastName(data.userInfo.lastName || "");
+          setCity(data.userInfo.city || "");
+          setCountry(data.userInfo.country || "");
+          setFeeling(data.userInfo.feeling || "");
+          setFavFood(data.userInfo.favFood || "");
+          setfavActivity(data.userInfo.favActivities || "");
+          setSelfieBase64(data.userInfo.profileImage || "");
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUserData();
+  }, [user.userID, user.roomCode]);
 
   const handleSubmit = async () => {
     const userProfile = new UserProfile(
@@ -51,9 +77,9 @@ const UserProfilePage = () => {
       lastName,
       country,
       city,
-      "1", // Add an empty string for the 'feeling' argument
-      "1", // Add an empty string for the 'favFood' argument
-      "1" // Add an empty string for the 'favActivity' argument
+      feeling,
+      favFood,
+      favActivity
     );
 
     try {
