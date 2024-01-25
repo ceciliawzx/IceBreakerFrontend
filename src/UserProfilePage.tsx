@@ -21,24 +21,44 @@ const UserProfilePage = () => {
   const [selfie, setSelfie] = useState<File | null>(null);
   const [selfieBase64, setSelfieBase64] = useState("");
 
-  const handleSelfieChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSelfieChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
-      setSelfie(event.target.files[0]);
+      const file = event.target.files[0];
+      const base64String = (await convertToBase64(file)) as string;
+      setSelfieBase64(base64String);
     }
   };
 
+  const convertToBase64 = (file: File) => {
+    return new Promise((resolve, reject) => {
+      const fileReader = new FileReader();
+      fileReader.readAsDataURL(file);
+      fileReader.onload = () => {
+        resolve(fileReader.result);
+      };
+      fileReader.onerror = (error) => {
+        reject(error);
+      };
+    });
+  };
+
   const handleSubmit = async () => {
+    console.log(selfieBase64);
     const userProfile = new UserProfile(
-      user,
+      user.displayName,
+      user.roomCode,
+      user.userID,
+      selfieBase64,
       firstName,
       lastName,
       country,
       city,
       "1", // Add an empty string for the 'feeling' argument
       "1", // Add an empty string for the 'favFood' argument
-      "1", // Add an empty string for the 'favActivity' argument
-      "1" // Add an empty string for the 'profileImage' argument
+      "1" // Add an empty string for the 'favActivity' argument
     );
+
+    console.log(userProfile.profileImage);
 
     try {
       const response = await fetch(`${serverPort}/updatePerson`, {

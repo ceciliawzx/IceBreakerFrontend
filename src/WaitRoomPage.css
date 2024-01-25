@@ -27,7 +27,7 @@
 .moderator-avatar,
 .presenter-avatar {
   /* Set a background image and make it circular */
-  background-image: url("../public/pic.jpg");
+
   background-size: cover;
   background-position: center;
   width: 100px;

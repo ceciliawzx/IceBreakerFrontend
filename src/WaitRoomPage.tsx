@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import "./WaitRoomPage.css";
 import { refreshTime, serverPort } from "./MacroConst";
+import { User } from "./User";
 
 const WaitRoomPage = () => {
   const location = useLocation();
@@ -11,8 +12,8 @@ const WaitRoomPage = () => {
   const userID = user.userID;
   const roomCode = user.roomCode;
   const displayName = user.displayName;
-  const [guests, setGuests] = useState<string[]>([]);
-  const [admin, setAdmin] = useState<string>("");
+  const [guests, setGuests] = useState<User[]>([]);
+  const [admin, setAdmin] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
   const handleStartRoom = async () => {
@@ -64,12 +65,30 @@ const WaitRoomPage = () => {
 
       const data = await response.json();
       if (data.admin) {
-        setAdmin(data.admin.displayName);
+        setAdmin(
+          new User(
+            data.admin.displayName,
+            roomCode,
+            data.admin.userID,
+            true,
+            data.admin.profileImage,
+          )
+        );
+        console.log(admin);
+        console.log(admin?.userID);
+        console.log(admin?.profileImage);
       }
       if (data.otherPlayers) {
         setGuests(
           data.otherPlayers.map(
-            (player: { displayName: any }) => player.displayName
+            (player: any) =>
+              new User(
+                player.displayName,
+                roomCode,
+                player.userID,
+                false,
+                player.profileImage
+              )
           )
         );
       }
@@ -101,28 +120,19 @@ const WaitRoomPage = () => {
       <h1>
         Welcome to Wait Room {roomCode}, {displayName}!
       </h1>
-      <div className="first-row-container">
-        {/* Moderator */}
-        <div className="moderator">
-          <h2>Moderator:</h2>
-          <img
-            src="/pic.jpg" // {admin.profileImage}
-            alt="Moderator's Image"
-            className="moderator-avatar"
-          />
-          <p>{admin}</p>
-        </div>
-
-        {/* Presenter */}
-        <div className="presenter">
-          <h2>Presenter:</h2>
-          <img
-            src="/pic.jpg" // {presenter.profileImage}
-            alt="Presenter 's Image"
-            className="presenter-avatar"
-          />
-          <p>{admin}</p>
-        </div>
+      <h1>Your ID is {userID}</h1>
+      <div className="moderator">
+        <h2>Moderator:</h2>
+        <img
+          src={
+            admin?.profileImage
+              ? `data:image/jpeg;base64,${admin.profileImage}`
+              : "/pic.jpg"
+          }
+          alt="Moderator's Image"
+          className="moderator-avatar"
+        />
+        <p>{admin?.displayName}</p>
       </div>
       <div className="guest-list">
         <h2>Joined Guests:</h2>
@@ -130,11 +140,15 @@ const WaitRoomPage = () => {
           {guests.map((guest, index) => (
             <div key={index} className="guest">
               <img
-                src="/pic.jpg"
+                src={
+                  guest?.profileImage
+                    ? `data:image/jpeg;base64,${guest.profileImage}`
+                    : "/pic.jpg"
+                }
                 alt={`${guest}'s avatar`}
                 className="guest-avatar"
               />
-              <p>{guest}</p>
+              <p>{guest.displayName}</p>
             </div>
           ))}
         </div>
