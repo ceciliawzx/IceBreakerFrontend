@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import "./WaitRoomPage.css";
 import { refreshTime, serverPort } from "./MacroConst";
-import { UserProfile } from "./UserProfile";
+import { User } from "./User";
 
 const WaitRoomPage = () => {
   const location = useLocation();
@@ -12,8 +12,8 @@ const WaitRoomPage = () => {
   const userID = user.userID;
   const roomCode = user.roomCode;
   const displayName = user.displayName;
-  const [guests, setGuests] = useState<UserProfile[]>([]);
-  const [admin, setAdmin] = useState<UserProfile | null>(null);
+  const [guests, setGuests] = useState<User[]>([]);
+  const [admin, setAdmin] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
   const handleStartRoom = async () => {
@@ -60,18 +60,12 @@ const WaitRoomPage = () => {
       const data = await response.json();
       if (data.admin) {
         setAdmin(
-          new UserProfile(
+          new User(
             data.admin.displayName,
             roomCode,
-            data.admin.userID, // Assuming 'id' is the userID
+            data.admin.userID,
+            true,
             data.admin.profileImage,
-            data.admin.firstName,
-            data.admin.lastName,
-            data.admin.country,
-            data.admin.city,
-            data.admin.feeling,
-            data.admin.favFood,
-            data.admin.favActivity
           )
         );
         console.log(admin);
@@ -82,18 +76,12 @@ const WaitRoomPage = () => {
         setGuests(
           data.otherPlayers.map(
             (player: any) =>
-              new UserProfile(
+              new User(
                 player.displayName,
                 roomCode,
                 player.userID,
-                player.profileImage,
-                player.firstName,
-                player.lastName,
-                player.country,
-                player.city,
-                player.feeling,
-                player.favFood,
-                player.favActivity
+                false,
+                player.profileImage
               )
           )
         );
