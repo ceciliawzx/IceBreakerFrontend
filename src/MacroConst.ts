@@ -1,3 +1,3 @@
-export const serverPort = "https://ljthey.co.uk:8080";
-export const websocketPort = "ws://ljthey.co.uk:8080";
+export const serverPort = "https://ice.ljthey.co.uk:8080";
+export const websocketPort = "wss://ice.ljthey.co.uk:8080";
 export const refreshTime = 1000;
