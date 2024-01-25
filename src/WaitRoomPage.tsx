@@ -15,7 +15,8 @@ const WaitRoomPage = () => {
   const [guests, setGuests] = useState<User[]>([]);
   const [admin, setAdmin] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [showPopup, setShowPopup] = useState(false);
+  const [showDismissPopup, setShowDismissPopup] = useState(false);
+  const [showKickPopup, setShowKickPopup] = useState(false);
 
   const handleStartRoom = async () => {
     // Tell server that to start room
@@ -43,6 +44,22 @@ const WaitRoomPage = () => {
     });
   };
 
+  const handleKickUser = async (userID: string) => {
+    // kick this user
+    const response = await fetch(
+      `${serverPort}/kickPerson?roomCode=${roomCode}&userID=${userID}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    // TODO: send http request to that user and popup
+  };
+
   const handleLeaveRoom = async () => {
     // If admin leaves, send http request to delete room and all user should be kicked out
     if (isAdmin) {
@@ -59,7 +76,7 @@ const WaitRoomPage = () => {
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       } else {
-        setShowPopup(true);
+        setShowDismissPopup(true);
       }
     } else {
       // kick this user
@@ -180,6 +197,14 @@ const WaitRoomPage = () => {
                 className="guest-avatar"
               />
               <p>{guest.displayName}</p>
+              {isAdmin && (
+                <button
+                  className="kick-button"
+                  onClick={() => handleKickUser(guest.userID)}
+                >
+                  Kick
+                </button>
+              )}
             </div>
           ))}
         </div>
@@ -205,10 +230,20 @@ const WaitRoomPage = () => {
           Leave Room
         </button>
       }
-      {showPopup && (
+      {showDismissPopup && (
         <div className="popup">
           <p>
             Room {roomCode} dismissed by moderator.
+            <br />
+            Returning to homepage.
+          </p>
+          <button onClick={() => navigate("/")}>OK</button>
+        </div>
+      )}
+      {showKickPopup && (
+        <div className="popup">
+          <p>
+            You are kicked out by moderator.
             <br />
             Returning to homepage.
           </p>

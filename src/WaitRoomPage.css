@@ -101,3 +101,17 @@
 .leave-room-button:hover {
   background-color: #c01016;
 }
+
+.kick-button {
+  background-color: #e3242b;
+  color: white;
+  border: none;
+  cursor: pointer;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.kick-button:hover {
+  background-color: #c01016;
+}
