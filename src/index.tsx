@@ -9,6 +9,7 @@ import UserProfilePage from "./UserProfilePage";
 import reportWebVitals from "./reportWebVitals";
 import CreateRoomPage from "./CreateRoomPage";
 import ChatRoomPage from "./ChatRoomPage";
+import PictionaryPage from './pictionary/PictionaryPage';
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement

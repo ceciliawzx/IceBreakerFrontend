@@ -32,6 +32,12 @@ const WaitRoomPage = () => {
     }
   };
 
+  const handlePictionaryRoom = () => {
+    navigate("/ChatRoomPage", {
+      state: { isDrawer: true },
+    });
+  }
+
   const handleChatRoom = () => {
     navigate("/ChatRoomPage", {
       state: { user },

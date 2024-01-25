@@ -1,8 +1,5 @@
 import React, { useCallback, useRef, useEffect } from 'react';
-import {
-  DrawingMessage,
-  DrawingCanvasProps,
-} from '../utils/DrawingCanvasConstants';
+import { DrawingCanvasProps } from '../utils/DrawingCanvasConstants';
 
 const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   onDraw,

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
-import { connect, sendMsg } from './ChatService';
+import { connect, sendMsg } from './utils/ChatService';
 import { serverPort, websocketPort } from './MacroConst';
 import './ChatRoomPage.css';
 
@@ -23,21 +23,23 @@ const ChatRoom: React.FC = () => {
   const [message, setMessage] = useState<string>('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
 
+
+  const socketUrl = `${serverPort}/chat?userId=${userId}`;
+  const websocketUrl = `${websocketPort}/chat?userId=${userId}`;
+  const topic = `/topic/room/${roomCode}`;
+  const destination = `/app/room/${roomCode}/sendMessage`;
+
+
   useEffect(() => {
     // connect(roomCode, (msg: ChatMessage) => {
     //   setChatHistory(prevHistory => [...prevHistory, msg]);
     // });
-
-    const socketUrl = `${serverPort}/chat?userId=${userId}`;
-    const websocketUrl = `${websocketPort}/chat?userId=${userId}`;
-    const topic = `/topic/room/${roomCode}`;
 
     connect(socketUrl, websocketUrl, topic, (msg: ChatMessage) => {
       setChatHistory((prevHistory) => [...prevHistory, msg]);
     });
   }, []);
 
-  const destination = `/app/room/${roomCode}/sendMessage`;
 
   const handleSendMessage = () => {
     if (message.trim() !== '') {
