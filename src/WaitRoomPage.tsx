@@ -15,6 +15,8 @@ const WaitRoomPage = () => {
   const [guests, setGuests] = useState<User[]>([]);
   const [admin, setAdmin] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showDismissPopup, setShowDismissPopup] = useState(false);
+  const [showKickPopup, setShowKickPopup] = useState(false);
 
   const handleStartRoom = async () => {
     // Tell server that to start room
@@ -40,6 +42,57 @@ const WaitRoomPage = () => {
     navigate("/UserProfilePage", {
       state: { user },
     });
+  };
+
+  const handleKickUser = async (userID: string) => {
+    // kick this user
+    const response = await fetch(
+      `${serverPort}/kickPerson?roomCode=${roomCode}&userID=${userID}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    // TODO: send http request to that user and popup
+  };
+
+  const handleLeaveRoom = async () => {
+    // If admin leaves, send http request to delete room and all user should be kicked out
+    if (isAdmin) {
+      // TODO: send http request
+
+      // Destroy room
+      const response = await fetch(
+        `${serverPort}/destroyRoom?roomCode=${roomCode}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      } else {
+        setShowDismissPopup(true);
+      }
+    } else {
+      // kick this user
+      const response = await fetch(
+        `${serverPort}/kickPerson?roomCode=${roomCode}&userID=${userID}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      } else {
+        navigate("/");
+      }
+    }
   };
 
   // Check if the user is the admin
@@ -91,10 +144,15 @@ const WaitRoomPage = () => {
       }
 
       // If start present, into present page
-      // if (data.gameStatus) {
+      // if (data.gameStatus == START_PRESENT) {
       //   navigate("/PresentPage", {
       //     state: { user },
       //   });
+      // }
+
+      // If room destroyed, should pop up and kick out
+      // if (data.gameStatuss == ROOM_DISMISSED) {
+      // setShowPopup(true);
       // }
     } catch (error) {
       console.error("Error fetching players:", error);
@@ -122,11 +180,7 @@ const WaitRoomPage = () => {
       <div className="moderator">
         <h2>Moderator:</h2>
         <img
-          src={
-            admin?.profileImage
-              ? `${admin.profileImage}`
-              : "/pic.jpg"
-          }
+          src={admin?.profileImage ? `${admin.profileImage}` : "/pic.jpg"}
           alt="Moderator's Image"
           className="moderator-avatar"
         />
@@ -138,15 +192,23 @@ const WaitRoomPage = () => {
           {guests.map((guest, index) => (
             <div key={index} className="guest">
               <img
-                src={
-                  guest?.profileImage
-                    ? `${guest.profileImage}`
-                    : "/pic.jpg"
-                }
+                src={guest?.profileImage ? `${guest.profileImage}` : "/pic.jpg"}
                 alt={`${guest}'s avatar`}
                 className="guest-avatar"
               />
               <p>{guest.displayName}</p>
+              {isAdmin && (
+                <button
+                  className="kick-button"
+                  onClick={() => handleKickUser(guest.userID)}
+                >
+                  <img
+                    src="/cross.png"
+                    alt="Kick"
+                    style={{ width: "30px", height: "30px" }} // Adjust the dimensions as needed
+                  />
+                </button>
+              )}
             </div>
           ))}
         </div>
@@ -167,6 +229,31 @@ const WaitRoomPage = () => {
           Enter your information
         </button>
       }
+      {
+        <button className="leave-room-button" onClick={handleLeaveRoom}>
+          Leave Room
+        </button>
+      }
+      {showDismissPopup && (
+        <div className="popup">
+          <p>
+            Room {roomCode} dismissed by moderator.
+            <br />
+            Returning to homepage.
+          </p>
+          <button onClick={() => navigate("/")}>OK</button>
+        </div>
+      )}
+      {showKickPopup && (
+        <div className="popup">
+          <p>
+            You are kicked out by moderator.
+            <br />
+            Returning to homepage.
+          </p>
+          <button onClick={() => navigate("/")}>OK</button>
+        </div>
+      )}
     </div>
   );
 };
