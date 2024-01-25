@@ -15,7 +15,8 @@ class UserProfile {
   favFood: string;
   favActivity: string;
 
-  
+  completed: boolean = false;
+
   constructor(
     displayName: string,
     roomCode: string,
@@ -28,7 +29,7 @@ class UserProfile {
     felling: string,
     favFood: string,
     favActivity: string
-  ){
+  ) {
     this.roomCode = roomCode;
     this.userID = userID;
     this.displayName = displayName;
@@ -40,6 +41,16 @@ class UserProfile {
     this.favFood = favFood;
     this.favActivity = favActivity;
     this.profileImage = profileImage;
+    if (
+      firstName &&
+      lastName &&
+      country &&
+      city &&
+      felling &&
+      favFood &&
+      favActivity
+    ) {
+      this.completed = true;
+    }
   }
-
 }
