@@ -36,7 +36,7 @@ const CreateRoomPage = () => {
       if (userID && roomCode) {
         // Navigate to with user detail
         // Creating room is admin
-        const user = new User(roomCode, userID, displayName, true);
+        const user = new User(roomCode, userID, displayName, true, "");
         navigate("/WaitRoomPage", {
           state: { user },
         });

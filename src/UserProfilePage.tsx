@@ -1,36 +1,59 @@
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./UserProfilePage.css";
 import { UserProfile } from "./UserProfile";
 import { serverPort } from "./MacroConst";
 
 const UserProfilePage = () => {
-  const [message, setMessage] = useState("");
   const location = useLocation();
+  const navigate = useNavigate();
   const user = location.state?.user;
+  const displayName = user.displayName;
+  const [message, setMessage] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [city, setCity] = useState("");
   const [country, setCountry] = useState("");
-  const [selfie, setSelfie] = useState<File | null>(null);
+  const [feeling, setFeeling] = useState("");
+  const [favFood, setFavFood] = useState("");
+  const [favActivity, setfavActivity] = useState("");
+  const [selfieBase64, setSelfieBase64] = useState("");
 
-  const handleSelfieChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSelfieChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
-      setSelfie(event.target.files[0]);
+      const file = event.target.files[0];
+      const base64String = (await convertToBase64(file)) as string;
+      setSelfieBase64(base64String);
     }
+  };
+
+  const convertToBase64 = (file: File) => {
+    return new Promise((resolve, reject) => {
+      const fileReader = new FileReader();
+      fileReader.readAsDataURL(file);
+      fileReader.onload = () => {
+        resolve(fileReader.result);
+      };
+      fileReader.onerror = (error) => {
+        reject(error);
+      };
+    });
   };
 
   const handleSubmit = async () => {
     const userProfile = new UserProfile(
-      user,
+      user.displayName,
+      user.roomCode,
+      user.userID,
+      selfieBase64,
       firstName,
       lastName,
       country,
       city,
       "1", // Add an empty string for the 'feeling' argument
       "1", // Add an empty string for the 'favFood' argument
-      "1", // Add an empty string for the 'favActivity' argument
-      "1" // Add an empty string for the 'profileImage' argument
+      "1" // Add an empty string for the 'favActivity' argument
     );
 
     try {
@@ -39,16 +62,19 @@ const UserProfilePage = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(userProfile)
+        body: JSON.stringify(userProfile),
       });
 
-      console.log(response);
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`); // Error message
       }
       const msg = await response.text();
       setMessage(msg);
       console.log(msg);
+
+      navigate("/WaitRoomPage", {
+        state: { user },
+      });
     } catch (error) {
       console.error("Error updating person:", error);
     }
@@ -56,7 +82,7 @@ const UserProfilePage = () => {
 
   return (
     <div className="user-profile-container">
-      <h2 className="form-title">Please enter your details</h2>
+      <h2 className="form-title">Hi {displayName},please enter your details</h2>
       <form className="form">
         <div className="form-row">
           <label>First Name:</label>
@@ -88,6 +114,30 @@ const UserProfilePage = () => {
             type="text"
             value={country}
             onChange={(e) => setCountry(e.target.value)}
+          />
+        </div>
+        <div className="form-row">
+          <label>Current Feeling:</label>
+          <input
+            type="text"
+            value={feeling}
+            onChange={(e) => setFeeling(e.target.value)}
+          />
+        </div>
+        <div className="form-row">
+          <label>Favourite food:</label>
+          <input
+            type="text"
+            value={favFood}
+            onChange={(e) => setFavFood(e.target.value)}
+          />
+        </div>
+        <div className="form-row">
+          <label>Favourite activity:</label>
+          <input
+            type="text"
+            value={favActivity}
+            onChange={(e) => setfavActivity(e.target.value)}
           />
         </div>
         <div className="form-row">

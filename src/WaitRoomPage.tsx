@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import "./WaitRoomPage.css";
 import { refreshTime, serverPort } from "./MacroConst";
+import { User } from "./User";
 
 const WaitRoomPage = () => {
   const location = useLocation();
@@ -11,8 +12,8 @@ const WaitRoomPage = () => {
   const userID = user.userID;
   const roomCode = user.roomCode;
   const displayName = user.displayName;
-  const [guests, setGuests] = useState<string[]>([]);
-  const [admin, setAdmin] = useState<string>("");
+  const [guests, setGuests] = useState<User[]>([]);
+  const [admin, setAdmin] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
   const handleStartRoom = async () => {
@@ -31,7 +32,13 @@ const WaitRoomPage = () => {
 
   const handleChatRoom = () => {
     navigate("/ChatRoomPage", {
-      state: { userID, roomCode, displayName },
+      state: { user },
+    });
+  };
+
+  const handleUserInformation = () => {
+    navigate("/UserProfilePage", {
+      state: { user },
     });
   };
 
@@ -58,21 +65,37 @@ const WaitRoomPage = () => {
 
       const data = await response.json();
       if (data.admin) {
-        setAdmin(data.admin.displayName);
+        setAdmin(
+          new User(
+            roomCode,
+            data.admin.userID,
+            data.admin.displayName,
+            true,
+            data.admin.profileImage
+          )
+        );
       }
       if (data.otherPlayers) {
         setGuests(
           data.otherPlayers.map(
-            (player: { displayName: any }) => player.displayName
+            (player: any) =>
+              new User(
+                roomCode,
+                player.userID,
+                player.displayName,
+                false,
+                player.profileImage
+              )
           )
         );
       }
-      // if moderator starts game, navigate to input phase
-      if (data.gameStatus) {
-        navigate("/UserProfilePage", {
-          state: { user },
-        });
-      }
+
+      // If start present, into present page
+      // if (data.gameStatus) {
+      //   navigate("/PresentPage", {
+      //     state: { user },
+      //   });
+      // }
     } catch (error) {
       console.error("Error fetching players:", error);
     }
@@ -81,6 +104,7 @@ const WaitRoomPage = () => {
   // Periodically check room status
   useEffect(() => {
     checkAdminStatus();
+    checkRoomStatus();
 
     // Update the player list every interval
     const intervalId = setInterval(checkRoomStatus, refreshTime);
@@ -98,11 +122,15 @@ const WaitRoomPage = () => {
       <div className="moderator">
         <h2>Moderator:</h2>
         <img
-          src="/pic.jpg" // {admin.profileImage}
+          src={
+            admin?.profileImage
+              ? `${admin.profileImage}`
+              : "/pic.jpg"
+          }
           alt="Moderator's Image"
           className="moderator-avatar"
         />
-        <p>{admin}</p>
+        <p>{admin?.displayName}</p>
       </div>
       <div className="guest-list">
         <h2>Joined Guests:</h2>
@@ -110,11 +138,15 @@ const WaitRoomPage = () => {
           {guests.map((guest, index) => (
             <div key={index} className="guest">
               <img
-                src="/pic.jpg"
+                src={
+                  guest?.profileImage
+                    ? `${guest.profileImage}`
+                    : "/pic.jpg"
+                }
                 alt={`${guest}'s avatar`}
                 className="guest-avatar"
               />
-              <p>{guest}</p>
+              <p>{guest.displayName}</p>
             </div>
           ))}
         </div>
@@ -128,6 +160,11 @@ const WaitRoomPage = () => {
       {
         <button className="start-room-button" onClick={handleChatRoom}>
           Chat Room
+        </button>
+      }
+      {
+        <button className="start-room-button" onClick={handleUserInformation}>
+          Enter your information
         </button>
       }
     </div>

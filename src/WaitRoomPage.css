@@ -11,11 +11,23 @@
   margin-top: 20px;
 }
 
-.moderator-avatar {
-  /* Your existing styles for the moderator section */
+.first-row-container {
+  display: flex; /* Aligns children of container in a row */
+  justify-content: space-evenly; /* Center the items horizontally */
+  align-items: center; /* Center the items vertically */
+}
 
+.moderator,
+.presenter {
+  text-align: center;
+  margin-left: 120px;
+  margin-right: 120px; /* Adjust margin for spacing between containers */
+}
+
+.moderator-avatar,
+.presenter-avatar {
   /* Set a background image and make it circular */
-  background-image: url('../public/pic.jpg');
+
   background-size: cover;
   background-position: center;
   width: 100px;
@@ -27,7 +39,7 @@
   /* Your existing styles for the moderator section */
 
   /* Set a background image and make it circular */
-  background-image: url('../public/pic.jpg');
+  background-image: url("../public/pic.jpg");
   background-size: cover;
   background-position: center;
   width: 100px;
@@ -51,9 +63,8 @@
 
 .river {
   height: 50px; /* Adjust the height as needed */
-  background-image: url('../public/river.png');
+  background-image: url("../public/river.png");
   background-size: 100% 100%;
-
 }
 
 .guest-list {
