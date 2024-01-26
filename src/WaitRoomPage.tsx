@@ -19,6 +19,8 @@ const WaitRoomPage = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [showDismissPopup, setShowDismissPopup] = useState(false);
   const [showKickPopup, setShowKickPopup] = useState(false);
+  const [showChangePresenterPopup, setShowChangePresenterPopup] = useState(false);
+  const [selectedPresenterUserID, setSelectedPresenterUserID] = useState<string | null>(null);
 
   const handleStartRoom = async () => {
     // Tell server that to start room
@@ -95,31 +97,24 @@ const WaitRoomPage = () => {
     }
   };
 
-  // handle change presenter
   const handleChangePresenter = () => {
-    if (!guests.length) return; // Ensure there are guests
+    setShowChangePresenterPopup(true);
+    setSelectedPresenterUserID(null);
+  };
 
-    let nextPresenter = admin;
+  const handleSelectPresenter = (userID: string) => {
+    setSelectedPresenterUserID(userID);
+  };
 
-    if (presenter == admin) {
-      nextPresenter = guests[0];
-
-    } else {
-          // Find the current presenter's index
-    const currentIndex = guests.findIndex((guest) => guest.userID === presenter?.userID);
-  
-    // Calculate the index of the next guest
-    const nextIndex = (currentIndex + 1) % guests.length;
-    if (nextIndex < guests.length) {
-      nextPresenter = guests[nextIndex];
+  const confirmChangePresenter = () => {
+    if (selectedPresenterUserID) {
+      const newPresenter = guests.find((guest) => guest.userID === selectedPresenterUserID);
+      if (newPresenter) {
+        setPresenter(newPresenter);
+      }
     }
-  
-    // Set the next presenter
-    setPresenter(nextPresenter);
-  
-    // Notify the server about the change in presenter if needed
-    };
-  }
+    setShowChangePresenterPopup(false); // Close the popup
+  };
 
   // Check if the user is the admin
   const checkAdminStatus = async () => {
@@ -245,6 +240,7 @@ const WaitRoomPage = () => {
     return () => clearInterval(intervalId);
   }, [userID, roomCode]);
 
+  // main render
   return (
     <div className="wait-room-page">
       <h1>
@@ -331,6 +327,7 @@ const WaitRoomPage = () => {
           Leave Room
         </button>
       }
+      {/* dimmiss popup */}
       {showDismissPopup && (
         <div className="popup">
           <p>
@@ -341,6 +338,7 @@ const WaitRoomPage = () => {
           <button onClick={() => navigate("/")}>OK</button>
         </div>
       )}
+      {/* kickout popup */}
       {showKickPopup && (
         <div className="popup">
           <p>
@@ -350,6 +348,26 @@ const WaitRoomPage = () => {
           </p>
           <button onClick={() => navigate("/")}>OK</button>
         </div>
+      )}
+      {/* change presenter popup */}
+      {showChangePresenterPopup && (
+      <div className="change-presenter-popup">
+        <h3>Select New Presenter:</h3>
+        <ul>
+        {guests.concat(admin || []).map((user) => (
+            <li
+              key={user.userID}
+              onClick={() => handleSelectPresenter(user.userID)}
+              className={selectedPresenterUserID === user.userID ? 'selected' : ''}
+            >
+              {user.displayName}
+            </li>
+          ))}
+        </ul>
+        <div className="button-container">
+          <button onClick={confirmChangePresenter}>Confirm</button>
+        </div>
+      </div>
       )}
     </div>
   );
