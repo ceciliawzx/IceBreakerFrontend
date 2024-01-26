@@ -215,7 +215,7 @@ const WaitRoomPage = () => {
         <div className="moderator">
           <h2>Moderator:</h2>
           <img
-            src="/pic.jpg" // {admin.profileImage}
+            src={admin?.profileImage ? `${admin.profileImage}` : "/pic.jpg"} // {admin.profileImage}
             alt="Moderator's Image"
             className="moderator-avatar"
           />
@@ -226,7 +226,7 @@ const WaitRoomPage = () => {
         <div className="presenter">
           <h2>Presenter:</h2>
           <img
-            src="/pic.jpg" // {presenter.profileImage}
+            src={admin?.profileImage ? `${admin.profileImage}` : "/pic.jpg"} // {presenter.profileImage}
             alt="Presenter 's Image"
             className="presenter-avatar"
           />
@@ -242,9 +242,7 @@ const WaitRoomPage = () => {
               <div className="avatar-container">
                 <img
                   src={
-                    guest?.profileImage
-                      ? `${guest.profileImage}`
-                      : "/pic.jpg"
+                    guest?.profileImage ? `${guest.profileImage}` : "/pic.jpg"
                   }
                   alt={`${guest}'s avatar`}
                   className="guest-avatar"
