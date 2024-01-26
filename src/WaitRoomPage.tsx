@@ -257,11 +257,6 @@ const WaitRoomPage = () => {
                   className="kick-button"
                   onClick={() => handleKickUser(guest.userID)}
                 >
-                  <img
-                    src="/cross.png"
-                    alt="Kick"
-                    style={{ width: "30px", height: "30px" }} // Adjust the dimensions as needed
-                  />
                 </button>
               )}
             </div>

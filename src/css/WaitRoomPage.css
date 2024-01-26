@@ -68,7 +68,7 @@
   border-radius: 50%;
   padding: 5px;
   font-size: 15px;
-} 
+}
 
 .guest {
   display: flex; /* Aligns children of guest vertically */
@@ -120,19 +120,21 @@
 }
 
 .kick-button {
+  background-image: url("~/public/cross.png");
   position: absolute;
   top: -15px;
   right: -25px;
   background-color: transparent;
   cursor: pointer;
   margin: 10px;
-  padding: 5px;
+  padding: 20px;
+  background-size: 100% 100%;
 }
 
 .kick-button:hover {
   position: absolute;
   top: -17px;
   right: -27px;
-  background-color: transparent;
-  border: 2px solid #c01016;
+  /* background-color: transparent; */
+  /* border: 2px solid #c01016; */
 }
