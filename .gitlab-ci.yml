@@ -43,10 +43,10 @@ dev_deploy:
     - eval $(ssh-agent -s)
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
-    - 'echo -e "Host texel02\n\tHostName shell2.doc.ic.ac.uk\n\tUser zw4021\n\tRequestTTY yes\n\tIdentityFile ~/.ssh/id_rsa\n\tRemoteCommand ssh texel02" > ~/.ssh/config'
+    - 'echo -e "Host texel01\n\tHostName shell2.doc.ic.ac.uk\n\tUser zw4021\n\tRequestTTY yes\n\tIdentityFile ~/.ssh/id_rsa\n\tRemoteCommand ssh texel01" > ~/.ssh/config'
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
   script:
-    - rm -f zw4021@texel02:/vol/project/2023/60021/g236002112/dev/*
-    - scp -r build/* zw4021@texel02:/vol/project/2023/60021/g236002112/dev
+    - rm -f zw4021@texel01:/vol/project/2023/60021/g236002112/dev/*
+    - scp -r build/* zw4021@texel01:/vol/project/2023/60021/g236002112/dev
   except:
     - master
