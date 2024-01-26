@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { serverPort } from "./MacroConst";
-import { User } from "./User";
-import "./CreateRoomPage.css";
+import { serverPort } from "./macro/MacroServer";
+import { User } from "./type/User";
+import "./css/CreateRoomPage.css";
 
 const CreateRoomPage = () => {
   const navigate = useNavigate();
@@ -36,7 +36,7 @@ const CreateRoomPage = () => {
       if (userID && roomCode) {
         // Navigate to with user detail
         // Creating room is admin
-        const user = new User(roomCode, userID, displayName, true, true, "");
+        const user = new User(roomCode, userID, displayName, true, true, "", false);
         navigate("/WaitRoomPage", {
           state: { user },
         });

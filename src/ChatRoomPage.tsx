@@ -17,24 +17,20 @@ const ChatRoom: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const user = location.state?.user;
-  const userId = user?.userID;
-  const displayName = user?.displayName;
-  const roomCode = user?.roomCode;
-  const [message, setMessage] = useState<string>('');
+  const userID = user.userID;
+  const displayName = user.displayName;
+  const roomCode = user.roomCode;
+  const [message, setMessage] = useState<string>("");
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
 
 
-  const socketUrl = `${serverPort}/chat?userId=${userId}`;
-  const websocketUrl = `${websocketPort}/chat?userId=${userId}`;
+  const socketUrl = `${serverPort}/chat?userId=${userID}`;
+  const websocketUrl = `${websocketPort}/chat?userId=${userID}`;
   const topic = `/topic/room/${roomCode}`;
   const destination = `/app/room/${roomCode}/sendMessage`;
 
 
   useEffect(() => {
-    // connect(roomCode, (msg: ChatMessage) => {
-    //   setChatHistory(prevHistory => [...prevHistory, msg]);
-    // });
-
     connect(socketUrl, websocketUrl, topic, (msg: ChatMessage) => {
       setChatHistory((prevHistory) => [...prevHistory, msg]);
     });
@@ -48,7 +44,7 @@ const ChatRoom: React.FC = () => {
         content: message,
         timestamp: new Date().toISOString(),
         sender: displayName,
-        senderId: userId,
+        senderId: userID,
       });
       setMessage('');
     }

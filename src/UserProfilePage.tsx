@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import "./UserProfilePage.css";
-import { UserProfile } from "./UserProfile";
-import { serverPort } from "./MacroConst";
+import "./css/UserProfilePage.css";
+import { UserProfile } from "./type/UserProfile";
+import { serverPort } from "./macro/MacroServer";
 
 const UserProfilePage = () => {
   const location = useLocation();
@@ -20,7 +20,9 @@ const UserProfilePage = () => {
   const [favActivity, setfavActivity] = useState("");
   const [selfieBase64, setSelfieBase64] = useState("");
 
-  const handleSelfieChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSelfieChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
       const base64String = (await convertToBase64(file)) as string;
@@ -43,7 +45,9 @@ const UserProfilePage = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetch(`${serverPort}/getPlayer?userID=${user.userID}&roomCode=${user.roomCode}`);
+        const response = await fetch(
+          `${serverPort}/getPlayer?userID=${user.userID}&roomCode=${user.roomCode}`
+        );
         if (!response.ok) {
           throw new Error("Person Not Found");
         }
