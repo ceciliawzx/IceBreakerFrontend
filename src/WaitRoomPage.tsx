@@ -15,7 +15,6 @@ const WaitRoomPage = () => {
   const [guests, setGuests] = useState<User[]>([]);
   const [admin, setAdmin] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isUserInRoom, setIsUserInRoom] = useState(true);
   const [showDismissPopup, setShowDismissPopup] = useState(false);
   const [showKickPopup, setShowKickPopup] = useState(false);
 
@@ -116,6 +115,16 @@ const WaitRoomPage = () => {
       }
 
       const data = await response.json();
+
+      // Check if room dismissed
+      Object.values(data).some((value) => {
+        if (typeof value === "string" && value.includes("Room cannot be found") ) {
+          setShowDismissPopup(true);
+          return;
+        }
+      });
+
+      // 
       if (data.admin) {
         setAdmin(
           new User(
