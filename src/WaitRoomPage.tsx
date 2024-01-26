@@ -110,7 +110,12 @@ const WaitRoomPage = () => {
     if (selectedPresenterUserID) {
       const newPresenter = guests.find((guest) => guest.userID === selectedPresenterUserID);
       if (newPresenter) {
-        setPresenter(newPresenter);
+        fetch(
+          `${serverPort}/changePresenter?roomCode=${roomCode}userIDE=${(newPresenter.userID)}`,
+          {
+            method: "POST",
+          }
+        );
       }
     }
     setShowChangePresenterPopup(false); // Close the popup
