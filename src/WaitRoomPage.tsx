@@ -15,6 +15,7 @@ const WaitRoomPage = () => {
   const displayName = user.displayName;
   const [guests, setGuests] = useState<User[]>([]);
   const [admin, setAdmin] = useState<User | null>(null);
+  const [presenter, setPresenter] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showDismissPopup, setShowDismissPopup] = useState(false);
   const [showKickPopup, setShowKickPopup] = useState(false);
@@ -94,6 +95,32 @@ const WaitRoomPage = () => {
     }
   };
 
+  // handle change presenter
+  const handleChangePresenter = () => {
+    if (!guests.length) return; // Ensure there are guests
+
+    let nextPresenter = admin;
+
+    if (presenter == admin) {
+      nextPresenter = guests[0];
+
+    } else {
+          // Find the current presenter's index
+    const currentIndex = guests.findIndex((guest) => guest.userID === presenter?.userID);
+  
+    // Calculate the index of the next guest
+    const nextIndex = (currentIndex + 1) % guests.length;
+    if (nextIndex < guests.length) {
+      nextPresenter = guests[nextIndex];
+    }
+  
+    // Set the next presenter
+    setPresenter(nextPresenter);
+  
+    // Notify the server about the change in presenter if needed
+    };
+  }
+
   // Check if the user is the admin
   const checkAdminStatus = async () => {
     const url = `${serverPort}/isAdmin?userID=${userID}&roomCode=${roomCode}`;
@@ -139,6 +166,19 @@ const WaitRoomPage = () => {
             data.admin.completed
           )
         );
+      }
+      if (data.presenter) {
+        setPresenter(
+          new User(
+            roomCode,
+            data.presenter.userID,
+            data.presenter.displayName,
+            true,
+            data.presenter.profileImage,
+            data.presenter.completed
+          )
+        )
+
       }
       if (data.otherPlayers) {
         setGuests(
@@ -189,6 +229,7 @@ const WaitRoomPage = () => {
     }
   };
 
+
   // Periodically check room status
   useEffect(() => {
     checkAdminStatus();
@@ -225,11 +266,19 @@ const WaitRoomPage = () => {
         <div className="presenter">
           <h2>Presenter:</h2>
           <img
-            src={`${admin?.profileImage}`} // {presenter.profileImage}
+            src={`${presenter?.profileImage}`} // {presenter.profileImage}
             alt="Presenter 's Image"
             className="presenter-avatar"
           />
-          <p>{admin?.displayName}</p>
+          <p>{presenter?.displayName}</p>
+          {isAdmin && (
+            <button
+              className="change-presenter-button"
+              onClick={handleChangePresenter}
+            >
+              Change Presenter
+            </button>
+          )}
         </div>
       </div>
 
