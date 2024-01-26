@@ -8,22 +8,26 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef<boolean>(false);
+  const wasDrawing = useRef<boolean>(false);
 
-  const draw = useCallback((x: number, y: number, isDown: boolean) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+  const draw = useCallback(
+    (x: number, y: number, isDown: boolean, isNewLine: boolean = false) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
 
-    const ctx: CanvasRenderingContext2D | null = canvas.getContext('2d');
-    if (!ctx) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
 
-    if (isDown) {
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-    } else {
-      ctx.lineTo(x, y);
-      ctx.stroke();
-    }
-  }, []);
+      if (isNewLine) {
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+      } else if (isDown) {
+        ctx.lineTo(x, y);
+        ctx.stroke();
+      }
+    },
+    []
+  );
 
   const handleMouseMove = (event: MouseEvent) => {
     if (!isDrawing.current) return;
@@ -35,8 +39,14 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     const y = event.clientY - rect.top;
 
     if (isDrawer) {
-      draw(x, y, false);
-      onDraw({ x, y, drawing: false });
+      draw(x, y, isDrawing.current);
+      onDraw({
+        x,
+        y,
+        drawing: isDrawing.current,
+        isNewLine: isDrawing.current && !wasDrawing.current,
+      });
+      wasDrawing.current = isDrawing.current;
     }
   };
 
@@ -52,11 +62,13 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     const y = event.clientY - rect.top;
 
     draw(x, y, true);
-    onDraw({ x, y, drawing: true });
+    onDraw({ x, y, drawing: true, isNewLine: !wasDrawing.current });
+    wasDrawing.current = true;
   };
 
   const handleMouseUp = () => {
     isDrawing.current = false;
+    wasDrawing.current = false;
   };
 
   useEffect(() => {
@@ -64,7 +76,8 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       draw(
         externalDrawing.drawingData.x,
         externalDrawing.drawingData.y,
-        externalDrawing.drawingData.drawing
+        externalDrawing.drawingData.drawing,
+        externalDrawing.drawingData.isNewLine
       );
     }
   }, [externalDrawing, draw]);

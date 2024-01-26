@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { connect, sendMsg } from './utils/ChatService';
 import { serverPort, websocketPort } from './MacroConst';
-import './ChatRoomPage.css';
+import './css/ChatRoomPage.css';
 
 interface ChatMessage {
   roomNumber: number;
@@ -15,7 +15,6 @@ interface ChatMessage {
 
 const ChatRoom: React.FC = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   const user = location.state?.user;
   const userID = user.userID;
   const displayName = user.displayName;

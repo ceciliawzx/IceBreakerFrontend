@@ -4,6 +4,7 @@ export interface DrawingMessage {
     x: number;
     y: number;
     drawing: boolean; // true if drawing (mouse down), false if not (mouse up)
+    isNewLine: boolean;
     color?: string; // Optional color of the stroke
     strokeWidth?: number; // Optional stroke width
   };
@@ -12,7 +13,7 @@ export interface DrawingMessage {
 }
 
 export interface DrawingCanvasProps {
-  onDraw: (drawingData: { x: number; y: number; drawing: boolean }) => void;
+  onDraw: (drawingData: { x: number; y: number; drawing: boolean; isNewLine: boolean }) => void;
   externalDrawing: DrawingMessage | undefined;
   isDrawer: boolean;
 }
