@@ -39,7 +39,7 @@
   /* Your existing styles for the moderator section */
 
   /* Set a background image and make it circular */
-  background-image: url("../public/pic.jpg");
+  background-image: url("~/public/pic.jpg");
   background-size: cover;
   background-position: center;
   width: 100px;
@@ -80,7 +80,7 @@
 
 .river {
   height: 50px; /* Adjust the height as needed */
-  background-image: url("../public/river.png");
+  background-image: url("~/public/river.png");
   background-size: 100% 100%;
 }
 

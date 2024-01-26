@@ -1,8 +1,8 @@
 import React, { useState, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import "./JoinRoomPage.css";
-import { serverPort } from "./MacroConst";
-import { User } from "./User";
+import "./css/JoinRoomPage.css";
+import { serverPort } from "./macro/MacroServer";
+import { User } from "./type/User";
 
 const JoinRoomPage = () => {
   const navigate = useNavigate();
@@ -13,7 +13,7 @@ const JoinRoomPage = () => {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     // Prevent default form submission behavior
-    event.preventDefault(); 
+    event.preventDefault();
 
     // Get display name
     if (!displayName.trim()) {
@@ -32,9 +32,9 @@ const JoinRoomPage = () => {
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`); // Error message
       }
-      
+
       const { userID } = await response.json();
-      
+
       if (userID) {
         // Joining room cannot be admin
         const user = new User(roomCode, userID, displayName, false, "", false);

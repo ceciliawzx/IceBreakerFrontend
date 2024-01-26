@@ -2,4 +2,3 @@ node_modules/
 build/
 .DS_Store
 src/.DS_Store
-src/MacroConst.ts

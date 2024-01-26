@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import "./WaitRoomPage.css";
-import { refreshTime, serverPort } from "./MacroConst";
-import { User } from "./User";
+import "./css/WaitRoomPage.css";
+import { serverPort } from "./macro/MacroServer";
+import { refreshTime } from "./macro/MacroConst";
+import { User } from "./type/User";
 
 const WaitRoomPage = () => {
   const location = useLocation();
@@ -118,13 +119,16 @@ const WaitRoomPage = () => {
 
       // Check if room dismissed
       Object.values(data).some((value) => {
-        if (typeof value === "string" && value.includes("Room cannot be found") ) {
+        if (
+          typeof value === "string" &&
+          value.includes("Room cannot be found")
+        ) {
           setShowDismissPopup(true);
           return;
         }
       });
 
-      // 
+      //
       if (data.admin) {
         setAdmin(
           new User(

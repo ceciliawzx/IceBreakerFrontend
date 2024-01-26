@@ -1,26 +1,13 @@
 import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
-import { serverPort, websocketPort } from "./MacroConst";
+import { serverPort, websocketPort } from "../macro/MacroServer";
 
-export interface ChatMessage {
-  roomCode: string;
-  content: string;
-  timestamp: string;
-  sender: string;
-  senderId: string;
-}
+let client: Client | null = null;
 
-const connect = (
-  onMessageReceived: (msg: any) => void,
-  roomCode: string,
-  userID: string,
-) => {
-  const socketUrl = `${serverPort}/chat?userId=${userID}`;
-  const websocketUrl = `${websocketPort}/chat?userId=${userID}`;
-
-  const socket = new SockJS(socketUrl);
-  const client = new Client({
-    brokerURL: websocketUrl,
+const connect = (roomCode: string, onMessageReceived: (msg: any) => void) => {
+  const socket = new SockJS(`${serverPort}/chat`);
+  client = new Client({
+    brokerURL: `${websocketPort}/chat`,
     webSocketFactory: () => socket,
     onConnect: () => {
       console.log("Connected to STOMP server"); // Logging connection
@@ -42,12 +29,9 @@ const connect = (
   });
 
   client.activate();
-
-  console.log("client activate")
-  return client;
 };
 
-const sendMsg = (msg: any, client: Client) => {
+const sendMsg = (msg: any) => {
   if (client && client.connected) {
     client.publish({
       destination: `/app/room/${msg.roomCode}/sendMessage`,

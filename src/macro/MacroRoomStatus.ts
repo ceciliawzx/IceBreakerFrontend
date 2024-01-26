@@ -1,0 +1,1 @@
+export const ROOMSTATUS = 0;
