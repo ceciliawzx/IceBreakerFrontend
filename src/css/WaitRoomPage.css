@@ -19,7 +19,6 @@
 
 .moderator,
 .presenter {
-  background-image: url("~/public/pic.jpg");
   text-align: center;
   margin-left: 120px;
   margin-right: 120px; /* Adjust margin for spacing between containers */
@@ -28,7 +27,6 @@
 .moderator-avatar,
 .presenter-avatar {
   /* Set a background image and make it circular */
-
   background-size: cover;
   background-position: center;
   width: 100px;
