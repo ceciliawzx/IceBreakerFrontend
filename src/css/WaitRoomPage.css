@@ -27,7 +27,6 @@
 .moderator-avatar,
 .presenter-avatar {
   /* Set a background image and make it circular */
-
   background-size: cover;
   background-position: center;
   width: 100px;
@@ -39,7 +38,7 @@
   /* Your existing styles for the moderator section */
 
   /* Set a background image and make it circular */
-  background-image: url("~/public/pic.jpg");
+  /* background-image: url("~/public/pic.jpg"); */
   background-size: cover;
   background-position: center;
   width: 100px;
@@ -68,7 +67,7 @@
   border-radius: 50%;
   padding: 5px;
   font-size: 15px;
-} 
+}
 
 .guest {
   display: flex; /* Aligns children of guest vertically */
@@ -120,13 +119,15 @@
 }
 
 .kick-button {
+  background-image: url("~/public/cross.png");
   position: absolute;
   top: -15px;
   right: -25px;
   background-color: transparent;
   cursor: pointer;
   margin: 10px;
-  padding: 5px;
+  padding: 20px;
+  background-size: 100% 100%;
 }
 
 .kick-button:hover {

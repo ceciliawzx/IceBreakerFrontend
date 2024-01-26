@@ -60,7 +60,7 @@ const UserProfilePage = () => {
           setCountry(data.userInfo.country || "");
           setFeeling(data.userInfo.feeling || "");
           setFavFood(data.userInfo.favFood || "");
-          setfavActivity(data.userInfo.favActivities || "");
+          setfavActivity(data.userInfo.favActivity || "");
           setSelfieBase64(data.userInfo.profileImage || "");
         }
       } catch (error) {
