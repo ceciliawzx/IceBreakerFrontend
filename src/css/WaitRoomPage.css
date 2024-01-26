@@ -19,6 +19,7 @@
 
 .moderator,
 .presenter {
+  background-image: url("~/public/pic.jpg");
   text-align: center;
   margin-left: 120px;
   margin-right: 120px; /* Adjust margin for spacing between containers */
