@@ -43,7 +43,7 @@ const UserProfilePage = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetch(`http://ljthey.co.uk:8080/getPlayer?userID=${user.userID}&roomCode=${user.roomCode}`);
+        const response = await fetch(`${serverPort}/getPlayer?userID=${user.userID}&roomCode=${user.roomCode}`);
         if (!response.ok) {
           throw new Error("Person Not Found");
         }
