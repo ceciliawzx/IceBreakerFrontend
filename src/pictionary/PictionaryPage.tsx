@@ -8,18 +8,19 @@ import { serverPort, websocketPort } from '../MacroConst';
 const PictionaryPage = () => {
   const location = useLocation();
   const [externalDrawing, setExternalDrawing] = useState<DrawingMessage>();
-  const isDrawer = location.state?.isDrawer;
-
   const user = location.state?.user;
   const userId = user?.userID;
+  const isDrawer = user?.isPresenter;
   const displayName = user?.displayName;
   const roomCode = user?.roomCode;
+
 
   const handleReceivedDrawing = useCallback((data: DrawingMessage) => {
     setExternalDrawing(data);
   }, []);
 
   useEffect(() => {
+    console.log("location info", location.state);
     const socketUrl = `${serverPort}/chat?userId=${userId}`;
     const websocketUrl = `${websocketPort}/chat?userId=${userId}`;
     const topic = `/topic/room/${roomCode}/drawing`;
@@ -48,12 +49,12 @@ const PictionaryPage = () => {
 
   // Now pass externalDrawing to DrawingCanvas
   return (
-    <div className='App'>
-        <DrawingCanvas
-          isDrawer={isDrawer}
-          onDraw={handleDraw}
-          externalDrawing={externalDrawing}
-        />
+    <div className='drawing-canvas'>
+      <DrawingCanvas
+        isDrawer={isDrawer}
+        onDraw={handleDraw}
+        externalDrawing={externalDrawing}
+      />
     </div>
   );
 };

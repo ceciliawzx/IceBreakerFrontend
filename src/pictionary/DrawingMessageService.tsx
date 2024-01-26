@@ -5,8 +5,11 @@ import { serverPort, websocketPort } from '../MacroConst';
 
 let client: Client | null = null;
 
-const connect = (roomCode: string, userId: string, onMessageReceived: (msg: any) => void) => {
-
+const connect = (
+  roomCode: string,
+  userId: string,
+  onMessageReceived: (msg: any) => void
+) => {
   const socketUrl = `${serverPort}/chat?userId=${userId}`;
   const websocketUrl = `${websocketPort}chat?userId=${userId}`;
 

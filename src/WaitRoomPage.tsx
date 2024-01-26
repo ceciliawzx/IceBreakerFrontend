@@ -11,7 +11,7 @@ const WaitRoomPage = () => {
   const userID = user.userID;
   const roomCode = user.roomCode;
   const displayName = user.displayName;
-  const [isDrawer, setIsDrawer] = useState(false);
+  const [isPresenter, setIsPresenter] = useState(false);
   const [guests, setGuests] = useState<string[]>([]);
   const [admin, setAdmin] = useState<string>("");
   const [isAdmin, setIsAdmin] = useState(false);
@@ -24,7 +24,6 @@ const WaitRoomPage = () => {
         method: "POST",
       }
     );
-
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
@@ -37,16 +36,14 @@ const WaitRoomPage = () => {
   };
 
   const handlePictionaryRoom = async () => {
-    setIsDrawer(true);
-    // Tell server that to start room
     const response = await fetch(
-      `${serverPort}/startInput?roomCode=${roomCode}`,
+      `${serverPort}/startDrawAndGuess?roomCode=${roomCode}`,
       {
         method: "POST",
       }
-    );
+    )
     if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
+      throw new Error(`HTTP error when entering DrawAndGuess! Status: ${response.status}`);
     }
   };
 
@@ -61,6 +58,18 @@ const WaitRoomPage = () => {
       console.error("Error checking admin status:", error);
     }
   };
+
+  const checkPresenterStatus = async () => {
+    const url = `${serverPort}/isPresenter?userID=${userID}&roomCode=${roomCode}`;
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      setIsPresenter(data === true);
+      console.log("setting is presenter: ", data);
+    } catch (error) {
+      console.error("Error checking admin status:", error);
+    }
+  }
 
   // Fetch the players & check if room start from the backend
   const checkRoomStatus = async () => {
@@ -82,24 +91,20 @@ const WaitRoomPage = () => {
           )
         );
       }
-      // if moderator starts game, navigate to input phase
+
+      // // if moderator starts game, navigate to input phase
       // if (data.gameStatus) {
       //   navigate("/UserProfilePage", {
       //     state: { user },
       //   });
-      
 
-      // isDrawer has sync issue
+      console.log("Game status", data.roomStatus);
 
-      if (data.gameStatus) {
-        console.log("user: ", user);
-        setIsDrawer(true);
-        console.log("isDrawer: ", isDrawer);
+      if (data.roomStatus === "PICTURING") {
         navigate("/PictionaryRoomPage", {
-          state: { isDrawer: true, user },
+          state: { user },
         });
       }
-
 
     } catch (error) {
       console.error("Error fetching players:", error);
@@ -108,7 +113,10 @@ const WaitRoomPage = () => {
 
   // Periodically check room status
   useEffect(() => {
+    // Check whether the user is admin
     checkAdminStatus();
+    // Check whether the user is presenter
+    checkPresenterStatus();
 
     // Update the player list every interval
     const intervalId = setInterval(checkRoomStatus, refreshTime);
