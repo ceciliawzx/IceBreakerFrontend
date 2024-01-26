@@ -90,7 +90,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     };
   }, [handleMouseDown, handleMouseUp, handleMouseMove]);
 
-  return <canvas ref={canvasRef} width='800' height='600' />;
+  return <canvas ref={canvasRef} width='800' height='600' color='gray' />;
 };
 
 export default DrawingCanvas;

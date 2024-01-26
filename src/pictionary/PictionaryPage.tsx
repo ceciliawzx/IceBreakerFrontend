@@ -14,13 +14,12 @@ const PictionaryPage = () => {
   const displayName = user?.displayName;
   const roomCode = user?.roomCode;
 
-
   const handleReceivedDrawing = useCallback((data: DrawingMessage) => {
     setExternalDrawing(data);
   }, []);
 
   useEffect(() => {
-    console.log("location info", location.state);
+    console.log('location info', location.state);
     const socketUrl = `${serverPort}/chat?userId=${userId}`;
     const websocketUrl = `${websocketPort}/chat?userId=${userId}`;
     const topic = `/topic/room/${roomCode}/drawing`;
@@ -49,7 +48,7 @@ const PictionaryPage = () => {
 
   // Now pass externalDrawing to DrawingCanvas
   return (
-    <div className='drawing-canvas'>
+    <div id='drawing-canvas'>
       <DrawingCanvas
         isDrawer={isDrawer}
         onDraw={handleDraw}

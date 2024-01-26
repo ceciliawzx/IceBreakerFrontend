@@ -98,6 +98,8 @@ const WaitRoomPage = () => {
       //     state: { user },
       //   });
 
+      // Change Admin to non-presenter when presenting page is completed
+
       console.log("Game status", data.roomStatus);
 
       if (data.roomStatus === "PICTURING") {
