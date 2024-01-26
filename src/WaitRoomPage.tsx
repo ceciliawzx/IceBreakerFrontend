@@ -215,7 +215,7 @@ const WaitRoomPage = () => {
         <div className="moderator">
           <h2>Moderator:</h2>
           <img
-            src="/pic.jpg" // {admin.profileImage}
+            src="~/public/pic.jpg" // {admin.profileImage}
             alt="Moderator's Image"
             className="moderator-avatar"
           />
@@ -226,7 +226,7 @@ const WaitRoomPage = () => {
         <div className="presenter">
           <h2>Presenter:</h2>
           <img
-            src="/pic.jpg" // {presenter.profileImage}
+            src="~/public/pic.jpg" // {presenter.profileImage}
             alt="Presenter 's Image"
             className="presenter-avatar"
           />
@@ -242,7 +242,9 @@ const WaitRoomPage = () => {
               <div className="avatar-container">
                 <img
                   src={
-                    guest?.profileImage ? `${guest.profileImage}` : "/pic.jpg"
+                    guest?.profileImage
+                      ? `${guest.profileImage}`
+                      : "~/public/pic.jpg"
                   }
                   alt={`${guest}'s avatar`}
                   className="guest-avatar"
@@ -258,7 +260,7 @@ const WaitRoomPage = () => {
                   onClick={() => handleKickUser(guest.userID)}
                 >
                   <img
-                    src="/cross.png"
+                    src="~/public/cross.png"
                     alt="Kick"
                     style={{ width: "30px", height: "30px" }} // Adjust the dimensions as needed
                   />
