@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback, useState } from 'react';
 import DrawingCanvas from './DrawingCanvas';
 import { useLocation } from 'react-router-dom';
-import { DrawingData, DrawingMessage } from '../utils/DrawingCanvasConstants';
+import { DrawingData, DrawingMessage } from '../type/DrawingCanvas';
 import { connect, sendMsg } from '../utils/ChatService';
 import { serverPort, websocketPort } from '../MacroConst';
 
@@ -44,7 +44,7 @@ const PictionaryPage = () => {
 
   // Now pass externalDrawing to DrawingCanvas
   return (
-    <div id='drawing-canvas'>
+    <div>
       <DrawingCanvas
         isDrawer={isDrawer}
         onDraw={handleDraw}

@@ -5,6 +5,7 @@ export interface DrawingData {
   newLine: boolean;
   color: string;
   strokeWidth: number;
+  eraser: boolean; 
 }
 
 export interface DrawingMessage {
@@ -15,7 +16,20 @@ export interface DrawingMessage {
 }
 
 export interface DrawingCanvasProps {
-  onDraw: (drawingData: DrawingData ) => void;
+  onDraw: (drawingData: DrawingData) => void;
   externalDrawing: DrawingMessage | undefined;
   isDrawer: boolean;
 }
+
+// Preset colors for the canvas
+export const presetColors = [
+  'black',
+  'red',
+  'blue',
+  'green',
+  'yellow',
+  'purple',
+  'orange',
+];
+
+export const canvasBackgroundColor = 'rgb(248, 223, 194)';

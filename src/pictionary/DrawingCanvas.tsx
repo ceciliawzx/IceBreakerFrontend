@@ -2,7 +2,10 @@ import React, { useCallback, useRef, useEffect, useState } from 'react';
 import {
   DrawingCanvasProps,
   DrawingData,
-} from '../utils/DrawingCanvasConstants';
+  presetColors,
+  canvasBackgroundColor,
+} from '../type/DrawingCanvas';
+import '../css/DrawingCanvas.css';
 
 const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   onDraw,
@@ -11,39 +14,54 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef<boolean>(false);
+  const [isEraser, setIsEraser] = useState<boolean>(false); // New state for eraser
   const [selectedColor, setSelectedColor] = useState<string>('black'); // Default color
+  const backgroundColor = canvasBackgroundColor; // Canvas background color
 
-  // Preset colors
-  const colors = [
-    'black',
-    'red',
-    'blue',
-    'green',
-    'yellow',
-    'purple',
-    'orange',
-  ];
-
-  const draw = useCallback((drawingData: DrawingData) => {
+  // Set responsive canvas size
+  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    const setCanvasSize = () => {
+      // set some margin
+      canvas.width = window.innerWidth - 20;
+      canvas.height = window.innerHeight - 100;
+    };
 
-    const { x, y, drawing, newLine, color } = drawingData;
-    ctx.strokeStyle = color; // Use the provided color
+    setCanvasSize();
+    window.addEventListener('resize', setCanvasSize);
 
-    if (newLine) {
-      ctx.beginPath(); // Start a new path
-      ctx.moveTo(x, y);
-    } else if (drawing) {
-      ctx.lineTo(x, y);
-      ctx.stroke();
-    } else {
-      ctx.stroke();
-    }
+    return () => {
+      window.removeEventListener('resize', setCanvasSize);
+    };
   }, []);
+
+  const draw = useCallback(
+    (drawingData: DrawingData) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const { x, y, drawing, newLine, color, strokeWidth, eraser } =
+        drawingData;
+      ctx.strokeStyle = eraser ? backgroundColor : color; // Use background color if eraser is active
+      ctx.lineWidth = strokeWidth; // Set the line width
+
+      if (newLine) {
+        ctx.beginPath(); // Start a new path
+        ctx.moveTo(x, y);
+      } else if (drawing) {
+        ctx.lineTo(x, y);
+        ctx.stroke();
+      } else {
+        ctx.stroke();
+      }
+    },
+    [[backgroundColor]]
+  );
 
   const handleMouseMove = (event: MouseEvent) => {
     if (!isDrawer) return;
@@ -61,8 +79,9 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       y,
       drawing: true,
       newLine: false,
-      color: selectedColor,
-      strokeWidth: 2,
+      color: isEraser ? backgroundColor : selectedColor, // Use background color if eraser is active
+      strokeWidth: isEraser ? 20 : 2,
+      eraser: isEraser,
     };
     console.log('ondraw in mouse move', drawingData);
     // send msg to server
@@ -86,8 +105,10 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       y,
       drawing: false,
       newLine: true,
-      color: selectedColor,
-      strokeWidth: 2,
+      color: isEraser ? backgroundColor : selectedColor, // Use background color if eraser is active
+      // TODO
+      strokeWidth: isEraser ? 20 : 2,
+      eraser: isEraser,
     };
 
     // draw(drawingData);
@@ -112,8 +133,9 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       y,
       drawing: false,
       newLine: false,
-      color: selectedColor,
-      strokeWidth: 2,
+      color: isEraser ? backgroundColor : selectedColor, // Use background color if eraser is active
+      strokeWidth: isEraser ? 20 : 2,
+      eraser: isEraser,
     };
 
     draw(drawingData); // End the current path
@@ -145,23 +167,49 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     };
   }, [handleMouseDown, handleMouseUp, handleMouseMove]);
 
+  // Change cursor
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    if (isEraser) {
+      canvas.classList.add('eraser-cursor');
+    } else {
+      canvas.classList.remove('eraser-cursor');
+    }
+  }, [isEraser]);
+
+  // Placeholder for non-drawer users to maintain layout consistency
+  const Placeholder = () => <div style={{ height: '51px' }}></div>;
+
   return (
     <>
-      <div>
-        {colors.map((color) => (
+      {isDrawer ? (
+        <div id='color-selector'>
+          {presetColors.map((color) => (
+            <button
+              className='color-selector-button'
+              key={color}
+              style={{ backgroundColor: color }}
+              onClick={() => {
+                setSelectedColor(color);
+                setIsEraser(false);
+              }}
+            />
+          ))}
           <button
-            key={color}
-            style={{
-              backgroundColor: color,
-              width: '25px',
-              height: '25px',
-              margin: '2px',
-            }}
-            onClick={() => setSelectedColor(color)} // Update color state on click
-          />
-        ))}
+            id='eraser'
+            onClick={() => setIsEraser(!isEraser)}
+          >
+            {isEraser ? 'Use Pen' : 'Use Eraser'}
+          </button>
+        </div>
+      ) : (
+        <Placeholder />
+      )}
+      <div id='canvas-container'>
+        <canvas id='drawing-canvas' ref={canvasRef} width='1000' height='800' />
       </div>
-      <canvas ref={canvasRef} width='800' height='600' />
     </>
   );
 };
