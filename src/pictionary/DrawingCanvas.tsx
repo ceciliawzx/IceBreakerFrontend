@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useEffect } from 'react';
+import React, { useCallback, useRef, useEffect, useState } from 'react';
 import {
   DrawingCanvasProps,
   DrawingData,
@@ -11,6 +11,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef<boolean>(false);
+  const [selectedColor, setSelectedColor] = useState<string>('black'); // Default color
 
   const draw = useCallback((drawingData: DrawingData) => {
     const canvas = canvasRef.current;
@@ -19,7 +20,8 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const { x, y, drawing, newLine } = drawingData;
+    const { x, y, drawing, newLine, color } = drawingData;
+    ctx.strokeStyle = color; // Use the provided color
 
     if (newLine) {
       ctx.beginPath(); // Start a new path
@@ -132,7 +134,16 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     };
   }, [handleMouseDown, handleMouseUp, handleMouseMove]);
 
-  return <canvas ref={canvasRef} width='800' height='600' />;
+  return (
+    <>
+      <canvas ref={canvasRef} width='800' height='600' />
+      <input
+        type='color'
+        value={selectedColor}
+        onChange={(e) => setSelectedColor(e.target.value)} // Update color state
+      />
+    </>
+  );
 };
 
 export default DrawingCanvas;
