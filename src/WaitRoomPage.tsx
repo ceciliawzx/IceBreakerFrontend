@@ -15,9 +15,12 @@ const WaitRoomPage = () => {
   const displayName = user.displayName;
   const [guests, setGuests] = useState<User[]>([]);
   const [admin, setAdmin] = useState<User | null>(null);
+  const [presenter, setPresenter] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showDismissPopup, setShowDismissPopup] = useState(false);
   const [showKickPopup, setShowKickPopup] = useState(false);
+  const [showChangePresenterPopup, setShowChangePresenterPopup] = useState(false);
+  const [selectedPresenterUserID, setSelectedPresenterUserID] = useState<string | null>(null);
 
   const handleStartRoom = async () => {
     // Tell server that to start room
@@ -94,6 +97,30 @@ const WaitRoomPage = () => {
     }
   };
 
+  const handleChangePresenter = () => {
+    setShowChangePresenterPopup(true);
+    setSelectedPresenterUserID(null);
+  };
+
+  const handleSelectPresenter = (userID: string) => {
+    setSelectedPresenterUserID(userID);
+  };
+
+  const confirmChangePresenter = () => {
+    if (selectedPresenterUserID) {
+      const newPresenter = guests.find((guest) => guest.userID === selectedPresenterUserID);
+      if (newPresenter) {
+        fetch(
+          `${serverPort}/changePresenter?roomCode=${roomCode}&userID=${newPresenter.userID}`,
+          {
+            method: "POST",
+          }
+        );
+      }
+    }
+    setShowChangePresenterPopup(false); // Close the popup
+  };
+
   // Check if the user is the admin
   const checkAdminStatus = async () => {
     const url = `${serverPort}/isAdmin?userID=${userID}&roomCode=${roomCode}`;
@@ -139,6 +166,19 @@ const WaitRoomPage = () => {
             data.admin.completed
           )
         );
+      }
+      if (data.presenter) {
+        setPresenter(
+          new User(
+            roomCode,
+            data.presenter.userID,
+            data.presenter.displayName,
+            true,
+            data.presenter.profileImage,
+            data.presenter.completed
+          )
+        )
+
       }
       if (data.otherPlayers) {
         setGuests(
@@ -189,6 +229,7 @@ const WaitRoomPage = () => {
     }
   };
 
+
   // Periodically check room status
   useEffect(() => {
     checkAdminStatus();
@@ -204,6 +245,7 @@ const WaitRoomPage = () => {
     return () => clearInterval(intervalId);
   }, [userID, roomCode]);
 
+  // main render
   return (
     <div className="wait-room-page">
       <h1>
@@ -225,11 +267,19 @@ const WaitRoomPage = () => {
         <div className="presenter">
           <h2>Presenter:</h2>
           <img
-            src={`${admin?.profileImage}`} // {presenter.profileImage}
+            src={`${presenter?.profileImage}`} // {presenter.profileImage}
             alt="Presenter 's Image"
             className="presenter-avatar"
           />
-          <p>{admin?.displayName}</p>
+          <p>{presenter?.displayName}</p>
+          {isAdmin && (
+            <button
+              className="change-presenter-button"
+              onClick={handleChangePresenter}
+            >
+              Change Presenter
+            </button>
+          )}
         </div>
       </div>
 
@@ -282,6 +332,7 @@ const WaitRoomPage = () => {
           Leave Room
         </button>
       }
+      {/* dimmiss popup */}
       {showDismissPopup && (
         <div className="popup">
           <p>
@@ -292,6 +343,7 @@ const WaitRoomPage = () => {
           <button onClick={() => navigate("/")}>OK</button>
         </div>
       )}
+      {/* kickout popup */}
       {showKickPopup && (
         <div className="popup">
           <p>
@@ -301,6 +353,26 @@ const WaitRoomPage = () => {
           </p>
           <button onClick={() => navigate("/")}>OK</button>
         </div>
+      )}
+      {/* change presenter popup */}
+      {showChangePresenterPopup && (
+      <div className="change-presenter-popup">
+        <h3>Select New Presenter:</h3>
+        <ul>
+        {guests.concat(admin || []).map((user) => (
+            <li
+              key={user.userID}
+              onClick={() => handleSelectPresenter(user.userID)}
+              className={selectedPresenterUserID === user.userID ? 'selected' : ''}
+            >
+              {user.displayName}
+            </li>
+          ))}
+        </ul>
+        <div className="button-container">
+          <button onClick={confirmChangePresenter}>Confirm</button>
+        </div>
+      </div>
       )}
     </div>
   );
