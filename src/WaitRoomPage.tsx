@@ -38,7 +38,8 @@ const WaitRoomPage = () => {
         method: "POST",
       }
     );
-
+    console.log("start room");
+    console.log(response)
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
@@ -51,8 +52,9 @@ const WaitRoomPage = () => {
   };
 
   const handleUserInformation = () => {
+    const preID = presenter?.userID;
     navigate("/UserProfilePage", {
-      state: { user },
+      state: { user, preID},
     });
   };
 
@@ -225,26 +227,32 @@ const WaitRoomPage = () => {
             roomCode,
             data.presenter.userID,
             data.presenter.displayName,
-            true,
+            data.presenter.admin,
             data.presenter.profileImage,
             data.presenter.completed
           )
         );
       }
       if (data.otherPlayers) {
-        setGuests(
-          data.otherPlayers.map(
-            (player: any) =>
-              new User(
-                roomCode,
-                player.userID,
-                player.displayName,
-                false,
-                player.profileImage,
-                player.completed
-              )
-          )
+        const updatedGuests = data.otherPlayers.map(
+          (guest: User) =>
+            new User(
+              roomCode,
+              guest.userID,
+              guest.displayName,
+              false,
+              guest.profileImage,
+              guest.completed
+            )
         );
+
+        setGuests(updatedGuests);
+
+        // Check if all guests have completed
+        const allCompleted = updatedGuests.every(
+          (guest: User) => guest.completed
+        );
+        setAllGuestsCompleted(allCompleted);
       }
 
       // If start present, into present page

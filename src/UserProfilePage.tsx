@@ -9,6 +9,8 @@ const UserProfilePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const user = location.state?.user;
+  const preID = location.state?.preID;
+  const roomCode = user.roomCode;
   const displayName = user.displayName;
   const [message, setMessage] = useState("");
   const [firstName, setFirstName] = useState("");
