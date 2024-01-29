@@ -87,7 +87,21 @@
   margin-top: 20px;
 }
 
-.start-room-button {
+.admin-only-button {
+  background-color: #5d99e2;
+  color: white;
+  border: none;
+  cursor: pointer;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.admin-only-button:hover {
+  background-color: #4e5ed2;
+}
+
+.common-button {
   background-color: #4caf50;
   color: white;
   border: none;
@@ -97,7 +111,7 @@
   border-radius: 5px;
 }
 
-.start-room-button:hover {
+.common-button:hover {
   background-color: #45a049;
 }
 
@@ -169,18 +183,4 @@
 .change-presenter-popup li.selected {
   background-color: #4caf50;
   color: white;
-}
-
-.view-profile-button {
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  cursor: pointer;
-  margin: -10px;
-  padding: 10px;
-  border-radius: 5px;
-}
-
-.view-profile-button:hover {
-  background-color: #45a049;
 }

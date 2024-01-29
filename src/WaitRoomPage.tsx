@@ -111,9 +111,11 @@ const WaitRoomPage = () => {
     setSelectedPresenterUserID(userID);
   };
 
-  const handleViewProfile = (guest: User) => {
-    setSelectedUser(guest);
-    setShowProfilePopup(true);
+  const handleViewProfile = (user: User | null) => {
+    if (user) {
+      setSelectedUser(user);
+      setShowProfilePopup(true);
+    }
   };
 
   const confirmChangePresenter = () => {
@@ -283,12 +285,21 @@ const WaitRoomPage = () => {
           />
           <p>{presenter?.displayName}</p>
           {isAdmin && (
-            <button
-              className="change-presenter-button"
-              onClick={handleChangePresenter}
-            >
-              Change Presenter
-            </button>
+            <div className="button-container">
+              <button
+                className="admin-only-button"
+                onClick={() => handleViewProfile(presenter)}
+              >
+                View Profile
+              </button>
+              
+              <button
+                className="admin-only-button"
+                onClick={handleChangePresenter}
+              >
+                Change Presenter
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -311,7 +322,7 @@ const WaitRoomPage = () => {
               <p>{guest.displayName}</p>
               {isAdmin && (
                 <button
-                  className="view-profile-button"
+                  className="admin-only-button"
                   onClick={() => handleViewProfile(guest)}
                 >
                   View Profile
@@ -329,17 +340,17 @@ const WaitRoomPage = () => {
         <div className="river"></div>
       </div>
       {isAdmin && (
-        <button className="start-room-button" onClick={handleStartRoom}>
+        <button className="admin-only-button" onClick={handleStartRoom}>
           Start Room
         </button>
       )}
       {
-        <button className="start-room-button" onClick={handleChatRoom}>
+        <button className="common-button" onClick={handleChatRoom}>
           Chat Room
         </button>
       }
       {
-        <button className="start-room-button" onClick={handleUserInformation}>
+        <button className="common-button" onClick={handleUserInformation}>
           Enter your information
         </button>
       }
