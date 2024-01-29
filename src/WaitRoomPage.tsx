@@ -111,7 +111,7 @@ const WaitRoomPage = () => {
       const newPresenter = guests.find((guest) => guest.userID === selectedPresenterUserID);
       if (newPresenter) {
         fetch(
-          `${serverPort}/changePresenter?roomCode=${roomCode}userIDE=${(newPresenter.userID)}`,
+          `${serverPort}/changePresenter?roomCode=${roomCode}&userID=${newPresenter.userID}`,
           {
             method: "POST",
           }
