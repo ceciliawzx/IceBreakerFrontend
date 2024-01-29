@@ -170,3 +170,17 @@
   background-color: #4caf50;
   color: white;
 }
+
+.view-profile-button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  margin: -10px;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.view-profile-button:hover {
+  background-color: #45a049;
+}
