@@ -43,8 +43,9 @@ const WaitRoomPage = () => {
   };
 
   const handleUserInformation = () => {
+    const preID = presenter?.userID;
     navigate("/UserProfilePage", {
-      state: { user },
+      state: { user, preID},
     });
   };
 
