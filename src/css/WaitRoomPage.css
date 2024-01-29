@@ -101,6 +101,12 @@
   background-color: #4e5ed2;
 }
 
+.admin-only-button:disabled {
+  background-color: #cccccc; /* Grey color for disabled state */
+  cursor: not-allowed; /* Change cursor to indicate the button is not clickable */
+}
+
+
 .common-button {
   background-color: #4caf50;
   color: white;

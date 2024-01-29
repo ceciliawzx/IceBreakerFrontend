@@ -26,9 +26,9 @@ const WaitRoomPage = () => {
     string | null
   >(null);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
-  // const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedUserProfile, setSelectedUserProfile] =
     useState<UserProfile | null>(null);
+  const [allGuestsCompleted, setAllGuestsCompleted] = useState(false);
 
   const handleStartRoom = async () => {
     // Tell server that to start room
@@ -151,10 +151,16 @@ const WaitRoomPage = () => {
   };
 
   const confirmChangePresenter = () => {
+    var newPresenter;
     if (selectedPresenterUserID) {
-      const newPresenter = guests.find(
-        (guest) => guest.userID === selectedPresenterUserID
-      );
+      if (selectedPresenterUserID == admin?.userID) {
+        newPresenter = admin;
+      } else {
+        newPresenter = guests.find(
+          (guest) => guest.userID === selectedPresenterUserID
+        );
+      }
+
       if (newPresenter) {
         fetch(
           `${serverPort}/changePresenter?roomCode=${roomCode}&userID=${newPresenter.userID}`,
@@ -372,7 +378,11 @@ const WaitRoomPage = () => {
         <div className="river"></div>
       </div>
       {isAdmin && (
-        <button className="admin-only-button" onClick={handleStartRoom}>
+        <button
+          className="admin-only-button"
+          onClick={handleStartRoom}
+          disabled={!allGuestsCompleted}
+        >
           Start Room
         </button>
       )}
