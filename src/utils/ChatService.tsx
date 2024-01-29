@@ -5,10 +5,8 @@ import { Client } from '@stomp/stompjs';
 let client: Client | null = null;
 
 const connect = (socketUrl: string, webSocketUrl: string, topic: string, onMessageReceived: (msg: any) => void) => {
-    // const socket = new SockJS( `${serverPort}/chat`);
     const socket = new SockJS(socketUrl);
     client = new Client({
-      // brokerURL: `${websocketPort}/chat`,
       brokerURL: webSocketUrl,
       webSocketFactory: () => socket,
       onConnect: () => {
@@ -16,10 +14,8 @@ const connect = (socketUrl: string, webSocketUrl: string, topic: string, onMessa
         setTimeout(() => {
           if (client && client.connected) {
             console.log(`Subscribing to topic ${topic}`);
-            // client.subscribe(`/topic/room/${roomCode}`, (message) => {
-            //     onMessageReceived(JSON.parse(message.body));
-            //   });
             client.subscribe(topic, (message) => {
+              // console.log("receiving message ", message.body);
                 onMessageReceived(JSON.parse(message.body));
               });
           } else {

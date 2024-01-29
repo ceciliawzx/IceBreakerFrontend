@@ -1,5 +1,8 @@
 import React, { useCallback, useRef, useEffect } from 'react';
-import { DrawingCanvasProps } from '../utils/DrawingCanvasConstants';
+import {
+  DrawingCanvasProps,
+  DrawingData,
+} from '../utils/DrawingCanvasConstants';
 
 const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   onDraw,
@@ -8,28 +11,30 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef<boolean>(false);
-  const wasDrawing = useRef<boolean>(false);
 
-  const draw = useCallback(
-    (x: number, y: number, isDown: boolean, isNewLine: boolean = false) => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
+  const draw = useCallback((drawingData: DrawingData) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-      if (isNewLine) {
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-      } else if (isDown) {
-        ctx.lineTo(x, y);
-        ctx.stroke();
-      }
-    },
-    []
-  );
+    const { x, y, drawing, newLine } = drawingData;
+
+    if (newLine) {
+      ctx.beginPath(); // Start a new path
+      ctx.moveTo(x, y);
+    } else if (drawing) {
+      ctx.lineTo(x, y);
+      ctx.stroke();
+    } else {
+      ctx.closePath(); // Close the current path
+    }
+  }, []);
 
   const handleMouseMove = (event: MouseEvent) => {
+    if (!isDrawer) return;
+
     if (!isDrawing.current) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -38,49 +43,76 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    if (isDrawer) {
-      draw(x, y, isDrawing.current);
-      onDraw({
-        x,
-        y,
-        drawing: isDrawing.current,
-        isNewLine: isDrawing.current && !wasDrawing.current,
-      });
-      wasDrawing.current = isDrawing.current;
-    }
+    const drawingData: DrawingData = {
+      x,
+      y,
+      drawing: true,
+      newLine: false,
+      color: 'black',
+      strokeWidth: 2,
+    };
+    console.log('ondraw in mouse move', drawingData);
+    // send msg to server
+    onDraw(drawingData);
   };
 
   const handleMouseDown = (event: MouseEvent) => {
-    if (!isDrawer) return; // Only allow drawing when isDrawer is true
+    if (!isDrawer) return;
 
-    isDrawing.current = true;
     const canvas = canvasRef.current;
     if (!canvas) return;
+    isDrawing.current = true;
 
     const rect = canvas.getBoundingClientRect();
+    // Calculate the coordinates of the new trace
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    draw(x, y, true);
-    onDraw({ x, y, drawing: true, isNewLine: !wasDrawing.current });
-    wasDrawing.current = true;
+    const drawingData: DrawingData = {
+      x,
+      y,
+      drawing: false,
+      newLine: true,
+      color: 'black',
+      strokeWidth: 2,
+    };
+
+    // draw(drawingData);
+    onDraw(drawingData);
+    console.log('ondraw in mouse down', drawingData);
   };
 
-  const handleMouseUp = () => {
+  const handleMouseUp = (event: MouseEvent) => {
+    if (!isDrawer) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
     isDrawing.current = false;
-    wasDrawing.current = false;
+
+    const rect = canvas.getBoundingClientRect();
+    // Calculate the coordinates of the new trace
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    const drawingData: DrawingData = {
+      x,
+      y,
+      drawing: false,
+      newLine: false,
+      color: 'black',
+      strokeWidth: 2,
+    };
+
+    draw(drawingData); // End the current path
   };
 
   useEffect(() => {
     if (externalDrawing) {
-      draw(
-        externalDrawing.drawingData.x,
-        externalDrawing.drawingData.y,
-        externalDrawing.drawingData.drawing,
-        externalDrawing.drawingData.isNewLine
-      );
+      console.log('external', externalDrawing.drawingData);
+      // const { x, y, drawing, newLine } = externalDrawing.drawingData;
+      draw(externalDrawing.drawingData);
     }
-  }, [externalDrawing, draw]);
+  }, [externalDrawing]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -88,9 +120,6 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = 'black';
 
     canvas.addEventListener('mousedown', handleMouseDown);
     canvas.addEventListener('mouseup', handleMouseUp);
@@ -103,7 +132,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     };
   }, [handleMouseDown, handleMouseUp, handleMouseMove]);
 
-  return <canvas ref={canvasRef} width='800' height='600' color='gray' />;
+  return <canvas ref={canvasRef} width='800' height='600' />;
 };
 
 export default DrawingCanvas;
