@@ -3,7 +3,7 @@ import DrawingCanvas from './DrawingCanvas';
 import { useLocation } from 'react-router-dom';
 import { DrawingData, DrawingMessage } from '../type/DrawingCanvas';
 import { connect, sendMsg } from '../utils/ChatService';
-import { serverPort, websocketPort } from '../MacroConst';
+import { serverPort, websocketPort } from '../macro/MacroServer';
 
 const PictionaryPage = () => {
   const location = useLocation();
