@@ -104,14 +104,6 @@ const UserProfilePage = () => {
       setMessage(msg);
       console.log(msg);
 
-      // refresh presenter information
-      fetch(
-        `${serverPort}/changePresenter?roomCode=${roomCode}&userID=${preID}`,
-        {
-          method: "POST",
-        }
-      );
-
       navigate("/WaitRoomPage", {
         state: { user },
       });
