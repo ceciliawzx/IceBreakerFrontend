@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { connect, sendMsg } from './utils/ChatService';
-import { serverPort, websocketPort } from './MacroConst';
+import { serverPort, websocketPort } from './macro/MacroServer';
 import './css/ChatRoomPage.css';
 
 interface ChatMessage {
