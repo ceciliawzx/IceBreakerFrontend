@@ -107,8 +107,14 @@ const WaitRoomPage = () => {
   };
 
   const confirmChangePresenter = () => {
+    var newPresenter;
     if (selectedPresenterUserID) {
-      const newPresenter = guests.find((guest) => guest.userID === selectedPresenterUserID);
+      if (selectedPresenterUserID == admin?.userID) {
+        newPresenter = admin;
+      } else {
+        newPresenter = guests.find((guest) => guest.userID === selectedPresenterUserID);
+      }
+      
       if (newPresenter) {
         fetch(
           `${serverPort}/changePresenter?roomCode=${roomCode}&userID=${newPresenter.userID}`,
@@ -173,7 +179,7 @@ const WaitRoomPage = () => {
             roomCode,
             data.presenter.userID,
             data.presenter.displayName,
-            true,
+            data.presenter.admin,
             data.presenter.profileImage,
             data.presenter.completed
           )
