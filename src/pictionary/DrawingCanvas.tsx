@@ -13,6 +13,17 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   const isDrawing = useRef<boolean>(false);
   const [selectedColor, setSelectedColor] = useState<string>('black'); // Default color
 
+  // Preset colors
+  const colors = [
+    'black',
+    'red',
+    'blue',
+    'green',
+    'yellow',
+    'purple',
+    'orange',
+  ];
+
   const draw = useCallback((drawingData: DrawingData) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -136,12 +147,21 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
 
   return (
     <>
+      <div>
+        {colors.map((color) => (
+          <button
+            key={color}
+            style={{
+              backgroundColor: color,
+              width: '25px',
+              height: '25px',
+              margin: '2px',
+            }}
+            onClick={() => setSelectedColor(color)} // Update color state on click
+          />
+        ))}
+      </div>
       <canvas ref={canvasRef} width='800' height='600' />
-      <input
-        type='color'
-        value={selectedColor}
-        onChange={(e) => setSelectedColor(e.target.value)} // Update color state
-      />
     </>
   );
 };
