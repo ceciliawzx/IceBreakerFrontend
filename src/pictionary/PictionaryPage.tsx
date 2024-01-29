@@ -42,7 +42,7 @@ const PictionaryPage = () => {
     [roomCode]
   );
 
-  // Now pass externalDrawing to DrawingCanvas
+  // Pass externalDrawing to DrawingCanvas
   return (
     <div>
       <DrawingCanvas
