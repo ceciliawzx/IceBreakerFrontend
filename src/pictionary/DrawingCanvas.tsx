@@ -30,7 +30,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       ctx.lineTo(x, y);
       ctx.stroke();
     } else {
-      ctx.closePath(); // Close the current path
+      ctx.stroke();
     }
   }, []);
 
@@ -50,7 +50,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       y,
       drawing: true,
       newLine: false,
-      color: 'black',
+      color: selectedColor,
       strokeWidth: 2,
     };
     console.log('ondraw in mouse move', drawingData);
@@ -75,7 +75,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       y,
       drawing: false,
       newLine: true,
-      color: 'black',
+      color: selectedColor,
       strokeWidth: 2,
     };
 
@@ -101,7 +101,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       y,
       drawing: false,
       newLine: false,
-      color: 'black',
+      color: selectedColor,
       strokeWidth: 2,
     };
 
