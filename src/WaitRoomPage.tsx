@@ -19,8 +19,12 @@ const WaitRoomPage = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [showDismissPopup, setShowDismissPopup] = useState(false);
   const [showKickPopup, setShowKickPopup] = useState(false);
-  const [showChangePresenterPopup, setShowChangePresenterPopup] = useState(false);
-  const [selectedPresenterUserID, setSelectedPresenterUserID] = useState<string | null>(null);
+  const [showChangePresenterPopup, setShowChangePresenterPopup] =
+    useState(false);
+  const [selectedPresenterUserID, setSelectedPresenterUserID] = useState<
+    string | null
+  >(null);
+  const [allGuestsCompleted, setAllGuestsCompleted] = useState(false);
 
   const handleStartRoom = async () => {
     // Tell server that to start room
@@ -30,7 +34,8 @@ const WaitRoomPage = () => {
         method: "POST",
       }
     );
-
+    console.log("start room");
+    console.log(response)
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
@@ -113,9 +118,11 @@ const WaitRoomPage = () => {
       if (selectedPresenterUserID == admin?.userID) {
         newPresenter = admin;
       } else {
-        newPresenter = guests.find((guest) => guest.userID === selectedPresenterUserID);
+        newPresenter = guests.find(
+          (guest) => guest.userID === selectedPresenterUserID
+        );
       }
-      
+
       if (newPresenter) {
         fetch(
           `${serverPort}/changePresenter?roomCode=${roomCode}&userID=${newPresenter.userID}`,
@@ -184,23 +191,28 @@ const WaitRoomPage = () => {
             data.presenter.profileImage,
             data.presenter.completed
           )
-        )
-
+        );
       }
       if (data.otherPlayers) {
-        setGuests(
-          data.otherPlayers.map(
-            (player: any) =>
-              new User(
-                roomCode,
-                player.userID,
-                player.displayName,
-                false,
-                player.profileImage,
-                player.completed
-              )
-          )
+        const updatedGuests = data.otherPlayers.map(
+          (guest: User) =>
+            new User(
+              roomCode,
+              guest.userID,
+              guest.displayName,
+              false,
+              guest.profileImage,
+              guest.completed
+            )
         );
+
+        setGuests(updatedGuests);
+
+        // Check if all guests have completed
+        const allCompleted = updatedGuests.every(
+          (guest: User) => guest.completed
+        );
+        setAllGuestsCompleted(allCompleted);
       }
 
       // If start present, into present page
@@ -235,7 +247,6 @@ const WaitRoomPage = () => {
       console.error("Error fetching player:", error);
     }
   };
-
 
   // Periodically check room status
   useEffect(() => {
@@ -297,9 +308,7 @@ const WaitRoomPage = () => {
             <div key={index} className="guest">
               <div className="avatar-container">
                 <img
-                  src={
-                    `${guest.profileImage}`
-                  }
+                  src={`${guest.profileImage}`}
                   alt={`${guest}'s avatar`}
                   className="guest-avatar"
                 />
@@ -320,7 +329,11 @@ const WaitRoomPage = () => {
         <div className="river"></div>
       </div>
       {isAdmin && (
-        <button className="start-room-button" onClick={handleStartRoom}>
+        <button
+          className="start-room-button"
+          onClick={handleStartRoom}
+          disabled={!allGuestsCompleted}
+        >
           Start Room
         </button>
       )}
@@ -363,23 +376,25 @@ const WaitRoomPage = () => {
       )}
       {/* change presenter popup */}
       {showChangePresenterPopup && (
-      <div className="change-presenter-popup">
-        <h3>Select New Presenter:</h3>
-        <ul>
-        {guests.concat(admin || []).map((user) => (
-            <li
-              key={user.userID}
-              onClick={() => handleSelectPresenter(user.userID)}
-              className={selectedPresenterUserID === user.userID ? 'selected' : ''}
-            >
-              {user.displayName}
-            </li>
-          ))}
-        </ul>
-        <div className="button-container">
-          <button onClick={confirmChangePresenter}>Confirm</button>
+        <div className="change-presenter-popup">
+          <h3>Select New Presenter:</h3>
+          <ul>
+            {guests.concat(admin || []).map((user) => (
+              <li
+                key={user.userID}
+                onClick={() => handleSelectPresenter(user.userID)}
+                className={
+                  selectedPresenterUserID === user.userID ? "selected" : ""
+                }
+              >
+                {user.displayName}
+              </li>
+            ))}
+          </ul>
+          <div className="button-container">
+            <button onClick={confirmChangePresenter}>Confirm</button>
+          </div>
         </div>
-      </div>
       )}
     </div>
   );

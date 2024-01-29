@@ -97,6 +97,11 @@
   border-radius: 5px;
 }
 
+.start-room-button:disabled {
+  background-color: #cccccc; /* Grey color for disabled state */
+  cursor: not-allowed; /* Change cursor to indicate the button is not clickable */
+}
+
 .start-room-button:hover {
   background-color: #45a049;
 }
