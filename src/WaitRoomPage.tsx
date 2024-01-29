@@ -24,6 +24,8 @@ const WaitRoomPage = () => {
   const [selectedPresenterUserID, setSelectedPresenterUserID] = useState<
     string | null
   >(null);
+  const [showProfilePopup, setShowProfilePopup] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   const handleStartRoom = async () => {
     // Tell server that to start room
@@ -110,7 +112,8 @@ const WaitRoomPage = () => {
   };
 
   const handleViewProfile = (guest: User) => {
-    setSelectedPresenterUserID(userID);
+    setSelectedUser(guest);
+    setShowProfilePopup(true);
   };
 
   const confirmChangePresenter = () => {
@@ -387,6 +390,14 @@ const WaitRoomPage = () => {
           <div className="button-container">
             <button onClick={confirmChangePresenter}>Confirm</button>
           </div>
+        </div>
+      )}
+
+      {/* show profile popup */}
+      {isAdmin && showProfilePopup && selectedUser && (
+        <div className="popup">
+          <p>Popup content for {selectedUser.displayName}</p>
+          <button onClick={() => setShowProfilePopup(false)}>Close</button>
         </div>
       )}
     </div>
