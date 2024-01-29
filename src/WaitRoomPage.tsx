@@ -5,6 +5,7 @@ import "./css/WaitRoomPage.css";
 import { serverPort } from "./macro/MacroServer";
 import { refreshTime } from "./macro/MacroConst";
 import { User } from "./type/User";
+import { UserProfile } from "./type/UserProfile";
 
 const WaitRoomPage = () => {
   const location = useLocation();
@@ -25,7 +26,9 @@ const WaitRoomPage = () => {
     string | null
   >(null);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  // const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUserProfile, setSelectedUserProfile] =
+    useState<UserProfile | null>(null);
 
   const handleStartRoom = async () => {
     // Tell server that to start room
@@ -111,10 +114,39 @@ const WaitRoomPage = () => {
     setSelectedPresenterUserID(userID);
   };
 
-  const handleViewProfile = (user: User | null) => {
+  const handleViewProfile = async (user: User | null) => {
     if (user) {
-      setSelectedUser(user);
-      setShowProfilePopup(true);
+      const url = `${serverPort}/getPlayer?userID=${user.userID}&roomCode=${roomCode}`;
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        console.log(data);
+
+        setSelectedUserProfile(
+          new UserProfile(
+            data.userInfo.displayName,
+            data.userInfo.roomCode,
+            data.userInfo.userID,
+            data.userInfo.profileImage,
+            data.userInfo.firstName,
+            data.userInfo.lastName,
+            data.userInfo.country,
+            data.userInfo.city,
+            data.userInfo.feeling,
+            data.userInfo.favFood,
+            data.userInfo.favActivity
+          )
+        );
+
+        setShowProfilePopup(true);
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+      }
     }
   };
 
@@ -292,7 +324,7 @@ const WaitRoomPage = () => {
               >
                 View Profile
               </button>
-              
+
               <button
                 className="admin-only-button"
                 onClick={handleChangePresenter}
@@ -405,9 +437,15 @@ const WaitRoomPage = () => {
       )}
 
       {/* show profile popup */}
-      {isAdmin && showProfilePopup && selectedUser && (
+      {isAdmin && showProfilePopup && selectedUserProfile && (
         <div className="popup">
-          <p>Popup content for {selectedUser.displayName}</p>
+          <p>First name: {selectedUserProfile.firstName}</p>
+          <p>Last name: {selectedUserProfile.lastName}</p>
+          <p>Country: {selectedUserProfile.country}</p>
+          <p>City: {selectedUserProfile.city}</p>
+          <p>Feeling: {selectedUserProfile.feeling}</p>
+          <p>Favourite food: {selectedUserProfile.favFood}</p>
+          <p>Favourite activity: {selectedUserProfile.favActivity}</p>
           <button onClick={() => setShowProfilePopup(false)}>Close</button>
         </div>
       )}
