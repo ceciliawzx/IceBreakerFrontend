@@ -61,7 +61,8 @@ const WaitRoomPage = () => {
 
   const handlePictionaryRoom = async () => {
     const response = await fetch(
-      `${serverPort}/startDrawAndGuess?roomCode=${roomCode}target=mockword`,
+      // `${serverPort}/startDrawAndGuess?roomCode=${roomCode}&target=mockword`,
+      `${serverPort}/startDrawAndGuess?roomCode=${roomCode}`,
       {
         method: 'POST',
       }
