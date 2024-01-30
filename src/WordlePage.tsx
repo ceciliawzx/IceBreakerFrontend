@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import "./css/WordlePage.css";
@@ -32,6 +32,12 @@ const Wordle = () => {
   const [currentGuess, setCurrentGuess] = useState<string[][]>(
     Array.from({ length: totalAttempts }, () => Array(targetCharNum).fill(""))
   );
+
+  // Initialization
+  useEffect(() => {
+    // Set the focus on the first input when the component mounts
+    document.getElementById(`input-0-0`)?.focus();
+  }, []);
 
   const handleInputChange = (row: number, col: number, value: string) => {
     // Can only modify the current row and should input character
@@ -77,6 +83,10 @@ const Wordle = () => {
     if (e.key === "Enter") {
       handleGuess();
     }
+  };
+
+  const handleMouseDown = (event: React.MouseEvent<HTMLInputElement>) => {
+    event.preventDefault(); // Prevent the default mouse click behavior
   };
 
   const handleGuess = () => {
@@ -176,6 +186,7 @@ const Wordle = () => {
                       handleBackspace(rowIndex, columnIndex);
                     }
                   }}
+                  onMouseDown={handleMouseDown}
                 />
               ))}
             </div>
