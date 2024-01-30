@@ -64,8 +64,8 @@ const Wordle = () => {
 
     const updatedGuess = currentGuess.map((row) => [...row]);
 
-    // if want to delete final column, cursor does not move
-    if (col == targetCharNum - 1 && currentGuess[row][col] != "") {
+    // if delete already occupied grid
+    if (currentGuess[row][col] != "") {
       updatedGuess[row][col] = "";
     } else {
       // Move the cursor back
@@ -85,10 +85,6 @@ const Wordle = () => {
     }
   };
 
-  const handleMouseDown = (event: React.MouseEvent<HTMLInputElement>) => {
-    event.preventDefault(); // Prevent the default mouse click behavior
-  };
-
   const handleGuess = () => {
     if (currentAttempt >= totalAttempts - 1) {
       console.log("Reach max attempt");
@@ -99,15 +95,17 @@ const Wordle = () => {
       return;
     }
 
-    const fullGuess = currentGuess.join("");
+    const fullGuess = currentGuess[currentAttempt].join("");
     setCurrentAttempt(currentAttempt + 1);
     if (fullGuess == targetWord) {
       console.log("Right!");
     }
 
-    // move cursor to the first grid next row
-    console.log(currentAttempt);
+    // Move cursor to the first grid next row
     document.getElementById(`input-${currentAttempt + 1}-0`)?.focus();
+
+    // Change next guesser
+    setCurrentGuesser(guests[(currentAttempt + 1) % guests.length]);
   };
 
   const handleBack = () => {
@@ -165,7 +163,7 @@ const Wordle = () => {
       </div>
       <div className="main-column" onKeyDown={handleKeyPress}>
         <h1>Welcome to Wordle, {user.displayName}!</h1>
-        <p>Attempts: {currentAttempt}</p>
+        <p>Current guesser is: {currentGuesser?.displayName}</p>
         <div className="wordle-input">
           {currentGuess.map((_, rowIndex) => (
             <div key={rowIndex} className="wordle-input-row">
@@ -186,7 +184,6 @@ const Wordle = () => {
                       handleBackspace(rowIndex, columnIndex);
                     }
                   }}
-                  onMouseDown={handleMouseDown}
                 />
               ))}
             </div>
