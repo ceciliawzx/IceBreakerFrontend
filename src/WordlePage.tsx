@@ -5,6 +5,7 @@ import "./css/WordlePage.css";
 import { User } from "./type/User";
 import { UserProfile } from "./type/UserProfile";
 import { serverPort } from "./macro/MacroServer";
+import { LetterStatus, WordleLetter } from "./type/WordleLetter";
 
 const Wordle = () => {
   const navigate = useNavigate();
@@ -30,8 +31,10 @@ const Wordle = () => {
   const [correct, setCorrect] = useState(false);
 
   // totalAttempts: rowNum; targeteCharNum: coluNum
-  const [currentGuess, setCurrentGuess] = useState<string[][]>(
-    Array.from({ length: totalAttempts }, () => Array(targetCharNum).fill(""))
+  const [currentGuess, setCurrentGuess] = useState<WordleLetter[][]>(
+    Array.from({ length: totalAttempts }, () =>
+      Array(targetCharNum).fill(new WordleLetter("", LetterStatus.UNCHECKED))
+    )
   );
 
   // Initialization
@@ -47,8 +50,15 @@ const Wordle = () => {
       return;
     }
 
-    const updatedGuess = currentGuess.map((row) => [...row]); // create a deep copy
-    updatedGuess[row][col] = value.toUpperCase(); // Change input
+    // make deep copy
+    const updatedGuess = currentGuess.map((row) =>
+      row.map(
+        (letter) => new WordleLetter(letter.getValue(), letter.getStatus())
+      )
+    );
+
+    // set value
+    updatedGuess[row][col].setValue(value.toUpperCase());
     setCurrentGuess(updatedGuess); // update input
 
     // Cursor auto move
@@ -64,17 +74,22 @@ const Wordle = () => {
       return;
     }
 
-    const updatedGuess = currentGuess.map((row) => [...row]);
+    // make deep copy
+    const updatedGuess = currentGuess.map((row) =>
+      row.map(
+        (letter) => new WordleLetter(letter.getValue(), letter.getStatus())
+      )
+    );
 
     // if delete already occupied grid
-    if (currentGuess[row][col] != "") {
-      updatedGuess[row][col] = "";
+    if (currentGuess[row][col].getValue() != "") {
+      updatedGuess[row][col].setValue("");
     } else {
       // Move the cursor back
       document.getElementById(`input-${row}-${col - 1}`)?.focus();
 
       // Clear the previous input field
-      updatedGuess[row][col - 1] = "";
+      updatedGuess[row][col - 1].setValue("");
     }
 
     setCurrentGuess(updatedGuess);
@@ -92,12 +107,17 @@ const Wordle = () => {
       console.log("Reach max attempt");
       return;
     }
+
     // If still have empty grid, do not submit guess
-    if (currentGuess[currentAttempt].some((value) => value == "")) {
+    if (
+      currentGuess[currentAttempt].some((letter) => letter.getValue() == "")
+    ) {
       return;
     }
 
-    const fullGuess = currentGuess[currentAttempt].join("");
+    const fullGuess = currentGuess[currentAttempt]
+      .map((letter) => letter.getValue())
+      .join("");
     if (fullGuess == targetWord) {
       setCorrect(true);
       console.log("Right!");
@@ -108,6 +128,9 @@ const Wordle = () => {
 
     // Change next guesser
     setCurrentGuesser(guests[(currentAttempt + 1) % guests.length]);
+
+    // Check and change status
+    checkGuessStatus(currentAttempt);
 
     setCurrentAttempt(currentAttempt + 1);
   };
@@ -152,7 +175,36 @@ const Wordle = () => {
     }
   };
 
-  const reachMaxAttempt = () => currentAttempt >= totalAttempts - 1;
+  const reachMaxAttempt = () => currentAttempt >= totalAttempts;
+
+  const getStatusStyle = (status: LetterStatus) => {
+    switch (status) {
+      case LetterStatus.UNCHECKED:
+        return { backgroundColor: "transparent" };
+      case LetterStatus.GRAY:
+        return { backgroundColor: "#b8b8b8" };
+      case LetterStatus.YELLOW:
+        return { backgroundColor: "#ffe479" };
+      case LetterStatus.GREEN:
+        return { backgroundColor: "#7ed78c" };
+      default:
+        return {};
+    }
+  };
+
+  const checkGuessStatus = (row: number) => {
+    // make deep copy
+    const updatedGuess = currentGuess.map((row) =>
+      row.map(
+        (letter) => new WordleLetter(letter.getValue(), letter.getStatus())
+      )
+    );
+
+    // set value
+    updatedGuess[row].map((letter, _) => letter.setStatus(LetterStatus.GRAY));
+
+    setCurrentGuess(updatedGuess); // update input
+  };
 
   return (
     <div className="wordle-container">
@@ -179,7 +231,7 @@ const Wordle = () => {
                   id={`input-${rowIndex}-${columnIndex}`}
                   type="text"
                   maxLength={1}
-                  value={letter}
+                  value={letter.getValue()}
                   onChange={(e) =>
                     handleInputChange(rowIndex, columnIndex, e.target.value)
                   }
@@ -190,6 +242,7 @@ const Wordle = () => {
                       handleBackspace(rowIndex, columnIndex);
                     }
                   }}
+                  style={getStatusStyle(letter.getStatus())}
                 />
               ))}
             </div>
