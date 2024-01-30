@@ -42,6 +42,15 @@ const Wordle = () => {
     const updatedGuess = currentGuess.map((row) => [...row]); // create a deep copy
     updatedGuess[row][col] = value.toUpperCase(); // Change input
     setCurrentGuess(updatedGuess); // update input
+
+    // Check if the current column is not the last one in the row
+    if (col < updatedGuess[row].length - 1) {
+      // Move the focus to the next column in the same row
+      document.getElementById(`input-${row}-${col + 1}`)?.focus();
+    } else if (row < updatedGuess.length - 1) {
+      // Move the focus to the first column in the next row
+      document.getElementById(`input-${row + 1}-0`)?.focus();
+    }
   };
 
   // Press "Enter" = Press gues
@@ -126,6 +135,7 @@ const Wordle = () => {
               {currentGuess[rowIndex].map((letter, columnIndex) => (
                 <input
                   key={columnIndex}
+                  id={`input-${rowIndex}-${columnIndex}`}
                   type="text"
                   maxLength={1}
                   value={letter}
