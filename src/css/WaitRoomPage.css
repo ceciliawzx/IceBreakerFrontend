@@ -106,7 +106,6 @@
   cursor: not-allowed; /* Change cursor to indicate the button is not clickable */
 }
 
-
 .common-button {
   background-color: #4caf50;
   color: white;

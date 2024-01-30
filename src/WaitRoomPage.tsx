@@ -39,7 +39,7 @@ const WaitRoomPage = () => {
       }
     );
     console.log("start room");
-    console.log(response)
+    console.log(response);
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
@@ -51,10 +51,16 @@ const WaitRoomPage = () => {
     });
   };
 
+  const handleWordle = () => {
+    navigate("/WordlePage", {
+      state: { user, admin, presenter, guests },
+    });
+  };
+
   const handleUserInformation = () => {
     const preID = presenter?.userID;
     navigate("/UserProfilePage", {
-      state: { user, preID},
+      state: { user, preID },
     });
   };
 
@@ -75,8 +81,6 @@ const WaitRoomPage = () => {
   const handleLeaveRoom = async () => {
     // If admin leaves, send http request to delete room and all user should be kicked out
     if (isAdmin) {
-      // TODO: send http request
-
       // Destroy room
       const response = await fetch(
         `${serverPort}/destroyRoom?roomCode=${roomCode}`,
@@ -397,6 +401,11 @@ const WaitRoomPage = () => {
       {
         <button className="common-button" onClick={handleChatRoom}>
           Chat Room
+        </button>
+      }
+      {
+        <button className="common-button" onClick={handleWordle}>
+          Start Wordle
         </button>
       }
       {
