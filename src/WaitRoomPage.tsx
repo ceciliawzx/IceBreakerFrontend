@@ -14,12 +14,13 @@ const WaitRoomPage = () => {
   const userID = user.userID;
   const roomCode = user.roomCode;
   const displayName = user.displayName;
+  const [isPresenter, setIsPresenter] = useState(false);
   const [guests, setGuests] = useState<User[]>([]);
   const [admin, setAdmin] = useState<User | null>(null);
   const [presenter, setPresenter] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [showDismissPopup, setShowDismissPopup] = useState(false);
   const [showKickPopup, setShowKickPopup] = useState(false);
+  const [showDismissPopup, setShowDismissPopup] = useState(false);
   const [showChangePresenterPopup, setShowChangePresenterPopup] =
     useState(false);
   const [selectedPresenterUserID, setSelectedPresenterUserID] = useState<
@@ -35,7 +36,7 @@ const WaitRoomPage = () => {
     const response = await fetch(
       `${serverPort}/startInput?roomCode=${roomCode}`,
       {
-        method: "POST",
+        method: 'POST',
       }
     );
     console.log("start room");
@@ -46,8 +47,8 @@ const WaitRoomPage = () => {
   };
 
   const handleChatRoom = () => {
-    navigate("/ChatRoomPage", {
-      state: { user },
+    navigate('/ChatRoomPage', {
+      state: { userID, roomCode, displayName },
     });
   };
 
@@ -58,12 +59,24 @@ const WaitRoomPage = () => {
     });
   };
 
+  const handlePictionaryRoom = async () => {
+    const response = await fetch(
+      `${serverPort}/startDrawAndGuess?roomCode=${roomCode}`,
+      {
+        method: 'POST',
+      }
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+  };
+
   const handleKickUser = async (userID: string) => {
     // kick this user
     const response = await fetch(
       `${serverPort}/kickPerson?roomCode=${roomCode}&userID=${userID}`,
       {
-        method: "DELETE",
+        method: 'DELETE',
       }
     );
 
@@ -81,7 +94,7 @@ const WaitRoomPage = () => {
       const response = await fetch(
         `${serverPort}/destroyRoom?roomCode=${roomCode}`,
         {
-          method: "DELETE",
+          method: 'DELETE',
         }
       );
 
@@ -95,14 +108,14 @@ const WaitRoomPage = () => {
       const response = await fetch(
         `${serverPort}/kickPerson?roomCode=${roomCode}&userID=${userID}`,
         {
-          method: "DELETE",
+          method: 'DELETE',
         }
       );
 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       } else {
-        navigate("/");
+        navigate('/');
       }
     }
   };
@@ -183,7 +196,19 @@ const WaitRoomPage = () => {
       const data = await response.json();
       setIsAdmin(data === true);
     } catch (error) {
-      console.error("Error checking admin status:", error);
+      console.error('Error checking admin status:', error);
+    }
+  };
+
+  const checkPresenterStatus = async () => {
+    const url = `${serverPort}/isPresenter?userID=${userID}&roomCode=${roomCode}`;
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      setIsPresenter(data === true);
+      console.log('setting is presenter: ', data);
+    } catch (error) {
+      console.error('Error checking admin status:', error);
     }
   };
 
@@ -193,7 +218,7 @@ const WaitRoomPage = () => {
     try {
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error("Room cannot be found");
+        throw new Error('Room cannot be found');
       }
 
       const data = await response.json();
@@ -201,8 +226,8 @@ const WaitRoomPage = () => {
       // Check if room dismissed
       Object.values(data).some((value) => {
         if (
-          typeof value === "string" &&
-          value.includes("Room cannot be found")
+          typeof value === 'string' &&
+          value.includes('Room cannot be found')
         ) {
           setShowDismissPopup(true);
           return;
@@ -216,6 +241,8 @@ const WaitRoomPage = () => {
             data.admin.userID,
             data.admin.displayName,
             true,
+            // need to change after present room is completed
+            true,
             data.admin.profileImage,
             data.admin.completed
           )
@@ -227,7 +254,8 @@ const WaitRoomPage = () => {
             roomCode,
             data.presenter.userID,
             data.presenter.displayName,
-            data.presenter.admin,
+            false,
+            true,
             data.presenter.profileImage,
             data.presenter.completed
           )
@@ -240,6 +268,7 @@ const WaitRoomPage = () => {
               roomCode,
               guest.userID,
               guest.displayName,
+              false,
               false,
               guest.profileImage,
               guest.completed
@@ -255,19 +284,23 @@ const WaitRoomPage = () => {
         setAllGuestsCompleted(allCompleted);
       }
 
-      // If start present, into present page
-      // if (data.gameStatus == START_PRESENT) {
-      //   navigate("/PresentPage", {
+      // // if moderator starts game, navigate to input phase
+      // if (data.gameStatus) {
+      //   navigate("/UserProfilePage", {
       //     state: { user },
       //   });
-      // }
 
-      // If room destroyed, should pop up and kick out
-      // if (data.gameStatuss == ROOM_DISMISSED) {
-      // setShowPopup(true);
-      // }
+      // Change Admin to non-presenter when presenting page is completed
+
+      console.log('Game status', data.roomStatus);
+
+      if (data.roomStatus === 'PICTURING') {
+        navigate('/PictionaryRoomPage', {
+          state: { user },
+        });
+      }
     } catch (error) {
-      console.error("Error fetching players:", error);
+      console.error('Error fetching players:', error);
     }
   };
 
@@ -276,22 +309,24 @@ const WaitRoomPage = () => {
     try {
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error("Room cannot be found");
+        throw new Error('Room cannot be found');
       }
 
       const data = await response.text();
-      if (data == "Person Not Found") {
+      if (data == 'Person Not Found') {
         setShowKickPopup(true);
       }
     } catch (error) {
-      console.error("Error fetching player:", error);
+      console.error('Error fetching player:', error);
     }
   };
 
   // Periodically check room status
   useEffect(() => {
+    // Check whether the user is admin
     checkAdminStatus();
-    checkRoomStatus();
+    // Check whether the user is presenter
+    checkPresenterStatus();
 
     // Update the player list every interval
     const intervalId = setInterval(() => {
@@ -305,29 +340,29 @@ const WaitRoomPage = () => {
 
   // main render
   return (
-    <div className="wait-room-page">
+    <div className='wait-room-page'>
       <h1>
         Welcome to Wait Room {roomCode}, {displayName}!
       </h1>
-      <div className="first-row-container">
+      <div className='first-row-container'>
         {/* Moderator */}
-        <div className="moderator">
+        <div className='moderator'>
           <h2>Moderator:</h2>
           <img
             src={`${admin?.profileImage}`} // {admin.profileImage}
             alt="Moderator's Image"
-            className="moderator-avatar"
+            className='moderator-avatar'
           />
           <p>{admin?.displayName}</p>
         </div>
 
         {/* Presenter */}
-        <div className="presenter">
+        <div className='presenter'>
           <h2>Presenter:</h2>
           <img
             src={`${presenter?.profileImage}`} // {presenter.profileImage}
             alt="Presenter 's Image"
-            className="presenter-avatar"
+            className='presenter-avatar'
           />
           <p>{presenter?.displayName}</p>
           {isAdmin && (
@@ -350,19 +385,19 @@ const WaitRoomPage = () => {
         </div>
       </div>
 
-      <div className="guest-list">
+      <div className='guest-list'>
         <h2>Joined Guests:</h2>
-        <div className="guest-container">
+        <div className='guest-container'>
           {guests.map((guest, index) => (
-            <div key={index} className="guest">
-              <div className="avatar-container">
+            <div key={index} className='guest'>
+              <div className='avatar-container'>
                 <img
                   src={`${guest.profileImage}`}
                   alt={`${guest}'s avatar`}
-                  className="guest-avatar"
+                  className='guest-avatar'
                 />
                 {guest.completed && (
-                  <div className="input-status-indicator">✓</div>
+                  <div className='input-status-indicator'>✓</div>
                 )}
               </div>
               <p>{guest.displayName}</p>
@@ -383,7 +418,7 @@ const WaitRoomPage = () => {
             </div>
           ))}
         </div>
-        <div className="river"></div>
+        <div className='river'></div>
       </div>
       {isAdmin && (
         <button
@@ -404,8 +439,13 @@ const WaitRoomPage = () => {
           Enter your information
         </button>
       }
+      {isPresenter && (
+        <button className='start-room-button' onClick={handlePictionaryRoom}>
+          Pictionary
+        </button>
+      )}
       {
-        <button className="leave-room-button" onClick={handleLeaveRoom}>
+        <button className='leave-room-button' onClick={handleLeaveRoom}>
           Leave Room
         </button>
       }

@@ -37,7 +37,7 @@ const JoinRoomPage = () => {
 
       if (userID) {
         // Joining room cannot be admin
-        const user = new User(roomCode, userID, displayName, false, "", false);
+        const user = new User(roomCode, userID, displayName, false, false, "", false);
         navigate("/WaitRoomPage", {
           state: { user },
         });

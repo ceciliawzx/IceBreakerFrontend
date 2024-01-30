@@ -9,6 +9,7 @@ import UserProfilePage from "./UserProfilePage";
 import reportWebVitals from "./service/reportWebVitals";
 import CreateRoomPage from "./CreateRoomPage";
 import ChatRoomPage from "./ChatRoomPage";
+import PictionaryPage from './pictionary/PictionaryPage';
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -22,6 +23,7 @@ root.render(
         <Route path="/WaitRoomPage" element={<WaitRoomPage />} />
         <Route path="/UserProfilePage" element={<UserProfilePage />} />
         <Route path="/ChatRoomPage" element={<ChatRoomPage />} />
+        <Route path="/PictionaryRoomPage" element={<PictionaryPage />} />
       </Routes>
     </Router>
 );
