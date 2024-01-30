@@ -96,7 +96,6 @@ const Wordle = () => {
     }
 
     const fullGuess = currentGuess[currentAttempt].join("");
-    setCurrentAttempt(currentAttempt + 1);
     if (fullGuess == targetWord) {
       console.log("Right!");
     }
@@ -106,6 +105,8 @@ const Wordle = () => {
 
     // Change next guesser
     setCurrentGuesser(guests[(currentAttempt + 1) % guests.length]);
+
+    setCurrentAttempt(currentAttempt + 1);
   };
 
   const handleBack = () => {

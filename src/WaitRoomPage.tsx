@@ -51,10 +51,22 @@ const WaitRoomPage = () => {
     });
   };
 
-  const handleWordle = () => {
-    navigate("/WordlePage", {
-      state: { user, admin, presenter, guests },
-    });
+  const handleWordle = async () => {
+    // TODO: give field
+    const response = await fetch(
+      `${serverPort}/startWordle?roomCode=${roomCode}&userID=${presenter?.userID}&field=FirstName`,
+      {
+        method: "POST",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    // navigate("/WordlePage", {
+    //   state: { user, admin, presenter, guests },
+    // });
   };
 
   const handleUserInformation = () => {
@@ -256,17 +268,14 @@ const WaitRoomPage = () => {
         setAllGuestsCompleted(allCompleted);
       }
 
+      console.log(data);
+      console.log(data.roomStatus);
       // If start present, into present page
-      // if (data.gameStatus == START_PRESENT) {
-      //   navigate("/PresentPage", {
-      //     state: { user },
-      //   });
-      // }
-
-      // If room destroyed, should pop up and kick out
-      // if (data.gameStatuss == ROOM_DISMISSED) {
-      // setShowPopup(true);
-      // }
+      if (data.roomStatus == "WORDLING") {
+        navigate("/WordlePage", {
+          state: { user, admin, presenter, guests },
+        });
+      }
     } catch (error) {
       console.error("Error fetching players:", error);
     }
