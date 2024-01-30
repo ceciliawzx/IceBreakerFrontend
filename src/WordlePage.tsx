@@ -21,31 +21,28 @@ const Wordle = () => {
   const [showProfilePopup, setShowProfilePopup] = useState(false);
 
   const [currentGuesser, setCurrentGuesser] = useState<User>(guests[0]);
-  const [targetWord, setTargetWord] = useState<string>("apple"); // Set your target word
-  const [currentGuess, setCurrentGuess] = useState<string[]>([
-    "",
-    "",
-    "",
-    "",
-    "",
-  ]);
-  const [attempts, setAttempts] = useState<number>(0);
+  const [totalAttempts, setTotalAttempts] = useState<number>(6);
+  const [currentAttempt, setCurrentAttempt] = useState<number>(0);
+  const [targetCharNum, setTargetCharNum] = useState<number>(5);
+  const [targetWord, setTargetWord] = useState<string>("APPLE"); // Set your target word
 
-  // Implement functions to handle user input and game logic
-  const handleInputChange = (index: number, value: string) => {
-    const updatedGuess = [...currentGuess];
-    updatedGuess[index] = value.toUpperCase(); // You can convert to uppercase for consistency
-    setCurrentGuess(updatedGuess);
+  // totalAttempts: rowNum; targeteCharNum: coluNum
+  const [currentGuess, setCurrentGuess] = useState<string[][]>(
+    Array.from({ length: totalAttempts }, () => Array(targetCharNum).fill(""))
+  );
+
+  const handleInputChange = (row: number, col: number, value: string) => {
+    const updatedGuess = currentGuess.map((row) => [...row]); // create a deep copy
+    updatedGuess[row][col] = value.toUpperCase(); // Change input
+    setCurrentGuess(updatedGuess); // update input
   };
 
   const handleGuess = () => {
-    // Implement logic to check the guess against the target word
     const fullGuess = currentGuess.join("");
-    setAttempts(attempts + 1);
+    setCurrentAttempt(currentAttempt + 1);
     if (fullGuess == targetWord) {
       console.log("Right!");
     }
-    // Update other game state as needed
   };
 
   const handleBack = () => {
@@ -92,11 +89,11 @@ const Wordle = () => {
 
   return (
     <div className="wordle-container">
-      <div className="avatar-column left-column">
+      <div className="left-column">
         <div className="presenter">
           <h2>Presenter:</h2>
           <img
-            src={`${presenter?.profileImage}`} // {admin.profileImage}
+            src={`${presenter?.profileImage}`}
             alt="Presenter's Image"
             className="presenter-avatar"
           />
@@ -105,16 +102,22 @@ const Wordle = () => {
       </div>
       <div className="main-column">
         <h1>Welcome to Wordle, {user.displayName}!</h1>
-        <p>Attempts: {attempts}</p>
-        <div>
-          {currentGuess.map((letter, index) => (
-            <input
-              key={index}
-              type="text"
-              maxLength={1}
-              value={letter}
-              onChange={(e) => handleInputChange(index, e.target.value)}
-            />
+        <p>Attempts: {currentAttempt}</p>
+        <div className="wordle-input">
+          {currentGuess.map((_, rowIndex) => (
+            <div key={rowIndex} className="wordle-input-row">
+              {currentGuess[rowIndex].map((letter, columnIndex) => (
+                <input
+                  key={columnIndex}
+                  type="text"
+                  maxLength={1}
+                  value={letter}
+                  onChange={(e) =>
+                    handleInputChange(rowIndex, columnIndex, e.target.value)
+                  }
+                />
+              ))}
+            </div>
           ))}
         </div>
         <button className="common-button" onClick={handleGuess}>
@@ -124,7 +127,7 @@ const Wordle = () => {
           Back
         </button>
       </div>
-      <div className="avatar-column right-column">
+      <div className="right-column">
         <div className="guest-list">
           <h2>Joined Guests:</h2>
           <div className="guest-container">
