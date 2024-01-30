@@ -53,20 +53,18 @@ const WaitRoomPage = () => {
 
   const handleWordle = async () => {
     // TODO: give field
-    const response = await fetch(
-      `${serverPort}/startWordle?roomCode=${roomCode}&userID=${presenter?.userID}&field=FirstName`,
-      {
-        method: "POST",
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-
-    // navigate("/WordlePage", {
-    //   state: { user, admin, presenter, guests },
-    // });
+    // const response = await fetch(
+    //   `${serverPort}/startWordle?roomCode=${roomCode}&userID=${presenter?.userID}&field=FirstName`,
+    //   {
+    //     method: "POST",
+    //   }
+    // );
+    // if (!response.ok) {
+    //   throw new Error(`HTTP error! Status: ${response.status}`);
+    // }
+    navigate("/WordlePage", {
+      state: { user, admin, presenter, guests },
+    });
   };
 
   const handleUserInformation = () => {
@@ -268,14 +266,12 @@ const WaitRoomPage = () => {
         setAllGuestsCompleted(allCompleted);
       }
 
-      console.log(data);
-      console.log(data.roomStatus);
-      // If start present, into present page
-      if (data.roomStatus == "WORDLING") {
-        navigate("/WordlePage", {
-          state: { user, admin, presenter, guests },
-        });
-      }
+      // If start wordle, go to wordle page
+      // if (data.roomStatus == "WORDLING") {
+      //   navigate("/WordlePage", {
+      //     state: { user, admin, presenter, guests },
+      //   });
+      // }
     } catch (error) {
       console.error("Error fetching players:", error);
     }

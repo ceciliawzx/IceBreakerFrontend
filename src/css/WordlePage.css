@@ -31,8 +31,29 @@
   flex: 0.3;
 }
 
-.guest-list {
-  margin-top: 20px;
+.guest-container {
+  display: flex; /* Aligns children of guest-container in a row */
+  flex-direction: column;
+  align-items: center; /* Optional: Center the items horizontally */
+  position: relative;
+}
+
+.guest-row {
+  display: flex; /* Aligns children of guest-container in a row */
+  flex-direction: row;
+  align-items: center; /* Optional: Center the items horizontally */
+}
+
+.arrow-indicator {
+  position: absolute;
+  top: 50%;
+  left: -20px; /* Adjust the distance from the left */
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 10px 0 10px 15px; /* Adjust the size and direction of the arrow */
+  border-color: transparent transparent transparent #5d99e2; /* Adjust the arrow color */
 }
 
 .common-button {

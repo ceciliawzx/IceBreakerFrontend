@@ -27,6 +27,7 @@ const Wordle = () => {
   const [currentGuesser, setCurrentGuesser] = useState<User>(guests[0]);
   const [currentAttempt, setCurrentAttempt] = useState<number>(0);
   const [targetWord, setTargetWord] = useState<string>("APPLE"); // Set your target word
+  const [correct, setCorrect] = useState(false);
 
   // totalAttempts: rowNum; targeteCharNum: coluNum
   const [currentGuess, setCurrentGuess] = useState<string[][]>(
@@ -41,7 +42,8 @@ const Wordle = () => {
 
   const handleInputChange = (row: number, col: number, value: string) => {
     // Can only modify the current row and should input character
-    if (row !== currentAttempt || !/^[a-zA-Z]$/.test(value)) {
+    // If already correct, disable input
+    if (row !== currentAttempt || !/^[a-zA-Z]$/.test(value) || correct) {
       return;
     }
 
@@ -86,7 +88,7 @@ const Wordle = () => {
   };
 
   const handleGuess = () => {
-    if (currentAttempt >= totalAttempts - 1) {
+    if (reachMaxAttempt()) {
       console.log("Reach max attempt");
       return;
     }
@@ -97,6 +99,7 @@ const Wordle = () => {
 
     const fullGuess = currentGuess[currentAttempt].join("");
     if (fullGuess == targetWord) {
+      setCorrect(true);
       console.log("Right!");
     }
 
@@ -149,6 +152,8 @@ const Wordle = () => {
     }
   };
 
+  const reachMaxAttempt = () => currentAttempt >= totalAttempts - 1;
+
   return (
     <div className="wordle-container">
       <div className="left-column">
@@ -190,6 +195,11 @@ const Wordle = () => {
             </div>
           ))}
         </div>
+        {correct && <h2> You guessed the word! </h2>}
+        {reachMaxAttempt() && <h2> Finished </h2>}
+        {reachMaxAttempt() && !correct && (
+          <h2> The correct word is {targetWord} </h2>
+        )}
         <button className="common-button" onClick={handleGuess}>
           Guess
         </button>
@@ -202,18 +212,19 @@ const Wordle = () => {
           <h2>Joined Guests:</h2>
           <div className="guest-container">
             {guests.map((guest, index) => (
-              <div key={index} className="guest">
-                <div className="avatar-container">
+              <div key={index} className="guest-row">
+                <div className="guest">
+                  {guest.userID == currentGuesser.userID && (
+                    <div className="arrow-indicator"></div>
+                  )}
+
                   <img
                     src={`${guest.profileImage}`}
                     alt={`${guest}'s avatar`}
                     className="guest-avatar"
                   />
-                  {guest.completed && (
-                    <div className="input-status-indicator">✓</div>
-                  )}
+                  <p>{guest.displayName}</p>
                 </div>
-                <p>{guest.displayName}</p>
                 {isAdmin && (
                   <button
                     className="admin-only-button"
