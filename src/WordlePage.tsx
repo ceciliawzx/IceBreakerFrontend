@@ -14,24 +14,37 @@ const Wordle = () => {
   const isAdmin = user.isAdmin;
   const admin = location.state?.admin;
   const presenter = location.state?.presenter;
-  const guests:User[] = location.state?.guests;
+  const guests: User[] = location.state?.guests;
 
   const [selectedUserProfile, setSelectedUserProfile] =
     useState<UserProfile | null>(null);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
 
+  const [currentGuesser, setCurrentGuesser] = useState<User>(guests[0]);
   const [targetWord, setTargetWord] = useState<string>("apple"); // Set your target word
-  const [currentGuess, setCurrentGuess] = useState<string>("");
+  const [currentGuess, setCurrentGuess] = useState<string[]>([
+    "",
+    "",
+    "",
+    "",
+    "",
+  ]);
   const [attempts, setAttempts] = useState<number>(0);
 
   // Implement functions to handle user input and game logic
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setCurrentGuess(event.target.value);
+  const handleInputChange = (index: number, value: string) => {
+    const updatedGuess = [...currentGuess];
+    updatedGuess[index] = value.toUpperCase(); // You can convert to uppercase for consistency
+    setCurrentGuess(updatedGuess);
   };
 
   const handleGuess = () => {
     // Implement logic to check the guess against the target word
+    const fullGuess = currentGuess.join("");
     setAttempts(attempts + 1);
+    if (fullGuess == targetWord) {
+      console.log("Right!");
+    }
     // Update other game state as needed
   };
 
@@ -92,7 +105,17 @@ const Wordle = () => {
       </div>
 
       <p>Attempts: {attempts}</p>
-      <input type="text" value={currentGuess} onChange={handleInputChange} />
+      <div>
+        {currentGuess.map((letter, index) => (
+          <input
+            key={index}
+            type="text"
+            maxLength={1}
+            value={letter}
+            onChange={(e) => handleInputChange(index, e.target.value)}
+          />
+        ))}
+      </div>
       <button className="common-button" onClick={handleGuess}>
         Guess
       </button>

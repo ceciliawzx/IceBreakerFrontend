@@ -204,10 +204,7 @@ const WaitRoomPage = () => {
 
       // Check if room dismissed
       Object.values(data).some((value) => {
-        if (
-          typeof value === "string" &&
-          value.includes("Room cannot be found")
-        ) {
+        if (typeof value === "string" && value.includes("Room not found")) {
           setShowDismissPopup(true);
           return;
         }
@@ -284,7 +281,7 @@ const WaitRoomPage = () => {
       }
 
       const data = await response.text();
-      if (data == "Person Not Found") {
+      if (data.includes("Person not found")) {
         setShowKickPopup(true);
       }
     } catch (error) {
