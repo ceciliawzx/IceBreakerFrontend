@@ -20,10 +20,12 @@ const Wordle = () => {
     useState<UserProfile | null>(null);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
 
+  // TODO: Need to fetch
+  const totalAttempts = 6;
+  const targetCharNum = 5;
+
   const [currentGuesser, setCurrentGuesser] = useState<User>(guests[0]);
-  const [totalAttempts, setTotalAttempts] = useState<number>(6);
   const [currentAttempt, setCurrentAttempt] = useState<number>(0);
-  const [targetCharNum, setTargetCharNum] = useState<number>(5);
   const [targetWord, setTargetWord] = useState<string>("APPLE"); // Set your target word
 
   // totalAttempts: rowNum; targeteCharNum: coluNum
@@ -32,12 +34,29 @@ const Wordle = () => {
   );
 
   const handleInputChange = (row: number, col: number, value: string) => {
+    // Can only modify the current row
+    if (row !== currentAttempt) {
+      return;
+    }
+
     const updatedGuess = currentGuess.map((row) => [...row]); // create a deep copy
     updatedGuess[row][col] = value.toUpperCase(); // Change input
     setCurrentGuess(updatedGuess); // update input
   };
 
+  // Press "Enter" = Press gues
+  const handleKeyPress = (e: any) => {
+    if (e.key === "Enter") {
+      handleGuess();
+    }
+  };
+
   const handleGuess = () => {
+    // If still have empty grid, do not submit guess
+    if (currentGuess[currentAttempt].some((value) => value == "")) {
+      return;
+    }
+
     const fullGuess = currentGuess.join("");
     setCurrentAttempt(currentAttempt + 1);
     if (fullGuess == targetWord) {
@@ -61,8 +80,6 @@ const Wordle = () => {
         }
 
         const data = await response.json();
-
-        console.log(data);
 
         setSelectedUserProfile(
           new UserProfile(
@@ -100,7 +117,7 @@ const Wordle = () => {
           <p>{presenter?.displayName}</p>
         </div>
       </div>
-      <div className="main-column">
+      <div className="main-column" onKeyDown={handleKeyPress}>
         <h1>Welcome to Wordle, {user.displayName}!</h1>
         <p>Attempts: {currentAttempt}</p>
         <div className="wordle-input">
@@ -157,6 +174,20 @@ const Wordle = () => {
           </div>
         </div>
       </div>
+
+      {/* show profile popup */}
+      {isAdmin && showProfilePopup && selectedUserProfile && (
+        <div className="popup">
+          <p>First name: {selectedUserProfile.firstName}</p>
+          <p>Last name: {selectedUserProfile.lastName}</p>
+          <p>Country: {selectedUserProfile.country}</p>
+          <p>City: {selectedUserProfile.city}</p>
+          <p>Feeling: {selectedUserProfile.feeling}</p>
+          <p>Favourite food: {selectedUserProfile.favFood}</p>
+          <p>Favourite activity: {selectedUserProfile.favActivity}</p>
+          <button onClick={() => setShowProfilePopup(false)}>Close</button>
+        </div>
+      )}
     </div>
   );
 };
