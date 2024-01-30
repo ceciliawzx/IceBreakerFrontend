@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import GoogleMapReact from 'google-map-react';
 import Marker from './Marker';
 
-// Replace 'YOUR_API_KEY' with your actual Google Maps API key
-const GOOGLE_MAPS_API_KEY = 'AIzaSyDENKVeABbLKd8DG_8H0RJLeh7y4FBqrUs';
+const GOOGLE_MAPS_API_KEY = 'YOUR_API_KEY'; // Replace with your actual Google Maps API key
 
 interface Pin {
     lat: number;
@@ -13,16 +12,23 @@ interface Pin {
 const GeoguesserPage: React.FC = () => {
     const [pins, setPins] = useState<Pin[]>([]);
     const [map, setMap] = useState<google.maps.Map | null>(null);
+    const [pinMode, setPinMode] = useState<boolean>(false);
+    const [selectedLocation, setSelectedLocation] = useState<Pin | null>(null);
 
     const handleMapClick = (event: google.maps.MapMouseEvent) => {
-        if (map) {
+        if (pinMode && map) {
             const newPin: Pin = {
                 lat: event.latLng.lat(),
                 lng: event.latLng.lng(),
             };
-
             setPins((prevPins) => [...prevPins, newPin]);
+            setSelectedLocation(newPin);
         }
+    };
+
+    const togglePinMode = () => {
+        setPinMode((prevPinMode) => !prevPinMode);
+        setSelectedLocation(null);
     };
 
     const handleApiLoad = (map: google.maps.Map) => {
@@ -51,6 +57,18 @@ const GeoguesserPage: React.FC = () => {
                     ))}
                 </GoogleMapReact>
             </div>
+            <div>
+                <button onClick={togglePinMode}>
+                    {pinMode ? 'Disable Pin Mode' : 'Enable Pin Mode'}
+                </button>
+            </div>
+            {selectedLocation && (
+                <div>
+                    <h2>Selected Location:</h2>
+                    <p>Latitude: {selectedLocation.lat}</p>
+                    <p>Longitude: {selectedLocation.lng}</p>
+                </div>
+            )}
             <div>
                 <h2>Pins:</h2>
                 <ul>
