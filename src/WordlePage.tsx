@@ -91,69 +91,69 @@ const Wordle = () => {
   };
 
   return (
-    <div className="wordle-page">
-      <h1>Welcome to Wordle, {user.displayName}!</h1>
-
-      <div className="presenter">
-        <h2>Presenter:</h2>
-        <img
-          src={`${presenter?.profileImage}`} // {admin.profileImage}
-          alt="Presenter's Image"
-          className="presenter-avatar"
-        />
-        <p>{presenter?.displayName}</p>
-      </div>
-
-      <p>Attempts: {attempts}</p>
-      <div>
-        {currentGuess.map((letter, index) => (
-          <input
-            key={index}
-            type="text"
-            maxLength={1}
-            value={letter}
-            onChange={(e) => handleInputChange(index, e.target.value)}
+    <div className="wordle-container">
+      <div className="avatar-column left-column">
+        <div className="presenter">
+          <h2>Presenter:</h2>
+          <img
+            src={`${presenter?.profileImage}`} // {admin.profileImage}
+            alt="Presenter's Image"
+            className="presenter-avatar"
           />
-        ))}
+          <p>{presenter?.displayName}</p>
+        </div>
       </div>
-      <button className="common-button" onClick={handleGuess}>
-        Guess
-      </button>
-
-      <div className="guest-list">
-        <h2>Joined Guests:</h2>
-        <div className="guest-container">
-          {guests.map((guest, index) => (
-            <div key={index} className="guest">
-              <div className="avatar-container">
-                <img
-                  src={`${guest.profileImage}`}
-                  alt={`${guest}'s avatar`}
-                  className="guest-avatar"
-                />
-                {guest.completed && (
-                  <div className="input-status-indicator">✓</div>
-                )}
-              </div>
-              <p>{guest.displayName}</p>
-              {isAdmin && (
-                <button
-                  className="admin-only-button"
-                  onClick={() => handleViewProfile(guest)}
-                >
-                  View Profile
-                </button>
-              )}
-            </div>
+      <div className="main-column">
+        <h1>Welcome to Wordle, {user.displayName}!</h1>
+        <p>Attempts: {attempts}</p>
+        <div>
+          {currentGuess.map((letter, index) => (
+            <input
+              key={index}
+              type="text"
+              maxLength={1}
+              value={letter}
+              onChange={(e) => handleInputChange(index, e.target.value)}
+            />
           ))}
         </div>
-        <div className="river"></div>
+        <button className="common-button" onClick={handleGuess}>
+          Guess
+        </button>
+        <button className="common-button" onClick={handleBack}>
+          Back
+        </button>
       </div>
-
-      <button className="common-button" onClick={handleBack}>
-        Back
-      </button>
-      {/* Display other game elements */}
+      <div className="avatar-column right-column">
+        <div className="guest-list">
+          <h2>Joined Guests:</h2>
+          <div className="guest-container">
+            {guests.map((guest, index) => (
+              <div key={index} className="guest">
+                <div className="avatar-container">
+                  <img
+                    src={`${guest.profileImage}`}
+                    alt={`${guest}'s avatar`}
+                    className="guest-avatar"
+                  />
+                  {guest.completed && (
+                    <div className="input-status-indicator">✓</div>
+                  )}
+                </div>
+                <p>{guest.displayName}</p>
+                {isAdmin && (
+                  <button
+                    className="admin-only-button"
+                    onClick={() => handleViewProfile(guest)}
+                  >
+                    View Profile
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

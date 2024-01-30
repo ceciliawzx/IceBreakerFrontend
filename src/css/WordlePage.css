@@ -7,6 +7,30 @@
   text-align: center;
 }
 
+.wordle-container {
+  display: flex;
+  justify-content: space-between;
+  max-width: 1200px; /* Adjust as needed */
+  margin: 0 auto;
+}
+
+.avatar-column {
+  flex: 1; /* Each avatar column takes 1/3 of the available space */
+}
+
+.left-column {
+  /* Additional styles for the left column */
+}
+
+.main-column {
+  flex: 2; /* Main column takes 2/3 of the available space */
+  /* Additional styles for the main column */
+}
+
+.right-column {
+  /* Additional styles for the right column */
+}
+
 .guest-list {
   margin-top: 20px;
 }
