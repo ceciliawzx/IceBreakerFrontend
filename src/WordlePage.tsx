@@ -34,8 +34,8 @@ const Wordle = () => {
   );
 
   const handleInputChange = (row: number, col: number, value: string) => {
-    // Can only modify the current row
-    if (row !== currentAttempt) {
+    // Can only modify the current row and should input character
+    if (row !== currentAttempt || !/^[a-zA-Z]$/.test(value)) {
       return;
     }
 
@@ -43,14 +43,33 @@ const Wordle = () => {
     updatedGuess[row][col] = value.toUpperCase(); // Change input
     setCurrentGuess(updatedGuess); // update input
 
-    // Check if the current column is not the last one in the row
+    // Cursor auto move
     if (col < updatedGuess[row].length - 1) {
-      // Move the focus to the next column in the same row
+      // Move the cursor to the next column
       document.getElementById(`input-${row}-${col + 1}`)?.focus();
-    } else if (row < updatedGuess.length - 1) {
-      // Move the focus to the first column in the next row
-      document.getElementById(`input-${row + 1}-0`)?.focus();
     }
+  };
+
+  const handleBackspace = (row: number, col: number) => {
+    // first column, cannot delete
+    if (col <= 0) {
+      return;
+    }
+
+    const updatedGuess = currentGuess.map((row) => [...row]);
+
+    // if want to delete final column, cursor does not move
+    if (col == targetCharNum - 1 && currentGuess[row][col] != "") {
+      updatedGuess[row][col] = "";
+    } else {
+      // Move the cursor back
+      document.getElementById(`input-${row}-${col - 1}`)?.focus();
+
+      // Clear the previous input field
+      updatedGuess[row][col - 1] = "";
+    }
+
+    setCurrentGuess(updatedGuess);
   };
 
   // Press "Enter" = Press gues
@@ -61,6 +80,10 @@ const Wordle = () => {
   };
 
   const handleGuess = () => {
+    if (currentAttempt >= totalAttempts - 1) {
+      console.log("Reach max attempt");
+      return;
+    }
     // If still have empty grid, do not submit guess
     if (currentGuess[currentAttempt].some((value) => value == "")) {
       return;
@@ -71,6 +94,10 @@ const Wordle = () => {
     if (fullGuess == targetWord) {
       console.log("Right!");
     }
+
+    // move cursor to the first grid next row
+    console.log(currentAttempt);
+    document.getElementById(`input-${currentAttempt + 1}-0`)?.focus();
   };
 
   const handleBack = () => {
@@ -142,6 +169,13 @@ const Wordle = () => {
                   onChange={(e) =>
                     handleInputChange(rowIndex, columnIndex, e.target.value)
                   }
+                  // Handle delete
+                  onKeyDown={(e) => {
+                    if (e.key === "Backspace") {
+                      e.preventDefault(); // Prevent browser navigation
+                      handleBackspace(rowIndex, columnIndex);
+                    }
+                  }}
                 />
               ))}
             </div>
