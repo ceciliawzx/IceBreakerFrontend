@@ -27,7 +27,6 @@
 .moderator-avatar,
 .presenter-avatar {
   /* Set a background image and make it circular */
-
   background-size: cover;
   background-position: center;
   width: 100px;
@@ -39,7 +38,7 @@
   /* Your existing styles for the moderator section */
 
   /* Set a background image and make it circular */
-  background-image: url("~/public/pic.jpg");
+  /* background-image: url("~/public/pic.jpg"); */
   background-size: cover;
   background-position: center;
   width: 100px;
@@ -68,7 +67,7 @@
   border-radius: 50%;
   padding: 5px;
   font-size: 15px;
-} 
+}
 
 .guest {
   display: flex; /* Aligns children of guest vertically */
@@ -88,7 +87,27 @@
   margin-top: 20px;
 }
 
-.start-room-button {
+.admin-only-button {
+  background-color: #5d99e2;
+  color: white;
+  border: none;
+  cursor: pointer;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.admin-only-button:hover {
+  background-color: #4e5ed2;
+}
+
+.admin-only-button:disabled {
+  background-color: #cccccc; /* Grey color for disabled state */
+  cursor: not-allowed; /* Change cursor to indicate the button is not clickable */
+}
+
+
+.common-button {
   background-color: #4caf50;
   color: white;
   border: none;
@@ -98,7 +117,7 @@
   border-radius: 5px;
 }
 
-.start-room-button:hover {
+.common-button:hover {
   background-color: #45a049;
 }
 
@@ -120,13 +139,15 @@
 }
 
 .kick-button {
+  background-image: url("~/public/cross.png");
   position: absolute;
   top: -15px;
   right: -25px;
   background-color: transparent;
   cursor: pointer;
   margin: 10px;
-  padding: 5px;
+  padding: 20px;
+  background-size: 100% 100%;
 }
 
 .kick-button:hover {
@@ -135,4 +156,37 @@
   right: -27px;
   background-color: transparent;
   border: 2px solid #c01016;
+}
+
+.change-presenter-popup {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  text-align: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+}
+
+.change-presenter-popup h3 {
+  margin-bottom: 10px;
+}
+
+.change-presenter-popup ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.change-presenter-popup li {
+  cursor: pointer;
+  padding: 5px 0;
+}
+
+.change-presenter-popup li.selected {
+  background-color: #4caf50;
+  color: white;
 }

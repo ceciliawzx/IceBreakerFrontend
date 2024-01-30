@@ -9,6 +9,8 @@ const UserProfilePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const user = location.state?.user;
+  const preID = location.state?.preID;
+  const roomCode = user.roomCode;
   const displayName = user.displayName;
   const [message, setMessage] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -60,7 +62,7 @@ const UserProfilePage = () => {
           setCountry(data.userInfo.country || "");
           setFeeling(data.userInfo.feeling || "");
           setFavFood(data.userInfo.favFood || "");
-          setfavActivity(data.userInfo.favActivities || "");
+          setfavActivity(data.userInfo.favActivity || "");
           setSelfieBase64(data.userInfo.profileImage || "");
         }
       } catch (error) {

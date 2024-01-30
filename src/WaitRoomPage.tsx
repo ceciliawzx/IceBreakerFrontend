@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
-import './css/WaitRoomPage.css';
-import { serverPort } from './macro/MacroServer';
-import { refreshTime } from './macro/MacroConst';
-import { User } from './type/User';
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import "./css/WaitRoomPage.css";
+import { serverPort } from "./macro/MacroServer";
+import { refreshTime } from "./macro/MacroConst";
+import { User } from "./type/User";
+import { UserProfile } from "./type/UserProfile";
 
 const WaitRoomPage = () => {
   const location = useLocation();
@@ -16,9 +17,19 @@ const WaitRoomPage = () => {
   const [isPresenter, setIsPresenter] = useState(false);
   const [guests, setGuests] = useState<User[]>([]);
   const [admin, setAdmin] = useState<User | null>(null);
+  const [presenter, setPresenter] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showKickPopup, setShowKickPopup] = useState(false);
   const [showDismissPopup, setShowDismissPopup] = useState(false);
+  const [showChangePresenterPopup, setShowChangePresenterPopup] =
+    useState(false);
+  const [selectedPresenterUserID, setSelectedPresenterUserID] = useState<
+    string | null
+  >(null);
+  const [showProfilePopup, setShowProfilePopup] = useState(false);
+  const [selectedUserProfile, setSelectedUserProfile] =
+    useState<UserProfile | null>(null);
+  const [allGuestsCompleted, setAllGuestsCompleted] = useState(false);
 
   const handleStartRoom = async () => {
     // Tell server that to start room
@@ -28,6 +39,8 @@ const WaitRoomPage = () => {
         method: 'POST',
       }
     );
+    console.log("start room");
+    console.log(response)
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
@@ -40,8 +53,9 @@ const WaitRoomPage = () => {
   };
 
   const handleUserInformation = () => {
-    navigate('/UserProfilePage', {
-      state: { user },
+    const preID = presenter?.userID;
+    navigate("/UserProfilePage", {
+      state: { user, preID},
     });
   };
 
@@ -106,6 +120,74 @@ const WaitRoomPage = () => {
     }
   };
 
+  const handleChangePresenter = () => {
+    setShowChangePresenterPopup(true);
+    setSelectedPresenterUserID(null);
+  };
+
+  const handleSelectPresenter = (userID: string) => {
+    setSelectedPresenterUserID(userID);
+  };
+
+  const handleViewProfile = async (user: User | null) => {
+    if (user) {
+      const url = `${serverPort}/getPlayer?userID=${user.userID}&roomCode=${roomCode}`;
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        console.log(data);
+
+        setSelectedUserProfile(
+          new UserProfile(
+            data.userInfo.displayName,
+            data.userInfo.roomCode,
+            data.userInfo.userID,
+            data.userInfo.profileImage,
+            data.userInfo.firstName,
+            data.userInfo.lastName,
+            data.userInfo.country,
+            data.userInfo.city,
+            data.userInfo.feeling,
+            data.userInfo.favFood,
+            data.userInfo.favActivity
+          )
+        );
+
+        setShowProfilePopup(true);
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+      }
+    }
+  };
+
+  const confirmChangePresenter = () => {
+    var newPresenter;
+    if (selectedPresenterUserID) {
+      if (selectedPresenterUserID == admin?.userID) {
+        newPresenter = admin;
+      } else {
+        newPresenter = guests.find(
+          (guest) => guest.userID === selectedPresenterUserID
+        );
+      }
+
+      if (newPresenter) {
+        fetch(
+          `${serverPort}/changePresenter?roomCode=${roomCode}&userID=${newPresenter.userID}`,
+          {
+            method: "POST",
+          }
+        );
+      }
+    }
+    setShowChangePresenterPopup(false); // Close the popup
+  };
+
   // Check if the user is the admin
   const checkAdminStatus = async () => {
     const url = `${serverPort}/isAdmin?userID=${userID}&roomCode=${roomCode}`;
@@ -152,7 +234,6 @@ const WaitRoomPage = () => {
         }
       });
 
-      //
       if (data.admin) {
         setAdmin(
           new User(
@@ -167,21 +248,40 @@ const WaitRoomPage = () => {
           )
         );
       }
-      if (data.otherPlayers) {
-        setGuests(
-          data.otherPlayers.map(
-            (player: any) =>
-              new User(
-                roomCode,
-                player.userID,
-                player.displayName,
-                false,
-                false,
-                player.profileImage,
-                player.completed
-              )
+      if (data.presenter) {
+        setPresenter(
+          new User(
+            roomCode,
+            data.presenter.userID,
+            data.presenter.displayName,
+            false,
+            true,
+            data.presenter.profileImage,
+            data.presenter.completed
           )
         );
+      }
+      if (data.otherPlayers) {
+        const updatedGuests = data.otherPlayers.map(
+          (guest: User) =>
+            new User(
+              roomCode,
+              guest.userID,
+              guest.displayName,
+              false,
+              false,
+              guest.profileImage,
+              guest.completed
+            )
+        );
+
+        setGuests(updatedGuests);
+
+        // Check if all guests have completed
+        const allCompleted = updatedGuests.every(
+          (guest: User) => guest.completed
+        );
+        setAllGuestsCompleted(allCompleted);
       }
 
       // // if moderator starts game, navigate to input phase
@@ -238,6 +338,7 @@ const WaitRoomPage = () => {
     return () => clearInterval(intervalId);
   }, [userID, roomCode]);
 
+  // main render
   return (
     <div className='wait-room-page'>
       <h1>
@@ -248,7 +349,7 @@ const WaitRoomPage = () => {
         <div className='moderator'>
           <h2>Moderator:</h2>
           <img
-            src='/pic.jpg' // {admin.profileImage}
+            src={`${admin?.profileImage}`} // {admin.profileImage}
             alt="Moderator's Image"
             className='moderator-avatar'
           />
@@ -259,11 +360,28 @@ const WaitRoomPage = () => {
         <div className='presenter'>
           <h2>Presenter:</h2>
           <img
-            src='/pic.jpg' // {presenter.profileImage}
+            src={`${presenter?.profileImage}`} // {presenter.profileImage}
             alt="Presenter 's Image"
             className='presenter-avatar'
           />
-          <p>{admin?.displayName}</p>
+          <p>{presenter?.displayName}</p>
+          {isAdmin && (
+            <div className="button-container">
+              <button
+                className="admin-only-button"
+                onClick={() => handleViewProfile(presenter)}
+              >
+                View Profile
+              </button>
+
+              <button
+                className="admin-only-button"
+                onClick={handleChangePresenter}
+              >
+                Change Presenter
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -274,9 +392,7 @@ const WaitRoomPage = () => {
             <div key={index} className='guest'>
               <div className='avatar-container'>
                 <img
-                  src={
-                    guest?.profileImage ? `${guest.profileImage}` : '/pic.jpg'
-                  }
+                  src={`${guest.profileImage}`}
                   alt={`${guest}'s avatar`}
                   className='guest-avatar'
                 />
@@ -287,15 +403,17 @@ const WaitRoomPage = () => {
               <p>{guest.displayName}</p>
               {isAdmin && (
                 <button
-                  className='kick-button'
-                  onClick={() => handleKickUser(guest.userID)}
+                  className="admin-only-button"
+                  onClick={() => handleViewProfile(guest)}
                 >
-                  <img
-                    src='/cross.png'
-                    alt='Kick'
-                    style={{ width: '30px', height: '30px' }} // Adjust the dimensions as needed
-                  />
+                  View Profile
                 </button>
+              )}
+              {isAdmin && (
+                <button
+                  className="kick-button"
+                  onClick={() => handleKickUser(guest.userID)}
+                ></button>
               )}
             </div>
           ))}
@@ -303,17 +421,21 @@ const WaitRoomPage = () => {
         <div className='river'></div>
       </div>
       {isAdmin && (
-        <button className='start-room-button' onClick={handleStartRoom}>
+        <button
+          className="admin-only-button"
+          onClick={handleStartRoom}
+          disabled={!allGuestsCompleted}
+        >
           Start Room
         </button>
       )}
       {
-        <button className='start-room-button' onClick={handleChatRoom}>
+        <button className="common-button" onClick={handleChatRoom}>
           Chat Room
         </button>
       }
       {
-        <button className='start-room-button' onClick={handleUserInformation}>
+        <button className="common-button" onClick={handleUserInformation}>
           Enter your information
         </button>
       }
@@ -327,6 +449,64 @@ const WaitRoomPage = () => {
           Leave Room
         </button>
       }
+      {/* dimmiss popup */}
+      {showDismissPopup && (
+        <div className="popup">
+          <p>
+            Room {roomCode} dismissed by moderator.
+            <br />
+            Returning to homepage.
+          </p>
+          <button onClick={() => navigate("/")}>OK</button>
+        </div>
+      )}
+      {/* kickout popup */}
+      {showKickPopup && (
+        <div className="popup">
+          <p>
+            You are kicked out by moderator.
+            <br />
+            Returning to homepage.
+          </p>
+          <button onClick={() => navigate("/")}>OK</button>
+        </div>
+      )}
+      {/* change presenter popup */}
+      {showChangePresenterPopup && (
+        <div className="change-presenter-popup">
+          <h3>Select New Presenter:</h3>
+          <ul>
+            {guests.concat(admin || []).map((user) => (
+              <li
+                key={user.userID}
+                onClick={() => handleSelectPresenter(user.userID)}
+                className={
+                  selectedPresenterUserID === user.userID ? "selected" : ""
+                }
+              >
+                {user.displayName}
+              </li>
+            ))}
+          </ul>
+          <div className="button-container">
+            <button onClick={confirmChangePresenter}>Confirm</button>
+          </div>
+        </div>
+      )}
+
+      {/* show profile popup */}
+      {isAdmin && showProfilePopup && selectedUserProfile && (
+        <div className="popup">
+          <p>First name: {selectedUserProfile.firstName}</p>
+          <p>Last name: {selectedUserProfile.lastName}</p>
+          <p>Country: {selectedUserProfile.country}</p>
+          <p>City: {selectedUserProfile.city}</p>
+          <p>Feeling: {selectedUserProfile.feeling}</p>
+          <p>Favourite food: {selectedUserProfile.favFood}</p>
+          <p>Favourite activity: {selectedUserProfile.favActivity}</p>
+          <button onClick={() => setShowProfilePopup(false)}>Close</button>
+        </div>
+      )}
     </div>
   );
 };
