@@ -9,10 +9,12 @@
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "@types/googlemaps": "^3.43.3",
     "@types/jest": "^27.5.2",
     "@types/node": "^16.18.71",
     "@types/react": "^18.2.48",
     "@types/react-dom": "^18.2.18",
+    "google-map-react": "^2.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.21.2",
@@ -47,6 +49,7 @@
     ]
   },
   "devDependencies": {
+    "@types/google-map-react": "^2.1.10",
     "@types/sockjs-client": "^1.5.4",
     "@types/stompjs": "^2.3.9",
     "react-test-renderer": "^18.2.0"
