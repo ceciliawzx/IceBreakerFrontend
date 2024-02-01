@@ -21,44 +21,63 @@ const Wordle = () => {
     useState<UserProfile | null>(null);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
 
-  // TODO: Need to fetch
-  const totalAttempts = 6;
-  const targetCharNum = 5;
+  const totalAttempts = Math.max(6, guests.length);
 
   const [currentGuesser, setCurrentGuesser] = useState<User>(guests[0]);
   const [currentAttempt, setCurrentAttempt] = useState<number>(0);
   const [targetWord, setTargetWord] = useState<string>("APPLE"); // Set your target word
+  const [targetCharNum, setTargetCharNum] = useState<number>(0);
   const [correct, setCorrect] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
   // totalAttempts: rowNum; targeteCharNum: coluNum
-  const [currentGuess, setCurrentGuess] = useState<WordleLetter[][]>(
-    Array.from({ length: totalAttempts }, () =>
-      Array(targetCharNum).fill(new WordleLetter("", LetterStatus.UNCHECKED))
-    )
-  );
+  const [currentGuess, setCurrentGuess] = useState<WordleLetter[][]>([]);
 
-  // Initialization
+  // Fetch target word length
   useEffect(() => {
-    // Initialize cursor focus
-    document.getElementById(`input-0-0`)?.focus();
-
-    // Fetch target word
-
-    console.log(targetWord);
+    fetchWordleLength();
   }, []);
 
-  const fetchWordleLength = async () => {
-    const response = await fetch(
-      `${serverPort}/getWordleInfo?roomCode=${roomCode}`,
-      {
-        method: "GET",
-      }
-    );
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
+  // Initialize grid
+  useEffect(() => {
+    // Check if targetCharNum is greater than 0
+    if (targetCharNum > 0) {
+      // Initialize currentGuess
+      const initialGuess = Array.from({ length: totalAttempts }, () =>
+        Array(targetCharNum).fill(new WordleLetter("", LetterStatus.UNCHECKED))
+      );
+      setCurrentGuess(initialGuess);
+      setInitialized(true);
     }
+  }, [targetCharNum]);
 
-    const data = await response.json();
+  // Set focus
+  useEffect(() => {
+    document.getElementById("input-0-0")?.focus();
+  }, [initialized]);
+
+  const fetchWordleLength = async () => {
+    try {
+      const response = await fetch(
+        `${serverPort}/getWordleInfo?roomCode=${roomCode}`,
+        {
+          method: "GET",
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const wordLength = await response.json();
+
+      if (wordLength > 0) {
+        setTargetCharNum(wordLength);
+      } else {
+        console.error("Game cannot be found.");
+      }
+    } catch (error) {
+      console.error("Error fetching wordle length:", error);
+    }
   };
 
   const handleInputChange = (row: number, col: number, value: string) => {

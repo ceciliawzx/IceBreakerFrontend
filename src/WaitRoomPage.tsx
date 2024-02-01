@@ -56,7 +56,7 @@ const WaitRoomPage = () => {
   const handleWordle = async () => {
     // TODO: give field
     const response = await fetch(
-      `${serverPort}/startWordle?roomCode=${roomCode}&userID=${presenter?.userID}&field=FirstName`,
+      `${serverPort}/startWordle?roomCode=${roomCode}&userID=${presenter?.userID}&field=firstName`,
       {
         method: "POST",
       }
@@ -64,9 +64,6 @@ const WaitRoomPage = () => {
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
-    // navigate("/WordlePage", {
-    //   state: { user, admin, presenter, guests },
-    // });
   };
 
   const handleUserInformation = () => {
