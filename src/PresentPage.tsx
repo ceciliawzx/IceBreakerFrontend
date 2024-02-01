@@ -17,17 +17,26 @@ const PresentPage = () => {
     firstName: false,
     lastName: false,
     country: false,
-    city: false
+    city: false,
+    felling: false,
+    favFood: false,
+    favActivity: false,
   });
   const [fetchedFirstName, setFetchedFirstName] = useState("");
   const [fetchedLastName, setFetchedLastName] = useState("");
   const [fetchedCountry, setFetchedCountry] = useState("");
   const [fetchedCity, setFetchedCity] = useState("");
+  const [fetchedFelling, setFetchedFelling] = useState("");
+  const [fetchedFavFood, setFetchedFavFood] = useState("");
+  const [fetchedFavActivity, setFetchedFavActivity] = useState("");
   type RevealInfo = {
     firstName: boolean;
     lastName: boolean;
     country: boolean;
     city: boolean;
+    felling: boolean;
+    favFood: boolean;
+    favActivity: boolean;
   };
 
   const fetchUserDataField = async (field: keyof RevealInfo) => {
@@ -50,6 +59,15 @@ const PresentPage = () => {
       }
       if (field === "city") {
         setFetchedCity(data.userInfo.city);
+      }
+      if (field === "felling") {
+        setFetchedFelling(data.userInfo.felling);
+      }
+      if (field === "favFood") {
+        setFetchedFavFood(data.userInfo.favFood);
+      }
+      if (field === "favActivity") {
+        setFetchedFavActivity(data.userInfo.favActivity);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -96,6 +114,24 @@ const PresentPage = () => {
           Country:{" "}
           <span onClick={() => handleToggleReveal("country")}>
             {revealInfo.country ? fetchedCountry : "Click to reveal"}
+          </span>
+        </p>
+        <p>
+          Felling:{" "}
+          <span onClick={() => handleToggleReveal("felling")}>
+            {revealInfo.felling ? fetchedFelling : "Click to reveal"}
+          </span>
+        </p>
+        <p>
+          Favorite Food:{" "}
+          <span onClick={() => handleToggleReveal("favFood")}>
+            {revealInfo.favFood ? fetchedFavFood : "Click to reveal"}
+          </span>
+        </p>
+        <p>
+          Favorite Activity:{" "}
+          <span onClick={() => handleToggleReveal("favActivity")}>
+            {revealInfo.favActivity ? fetchedFavActivity : "Click to reveal"}
           </span>
         </p>
       </div>
