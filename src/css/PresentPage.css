@@ -1,0 +1,34 @@
+.present-page-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .presenter-container {
+    text-align: center;
+  }
+  
+  .presenter-avatar {
+    width: 100px; /* Adjust as needed */
+    height: 100px; /* Adjust as needed */
+    border-radius: 50%;
+    margin-bottom: 10px;
+  }
+  
+  .presenter-info {
+    margin-top: 20px;
+    border: 1px solid #ccc;
+    padding: 15px;
+    border-radius: 5px;
+  }
+  
+  .content.blurred {
+    filter: blur(5px); /* Adjust the blur level as needed */
+  }
+  
+  
+  .presenter-info.blurred {
+    filter: blur(5px); /* Adjust the blur level as needed */
+  }
+  
