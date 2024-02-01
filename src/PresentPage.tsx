@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { User } from "./type/User";
-import { UserProfile } from "./type/UserProfile";
-import { serverPort } from "./macro/MacroServer";
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { User } from './type/User';
+import { UserProfile } from './type/UserProfile';
+import { serverPort } from './macro/MacroServer';
+import { PresentRoomInfo } from './type/PresentRoomInfo'; 
 
-import "./css/PresentPage.css";
+import './css/PresentPage.css';
 
+
+//  TODO
 const PresentPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -13,6 +16,8 @@ const PresentPage = () => {
   const userID = user.userID;
   const roomCode = user.roomCode;
   const presenter = location.state?.presenter;
+  const [presentRoomInfo, setPresentRoomInfo] = useState<PresentRoomInfo | null>(null);
+
   const [revealInfo, setRevealInfo] = useState({
     firstName: false,
     lastName: false,
@@ -45,10 +50,10 @@ const PresentPage = () => {
         `${serverPort}/getPlayer?userID=${presenter.userID}&roomCode=${user.roomCode}`
       );
       if (!response.ok) {
-        throw new Error("Error fetching data");
+        throw new Error('Error fetching data');
       }
       const data = await response.json();
-      if (field === "firstName") {
+      if (field === 'firstName') {
         setFetchedFirstName(data.userInfo.firstName);
       }
       if (field === "lastName") {
@@ -70,9 +75,10 @@ const PresentPage = () => {
         setFetchedFavActivity(data.userInfo.favActivity);
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error('Error:', error);
     }
   };
+
   const handleToggleReveal = (field: keyof RevealInfo) => {
     if (!revealInfo[field]) {
       fetchUserDataField(field);
@@ -81,21 +87,21 @@ const PresentPage = () => {
   };
 
   return (
-    <div className="present-page-container">
-      <div className="presenter-container">
+    <div className='present-page-container'>
+      <div className='presenter-container'>
         <img
           src={presenter?.profileImage}
           alt={presenter?.displayName}
-          className="presenter-avatar"
+          className='presenter-avatar'
         />
         <h2>{presenter?.displayName}</h2>
       </div>
 
-      <div className="presenter-info">
+      <div className='presenter-info'>
         <p>
-          First Name:{" "}
-          <span onClick={() => handleToggleReveal("firstName")}>
-            {revealInfo.firstName ? fetchedFirstName : "Click to reveal"}
+          First Name:
+          <span onClick={() => handleToggleReveal('firstName')}>
+            {revealInfo.firstName ? fetchedFirstName : userID === presenter.userID ? 'Click to reveal' : "*********" }
           </span>
         </p>
         <p>

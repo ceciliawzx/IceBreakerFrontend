@@ -6,6 +6,7 @@ import { serverPort } from "./macro/MacroServer";
 import { refreshTime } from "./macro/MacroConst";
 import { User } from "./type/User";
 import { UserProfile } from "./type/UserProfile";
+import { RoomStatus } from './type/RoomStatus';
 import exportUserProfileAsPDF from "./utils/ExportPDF";
 
 const WaitRoomPage = () => {
@@ -31,43 +32,36 @@ const WaitRoomPage = () => {
   const [selectedUserProfile, setSelectedUserProfile] =
     useState<UserProfile | null>(null);
   const [allGuestsCompleted, setAllGuestsCompleted] = useState(false);
+  const [roomStatus, setRoomStatus] = useState<RoomStatus>(RoomStatus.WAITING);
 
   const handleStartRoom = async () => {
     // Tell server that to start room
     const response = await fetch(
       `${serverPort}/startInput?roomCode=${roomCode}`,
       {
-        method: "POST",
+        method: 'POST',
       }
     );
-    navigate("/PresentPage", {
-      state: { user, admin, presenter, guests },
-    });
-    console.log("start room");
+    console.log('start room');
     console.log(response);
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
   };
 
-  const handleChatRoom = () => {
-    navigate("/ChatRoomPage", {
-      state: { userID, roomCode, displayName },
-    });
-  };
-
   const handleUserInformation = () => {
     const preID = presenter?.userID;
-    navigate("/UserProfilePage", {
+    navigate('/UserProfilePage', {
       state: { user, preID },
     });
   };
 
   const handlePictionaryRoom = async () => {
     const response = await fetch(
-      `${serverPort}/startDrawAndGuess?roomCode=${roomCode}`,
+      `${serverPort}/startDrawAndGuess?roomCode=${roomCode}&target=mockword`,
+      // `${serverPort}/startDrawAndGuess?roomCode=${roomCode}`,
       {
-        method: "POST",
+        method: 'POST',
       }
     );
     if (!response.ok) {
@@ -80,7 +74,7 @@ const WaitRoomPage = () => {
     const response = await fetch(
       `${serverPort}/kickPerson?roomCode=${roomCode}&userID=${userID}`,
       {
-        method: "DELETE",
+        method: 'DELETE',
       }
     );
 
@@ -98,7 +92,7 @@ const WaitRoomPage = () => {
       const response = await fetch(
         `${serverPort}/destroyRoom?roomCode=${roomCode}`,
         {
-          method: "DELETE",
+          method: 'DELETE',
         }
       );
 
@@ -112,14 +106,14 @@ const WaitRoomPage = () => {
       const response = await fetch(
         `${serverPort}/kickPerson?roomCode=${roomCode}&userID=${userID}`,
         {
-          method: "DELETE",
+          method: 'DELETE',
         }
       );
 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       } else {
-        navigate("/");
+        navigate('/');
       }
     }
   };
@@ -164,7 +158,7 @@ const WaitRoomPage = () => {
 
         setShowProfilePopup(true);
       } catch (error) {
-        console.error("Error fetching user details:", error);
+        console.error('Error fetching user details:', error);
       }
     }
   };
@@ -184,7 +178,7 @@ const WaitRoomPage = () => {
         fetch(
           `${serverPort}/changePresenter?roomCode=${roomCode}&userID=${newPresenter.userID}`,
           {
-            method: "POST",
+            method: 'POST',
           }
         );
       }
@@ -200,7 +194,7 @@ const WaitRoomPage = () => {
       const data = await response.json();
       setIsAdmin(data === true);
     } catch (error) {
-      console.error("Error checking admin status:", error);
+      console.error('Error checking admin status:', error);
     }
   };
 
@@ -210,9 +204,9 @@ const WaitRoomPage = () => {
       const response = await fetch(url);
       const data = await response.json();
       setIsPresenter(data === true);
-      console.log("setting is presenter: ", data);
+      console.log('setting is presenter: ', data);
     } catch (error) {
-      console.error("Error checking admin status:", error);
+      console.error('Error checking admin status:', error);
     }
   };
 
@@ -222,7 +216,7 @@ const WaitRoomPage = () => {
     try {
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error("Room cannot be found");
+        throw new Error('Room cannot be found');
       }
 
       const data = await response.json();
@@ -230,8 +224,8 @@ const WaitRoomPage = () => {
       // Check if room dismissed
       Object.values(data).some((value) => {
         if (
-          typeof value === "string" &&
-          value.includes("Room cannot be found")
+          typeof value === 'string' &&
+          value.includes('Room cannot be found')
         ) {
           setShowDismissPopup(true);
           return;
@@ -239,6 +233,7 @@ const WaitRoomPage = () => {
       });
 
       if (data.admin) {
+        console.log('setting admin ', data.admin);
         setAdmin(
           new User(
             roomCode,
@@ -253,6 +248,7 @@ const WaitRoomPage = () => {
         );
       }
       if (data.presenter) {
+        console.log('setting presenter ', data.presenter);
         setPresenter(
           new User(
             roomCode,
@@ -266,6 +262,7 @@ const WaitRoomPage = () => {
         );
       }
       if (data.otherPlayers) {
+        console.log('setting others ', data.otherPlayers);
         const updatedGuests = data.otherPlayers.map(
           (guest: User) =>
             new User(
@@ -278,7 +275,6 @@ const WaitRoomPage = () => {
               guest.completed
             )
         );
-
         setGuests(updatedGuests);
 
         // Check if all guests have completed
@@ -288,23 +284,28 @@ const WaitRoomPage = () => {
         setAllGuestsCompleted(allCompleted);
       }
 
-      // // if moderator starts game, navigate to input phase
-      // if (data.gameStatus) {
-      //   navigate("/UserProfilePage", {
+      console.log('Game status', data.roomStatus);
+
+      // if (data.roomStatus === "PICTURING") {
+      //   navigate("/PictionaryRoomPage", {
       //     state: { user },
       //   });
+      // }
 
-      // Change Admin to non-presenter when presenting page is completed
+      // // If the RoomSatus is PRESENTING, navigate everyone to the present page.
+      // if (data.roomStatus === "PRESENTING") {
+      //   console.log("GameStatus = PRESENTING, ",  user, admin, presenter, guests);
+      //   navigate("/PresentPage", {
+      //     state: { user, admin, presenter, guests },
+      //   });
+      // }
 
-      console.log("Game status", data.roomStatus);
-
-      if (data.roomStatus === "PICTURING") {
-        navigate("/PictionaryRoomPage", {
-          state: { user },
-        });
+      if (data.roomStatus) {
+        console.log('RoomStatus', data.roomStatus);
+        setRoomStatus(data.roomStatus);
       }
     } catch (error) {
-      console.error("Error fetching players:", error);
+      console.error('Error fetching players:', error);
     }
   };
 
@@ -313,19 +314,36 @@ const WaitRoomPage = () => {
     try {
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error("Room cannot be found");
+        throw new Error('Room cannot be found');
       }
 
       const data = await response.text();
-      if (data == "Person Not Found") {
+      if (data == 'Person Not Found') {
         setShowKickPopup(true);
       }
     } catch (error) {
-      console.error("Error fetching player:", error);
+      console.error('Error fetching player:', error);
     }
   };
 
-  // Periodically check room status
+  // // Periodically check room status
+  // useEffect(() => {
+  //   // Check whether the user is admin
+  //   checkAdminStatus();
+  //   // Check whether the user is presenter
+  //   checkPresenterStatus();
+
+  //   // Update the player list every interval
+  //   const intervalId = setInterval(() => {
+  //     checkRoomStatus();
+  //     checkKickOut();
+  //   }, refreshTime);
+
+  //   // Clear timer and count again
+  //   return () => clearInterval(intervalId);
+  // }, [userID, roomCode]);
+
+
   useEffect(() => {
     // Check whether the user is admin
     checkAdminStatus();
@@ -338,48 +356,71 @@ const WaitRoomPage = () => {
       checkKickOut();
     }, refreshTime);
 
+    // If the RoomStatus is PRESENTING, navigate all users to the PresentPage
+    if (roomStatus === RoomStatus.PRESENTING) {
+      console.log('GameStatus = PRESENTING, ', user, admin, presenter, guests);
+      navigate('/PresentPage', {
+        state: { user, admin, presenter, guests },
+      });
+    }
+    if (roomStatus === RoomStatus.PICTURING) {
+      navigate('/PictionaryRoomPage', {
+        state: { user },
+      });
+    }
     // Clear timer and count again
     return () => clearInterval(intervalId);
-  }, [userID, roomCode]);
+    // Add other navigation conditions if needed
+  }, [roomStatus, user, admin, presenter, guests]);
+
+  // useEffect(() => {
+  //   if (roomStatus === "PRESENTING") {
+  //     console.log("GameStatus = PRESENTING, ",  user, admin, presenter, guests);
+  //     navigate("/PresentPage", {
+  //       state: { user, admin, presenter, guests },
+  //     });
+  //   }
+  //   // Add other navigation conditions if needed
+  // }, [roomStatus, user, admin, presenter, guests]);
 
   // main render
   return (
-    <div className="wait-room-page">
+    <div className='wait-room-page'>
       <h1>
         Welcome to Wait Room {roomCode}, {displayName}!
       </h1>
-      <div className="first-row-container">
+      <div className='first-row-container'>
         {/* Moderator */}
-        <div className="moderator">
+        <div className='moderator'>
           <h2>Moderator:</h2>
           <img
             src={`${admin?.profileImage}`} // {admin.profileImage}
             alt="Moderator's Image"
-            className="moderator-avatar"
+            className='moderator-avatar'
           />
           <p>{admin?.displayName}</p>
         </div>
 
         {/* Presenter */}
-        <div className="presenter">
+        <div className='presenter'>
           <h2>Presenter:</h2>
           <img
             src={`${presenter?.profileImage}`} // {presenter.profileImage}
             alt="Presenter 's Image"
-            className="presenter-avatar"
+            className='presenter-avatar'
           />
           <p>{presenter?.displayName}</p>
           {isAdmin && (
-            <div className="button-container">
+            <div className='button-container'>
               <button
-                className="admin-only-button"
+                className='admin-only-button'
                 onClick={() => handleViewProfile(presenter)}
               >
                 View Profile
               </button>
 
               <button
-                className="admin-only-button"
+                className='admin-only-button'
                 onClick={handleChangePresenter}
               >
                 Change Presenter
@@ -389,25 +430,25 @@ const WaitRoomPage = () => {
         </div>
       </div>
 
-      <div className="guest-list">
+      <div className='guest-list'>
         <h2>Joined Guests:</h2>
-        <div className="guest-container">
+        <div className='guest-container'>
           {guests.map((guest, index) => (
-            <div key={index} className="guest">
-              <div className="avatar-container">
+            <div key={index} className='guest'>
+              <div className='avatar-container'>
                 <img
                   src={`${guest.profileImage}`}
                   alt={`${guest}'s avatar`}
-                  className="guest-avatar"
+                  className='guest-avatar'
                 />
                 {guest.completed && (
-                  <div className="input-status-indicator">✓</div>
+                  <div className='input-status-indicator'>✓</div>
                 )}
               </div>
               <p>{guest.displayName}</p>
               {isAdmin && (
                 <button
-                  className="admin-only-button"
+                  className='admin-only-button'
                   onClick={() => handleViewProfile(guest)}
                 >
                   View Profile
@@ -415,18 +456,18 @@ const WaitRoomPage = () => {
               )}
               {isAdmin && (
                 <button
-                  className="kick-button"
+                  className='kick-button'
                   onClick={() => handleKickUser(guest.userID)}
                 ></button>
               )}
             </div>
           ))}
         </div>
-        <div className="river"></div>
+        <div className='river'></div>
       </div>
       {isAdmin && (
         <button
-          className="admin-only-button"
+          className='admin-only-button'
           onClick={handleStartRoom}
           disabled={!allGuestsCompleted}
         >
@@ -434,50 +475,45 @@ const WaitRoomPage = () => {
         </button>
       )}
       {
-        <button className="common-button" onClick={handleChatRoom}>
-          Chat Room
-        </button>
-      }
-      {
-        <button className="common-button" onClick={handleUserInformation}>
+        <button className='common-button' onClick={handleUserInformation}>
           Enter your information
         </button>
       }
       {isPresenter && (
-        <button className="start-room-button" onClick={handlePictionaryRoom}>
+        <button className='start-room-button' onClick={handlePictionaryRoom}>
           Pictionary
         </button>
       )}
       {
-        <button className="leave-room-button" onClick={handleLeaveRoom}>
+        <button className='leave-room-button' onClick={handleLeaveRoom}>
           Leave Room
         </button>
       }
       {/* dimmiss popup */}
       {showDismissPopup && (
-        <div className="popup">
+        <div className='popup'>
           <p>
             Room {roomCode} dismissed by moderator.
             <br />
             Returning to homepage.
           </p>
-          <button onClick={() => navigate("/")}>OK</button>
+          <button onClick={() => navigate('/')}>OK</button>
         </div>
       )}
       {/* kickout popup */}
       {showKickPopup && (
-        <div className="popup">
+        <div className='popup'>
           <p>
             You are kicked out by moderator.
             <br />
             Returning to homepage.
           </p>
-          <button onClick={() => navigate("/")}>OK</button>
+          <button onClick={() => navigate('/')}>OK</button>
         </div>
       )}
       {/* change presenter popup */}
       {showChangePresenterPopup && (
-        <div className="change-presenter-popup">
+        <div className='change-presenter-popup'>
           <h3>Select New Presenter:</h3>
           <ul>
             {guests.concat(admin || []).map((user) => (
@@ -485,14 +521,14 @@ const WaitRoomPage = () => {
                 key={user.userID}
                 onClick={() => handleSelectPresenter(user.userID)}
                 className={
-                  selectedPresenterUserID === user.userID ? "selected" : ""
+                  selectedPresenterUserID === user.userID ? 'selected' : ''
                 }
               >
                 {user.displayName}
               </li>
             ))}
           </ul>
-          <div className="button-container">
+          <div className='button-container'>
             <button onClick={confirmChangePresenter}>Confirm</button>
           </div>
         </div>
@@ -500,7 +536,7 @@ const WaitRoomPage = () => {
 
       {/* show profile popup */}
       {isAdmin && showProfilePopup && selectedUserProfile && (
-        <div className="popup">
+        <div className='popup'>
           <p>First name: {selectedUserProfile.firstName}</p>
           <p>Last name: {selectedUserProfile.lastName}</p>
           <p>Country: {selectedUserProfile.country}</p>

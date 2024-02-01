@@ -25,8 +25,8 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
 
     const setCanvasSize = () => {
       // set some margin
-      canvas.width = window.innerWidth - 20;
-      canvas.height = window.innerHeight - 100;
+      canvas.width = window.innerWidth * 0.75;
+      canvas.height = window.innerHeight * 0.9;
     };
 
     setCanvasSize();
@@ -183,7 +183,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   const Placeholder = () => <div style={{ height: '51px' }}></div>;
 
   return (
-    <>
+    <div>
       {isDrawer ? (
         <div id='color-selector'>
           {presetColors.map((color) => (
@@ -197,20 +197,15 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
               }}
             />
           ))}
-          <button
-            id='eraser'
-            onClick={() => setIsEraser(!isEraser)}
-          >
+          <button id='eraser' onClick={() => setIsEraser(!isEraser)}>
             {isEraser ? 'Use Pen' : 'Use Eraser'}
           </button>
         </div>
       ) : (
         <Placeholder />
       )}
-      <div id='canvas-container'>
-        <canvas id='drawing-canvas' ref={canvasRef} width='1000' height='800' />
-      </div>
-    </>
+      <canvas id='drawing-canvas' ref={canvasRef}/>
+    </div>
   );
 };
 

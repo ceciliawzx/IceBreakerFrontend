@@ -19,22 +19,19 @@ const ChatRoom: React.FC = () => {
   const userID = user.userID;
   const displayName = user.displayName;
   const roomCode = user.roomCode;
-  const [message, setMessage] = useState<string>("");
+  const [message, setMessage] = useState<string>('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
-
 
   const socketUrl = `${serverPort}/chat?userId=${userID}`;
   const websocketUrl = `${websocketPort}/chat?userId=${userID}`;
   const topic = `/topic/room/${roomCode}`;
   const destination = `/app/room/${roomCode}/sendMessage`;
 
-
   useEffect(() => {
     connect(socketUrl, websocketUrl, topic, (msg: ChatMessage) => {
       setChatHistory((prevHistory) => [...prevHistory, msg]);
     });
   }, []);
-
 
   const handleSendMessage = () => {
     if (message.trim() !== '') {
