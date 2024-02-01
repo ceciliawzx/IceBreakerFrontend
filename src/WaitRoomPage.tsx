@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
-import "./css/WaitRoomPage.css";
-import { serverPort } from "./macro/MacroServer";
-import { refreshTime } from "./macro/MacroConst";
-import { User } from "./type/User";
-import { UserProfile } from "./type/UserProfile";
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import './css/WaitRoomPage.css';
+import { serverPort } from './macro/MacroServer';
+import { refreshTime } from './macro/MacroConst';
+import { User } from './type/User';
+import { UserProfile } from './type/UserProfile';
 
 const WaitRoomPage = () => {
   const location = useLocation();
@@ -39,23 +39,17 @@ const WaitRoomPage = () => {
         method: 'POST',
       }
     );
-    console.log("start room");
-    console.log(response)
+    console.log('start room');
+    console.log(response);
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
   };
 
-  const handleChatRoom = () => {
-    navigate('/ChatRoomPage', {
-      state: { userID, roomCode, displayName },
-    });
-  };
-
   const handleUserInformation = () => {
     const preID = presenter?.userID;
-    navigate("/UserProfilePage", {
-      state: { user, preID},
+    navigate('/UserProfilePage', {
+      state: { user, preID },
     });
   };
 
@@ -161,7 +155,7 @@ const WaitRoomPage = () => {
 
         setShowProfilePopup(true);
       } catch (error) {
-        console.error("Error fetching user details:", error);
+        console.error('Error fetching user details:', error);
       }
     }
   };
@@ -181,7 +175,7 @@ const WaitRoomPage = () => {
         fetch(
           `${serverPort}/changePresenter?roomCode=${roomCode}&userID=${newPresenter.userID}`,
           {
-            method: "POST",
+            method: 'POST',
           }
         );
       }
@@ -367,16 +361,16 @@ const WaitRoomPage = () => {
           />
           <p>{presenter?.displayName}</p>
           {isAdmin && (
-            <div className="button-container">
+            <div className='button-container'>
               <button
-                className="admin-only-button"
+                className='admin-only-button'
                 onClick={() => handleViewProfile(presenter)}
               >
                 View Profile
               </button>
 
               <button
-                className="admin-only-button"
+                className='admin-only-button'
                 onClick={handleChangePresenter}
               >
                 Change Presenter
@@ -404,7 +398,7 @@ const WaitRoomPage = () => {
               <p>{guest.displayName}</p>
               {isAdmin && (
                 <button
-                  className="admin-only-button"
+                  className='admin-only-button'
                   onClick={() => handleViewProfile(guest)}
                 >
                   View Profile
@@ -412,7 +406,7 @@ const WaitRoomPage = () => {
               )}
               {isAdmin && (
                 <button
-                  className="kick-button"
+                  className='kick-button'
                   onClick={() => handleKickUser(guest.userID)}
                 ></button>
               )}
@@ -423,7 +417,7 @@ const WaitRoomPage = () => {
       </div>
       {isAdmin && (
         <button
-          className="admin-only-button"
+          className='admin-only-button'
           onClick={handleStartRoom}
           disabled={!allGuestsCompleted}
         >
@@ -431,12 +425,7 @@ const WaitRoomPage = () => {
         </button>
       )}
       {
-        <button className="common-button" onClick={handleChatRoom}>
-          Chat Room
-        </button>
-      }
-      {
-        <button className="common-button" onClick={handleUserInformation}>
+        <button className='common-button' onClick={handleUserInformation}>
           Enter your information
         </button>
       }
@@ -452,29 +441,29 @@ const WaitRoomPage = () => {
       }
       {/* dimmiss popup */}
       {showDismissPopup && (
-        <div className="popup">
+        <div className='popup'>
           <p>
             Room {roomCode} dismissed by moderator.
             <br />
             Returning to homepage.
           </p>
-          <button onClick={() => navigate("/")}>OK</button>
+          <button onClick={() => navigate('/')}>OK</button>
         </div>
       )}
       {/* kickout popup */}
       {showKickPopup && (
-        <div className="popup">
+        <div className='popup'>
           <p>
             You are kicked out by moderator.
             <br />
             Returning to homepage.
           </p>
-          <button onClick={() => navigate("/")}>OK</button>
+          <button onClick={() => navigate('/')}>OK</button>
         </div>
       )}
       {/* change presenter popup */}
       {showChangePresenterPopup && (
-        <div className="change-presenter-popup">
+        <div className='change-presenter-popup'>
           <h3>Select New Presenter:</h3>
           <ul>
             {guests.concat(admin || []).map((user) => (
@@ -482,14 +471,14 @@ const WaitRoomPage = () => {
                 key={user.userID}
                 onClick={() => handleSelectPresenter(user.userID)}
                 className={
-                  selectedPresenterUserID === user.userID ? "selected" : ""
+                  selectedPresenterUserID === user.userID ? 'selected' : ''
                 }
               >
                 {user.displayName}
               </li>
             ))}
           </ul>
-          <div className="button-container">
+          <div className='button-container'>
             <button onClick={confirmChangePresenter}>Confirm</button>
           </div>
         </div>
@@ -497,7 +486,7 @@ const WaitRoomPage = () => {
 
       {/* show profile popup */}
       {isAdmin && showProfilePopup && selectedUserProfile && (
-        <div className="popup">
+        <div className='popup'>
           <p>First name: {selectedUserProfile.firstName}</p>
           <p>Last name: {selectedUserProfile.lastName}</p>
           <p>Country: {selectedUserProfile.country}</p>
