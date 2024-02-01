@@ -30,6 +30,7 @@ const WaitRoomPage = () => {
   const [selectedUserProfile, setSelectedUserProfile] =
     useState<UserProfile | null>(null);
   const [allGuestsCompleted, setAllGuestsCompleted] = useState(false);
+  const [roomStatus, setRoomStatus] = useState(RoomStatus.WAITING);
 
   const handleStartRoom = async () => {
     // Tell server that to start room
@@ -168,7 +169,7 @@ const WaitRoomPage = () => {
   const confirmChangePresenter = () => {
     var newPresenter;
     if (selectedPresenterUserID) {
-      if (selectedPresenterUserID == admin?.userID) {
+      if (selectedPresenterUserID === admin?.userID) {
         newPresenter = admin;
       } else {
         newPresenter = guests.find(
@@ -201,7 +202,7 @@ const WaitRoomPage = () => {
   };
 
   // Fetch the players & check if room start from the backend
-  const checkRoomStatus = async () => {
+  const checkPlayers = async () => {
     const url = `${serverPort}/getPlayers?roomCode=${roomCode}`;
     try {
       const response = await fetch(url);
@@ -265,12 +266,8 @@ const WaitRoomPage = () => {
         setAllGuestsCompleted(allCompleted);
       }
 
-      // If start wordle, go to wordle page
-      if (data.roomStatus == RoomStatus.WORDLING) {
-        navigate("/WordlePage", {
-          state: { user, admin, presenter, guests },
-        });
-      }
+      // set room status
+      setRoomStatus(data.roomStatus);
     } catch (error) {
       console.error("Error fetching players:", error);
     }
@@ -296,17 +293,24 @@ const WaitRoomPage = () => {
   // Periodically check room status
   useEffect(() => {
     checkAdminStatus();
-    checkRoomStatus();
+    checkPlayers();
 
     // Update the player list every interval
     const intervalId = setInterval(() => {
-      checkRoomStatus();
+      checkPlayers();
       checkKickOut();
     }, refreshTime);
 
+    // Start wordle
+    if (roomStatus === RoomStatus.WORDLING) {
+      navigate("/WordlePage", {
+        state: { user, admin, presenter, guests },
+      });
+    }
+
     // Clear timer and count again
     return () => clearInterval(intervalId);
-  }, [userID, roomCode]);
+  }, [roomStatus, user, admin, presenter, guests]);
 
   // main render
   return (

@@ -39,9 +39,27 @@ const Wordle = () => {
 
   // Initialization
   useEffect(() => {
-    // Set the focus on the first input when the component mounts
+    // Initialize cursor focus
     document.getElementById(`input-0-0`)?.focus();
+
+    // Fetch target word
+
+    console.log(targetWord);
   }, []);
+
+  const fetchWordleLength = async () => {
+    const response = await fetch(
+      `${serverPort}/getWordleInfo?roomCode=${roomCode}`,
+      {
+        method: "GET",
+      }
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const data = await response.json();
+  };
 
   const handleInputChange = (row: number, col: number, value: string) => {
     // Can only modify the current row and should input character
