@@ -39,6 +39,9 @@ const WaitRoomPage = () => {
         method: 'POST',
       }
     );
+    navigate("/PresentPage", {
+      state: { user, admin, presenter, guests },
+    });
     console.log("start room");
     console.log(response)
     if (!response.ok) {
@@ -255,7 +258,6 @@ const WaitRoomPage = () => {
             data.presenter.userID,
             data.presenter.displayName,
             false,
-            true,
             data.presenter.profileImage,
             data.presenter.completed
           )
