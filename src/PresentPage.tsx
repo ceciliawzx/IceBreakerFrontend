@@ -21,11 +21,27 @@ const PresentPage = () => {
   const [revealInfo, setRevealInfo] = useState({
     firstName: false,
     lastName: false,
+    country: false,
+    city: false,
+    felling: false,
+    favFood: false,
+    favActivity: false,
   });
-  const [fetchedFirstName, setFetchedFirstName] = useState('');
+  const [fetchedFirstName, setFetchedFirstName] = useState("");
+  const [fetchedLastName, setFetchedLastName] = useState("");
+  const [fetchedCountry, setFetchedCountry] = useState("");
+  const [fetchedCity, setFetchedCity] = useState("");
+  const [fetchedFelling, setFetchedFelling] = useState("");
+  const [fetchedFavFood, setFetchedFavFood] = useState("");
+  const [fetchedFavActivity, setFetchedFavActivity] = useState("");
   type RevealInfo = {
     firstName: boolean;
     lastName: boolean;
+    country: boolean;
+    city: boolean;
+    felling: boolean;
+    favFood: boolean;
+    favActivity: boolean;
   };
 
   const fetchUserDataField = async (field: keyof RevealInfo) => {
@@ -39,6 +55,24 @@ const PresentPage = () => {
       const data = await response.json();
       if (field === 'firstName') {
         setFetchedFirstName(data.userInfo.firstName);
+      }
+      if (field === "lastName") {
+        setFetchedLastName(data.userInfo.lastName);
+      }
+      if (field === "country") {
+        setFetchedCountry(data.userInfo.country);
+      }
+      if (field === "city") {
+        setFetchedCity(data.userInfo.city);
+      }
+      if (field === "felling") {
+        setFetchedFelling(data.userInfo.felling);
+      }
+      if (field === "favFood") {
+        setFetchedFavFood(data.userInfo.favFood);
+      }
+      if (field === "favActivity") {
+        setFetchedFavActivity(data.userInfo.favActivity);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -70,7 +104,42 @@ const PresentPage = () => {
             {revealInfo.firstName ? fetchedFirstName : userID === presenter.userID ? 'Click to reveal' : "*********" }
           </span>
         </p>
-        {/* Handle other fields similarly */}
+        <p>
+          Last Name:{" "}
+          <span onClick={() => handleToggleReveal("lastName")}>
+            {revealInfo.lastName ? fetchedLastName : "Click to reveal"}
+          </span>
+        </p>
+        <p>
+          City:{" "}
+          <span onClick={() => handleToggleReveal("city")}>
+            {revealInfo.city ? fetchedCity : "Click to reveal"}
+          </span>
+        </p>
+        <p>
+          Country:{" "}
+          <span onClick={() => handleToggleReveal("country")}>
+            {revealInfo.country ? fetchedCountry : "Click to reveal"}
+          </span>
+        </p>
+        <p>
+          Felling:{" "}
+          <span onClick={() => handleToggleReveal("felling")}>
+            {revealInfo.felling ? fetchedFelling : "Click to reveal"}
+          </span>
+        </p>
+        <p>
+          Favorite Food:{" "}
+          <span onClick={() => handleToggleReveal("favFood")}>
+            {revealInfo.favFood ? fetchedFavFood : "Click to reveal"}
+          </span>
+        </p>
+        <p>
+          Favorite Activity:{" "}
+          <span onClick={() => handleToggleReveal("favActivity")}>
+            {revealInfo.favActivity ? fetchedFavActivity : "Click to reveal"}
+          </span>
+        </p>
       </div>
     </div>
   );
