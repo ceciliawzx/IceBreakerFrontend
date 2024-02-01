@@ -18,14 +18,14 @@ const root = ReactDOM.createRoot(
 root.render(
     <Router>
       <Routes>
-        <Route path="/home" element={<Homepage />} />
+        <Route path="/" element={<Homepage />} />
         <Route path="/CreateRoomPage" element={<CreateRoomPage />} />
         <Route path="/JoinRoompage" element={<JoinRoomPage />} />
         <Route path="/WaitRoomPage" element={<WaitRoomPage />} />
         <Route path="/UserProfilePage" element={<UserProfilePage />} />
         <Route path="/ChatRoomPage" element={<ChatRoomPage />} />
         <Route path="/PictionaryRoomPage" element={<PictionaryPage />} />
-        <Route path="/" element={<GeoguesserPage />}/>
+        <Route path="/GeoguesserPage" element={<GeoguesserPage />}/>
       </Routes>
     </Router>
 );
