@@ -6,6 +6,7 @@ import { serverPort } from "./macro/MacroServer";
 import { refreshTime } from "./macro/MacroConst";
 import { User } from "./type/User";
 import { UserProfile } from "./type/UserProfile";
+import { RoomStatus } from "./macro/MacroRoomStatus";
 
 const WaitRoomPage = () => {
   const location = useLocation();
@@ -265,7 +266,7 @@ const WaitRoomPage = () => {
       }
 
       // If start wordle, go to wordle page
-      if (data.roomStatus == "WORDLING") {
+      if (data.roomStatus == RoomStatus.WORDLING) {
         navigate("/WordlePage", {
           state: { user, admin, presenter, guests },
         });

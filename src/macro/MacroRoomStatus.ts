@@ -1,1 +1,4 @@
-export const ROOMSTATUS = 0;
+export enum RoomStatus {
+  WAITING = "WAITING",
+  WORDLING = "WORDLING",
+}
