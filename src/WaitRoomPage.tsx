@@ -6,6 +6,7 @@ import { serverPort } from "./macro/MacroServer";
 import { refreshTime } from "./macro/MacroConst";
 import { User } from "./type/User";
 import { UserProfile } from "./type/UserProfile";
+import exportUserProfileAsPDF from "./utils/ExportPDF";
 
 const WaitRoomPage = () => {
   const location = useLocation();
@@ -508,6 +509,11 @@ const WaitRoomPage = () => {
           <p>Favourite food: {selectedUserProfile.favFood}</p>
           <p>Favourite activity: {selectedUserProfile.favActivity}</p>
           <button onClick={() => setShowProfilePopup(false)}>Close</button>
+          <div>
+            <button onClick={() => exportUserProfileAsPDF(selectedUserProfile)}>
+              Export as PDF
+            </button>
+          </div>
         </div>
       )}
     </div>
