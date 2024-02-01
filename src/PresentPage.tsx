@@ -16,11 +16,18 @@ const PresentPage = () => {
   const [revealInfo, setRevealInfo] = useState({
     firstName: false,
     lastName: false,
+    country: false,
+    city: false
   });
   const [fetchedFirstName, setFetchedFirstName] = useState("");
+  const [fetchedLastName, setFetchedLastName] = useState("");
+  const [fetchedCountry, setFetchedCountry] = useState("");
+  const [fetchedCity, setFetchedCity] = useState("");
   type RevealInfo = {
     firstName: boolean;
     lastName: boolean;
+    country: boolean;
+    city: boolean;
   };
 
   const fetchUserDataField = async (field: keyof RevealInfo) => {
@@ -34,6 +41,15 @@ const PresentPage = () => {
       const data = await response.json();
       if (field === "firstName") {
         setFetchedFirstName(data.userInfo.firstName);
+      }
+      if (field === "lastName") {
+        setFetchedLastName(data.userInfo.lastName);
+      }
+      if (field === "country") {
+        setFetchedCountry(data.userInfo.country);
+      }
+      if (field === "city") {
+        setFetchedCity(data.userInfo.city);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -64,7 +80,24 @@ const PresentPage = () => {
             {revealInfo.firstName ? fetchedFirstName : "Click to reveal"}
           </span>
         </p>
-        {/* Handle other fields similarly */}
+        <p>
+          Last Name:{" "}
+          <span onClick={() => handleToggleReveal("lastName")}>
+            {revealInfo.lastName ? fetchedLastName : "Click to reveal"}
+          </span>
+        </p>
+        <p>
+          City:{" "}
+          <span onClick={() => handleToggleReveal("city")}>
+            {revealInfo.city ? fetchedCity : "Click to reveal"}
+          </span>
+        </p>
+        <p>
+          Country:{" "}
+          <span onClick={() => handleToggleReveal("country")}>
+            {revealInfo.country ? fetchedCountry : "Click to reveal"}
+          </span>
+        </p>
       </div>
     </div>
   );
