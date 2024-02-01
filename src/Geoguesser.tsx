@@ -1,86 +1,58 @@
 import React, { useState } from 'react';
 import GoogleMapReact from 'google-map-react';
-import Marker from './Marker';
+import "./css/Geoguesser.css";
 
-const GOOGLE_MAPS_API_KEY = 'YOUR_API_KEY'; // Replace with your actual Google Maps API key
-
-interface Pin {
-    lat: number;
-    lng: number;
-}
+const GOOGLE_MAPS_API_KEY = 'AIzaSyDENKVeABbLKd8DG_8H0RJLeh7y4FBqrUs';
 
 const GeoguesserPage: React.FC = () => {
-    const [pins, setPins] = useState<Pin[]>([]);
-    const [map, setMap] = useState<google.maps.Map | null>(null);
-    const [pinMode, setPinMode] = useState<boolean>(false);
-    const [selectedLocation, setSelectedLocation] = useState<Pin | null>(null);
+  const [map, setMap] = useState<google.maps.Map>();
+  const [mapsApi, setMapsApi] = useState<typeof google.maps>();
+  const [markers, setMarkers] = useState<{lat: number, lng: number}[]>([]);
 
-    const handleMapClick = (event: google.maps.MapMouseEvent) => {
-        if (pinMode && map) {
-            const newPin: Pin = {
-                lat: event.latLng.lat(),
-                lng: event.latLng.lng(),
-            };
-            setPins((prevPins) => [...prevPins, newPin]);
-            setSelectedLocation(newPin);
-        }
-    };
 
-    const togglePinMode = () => {
-        setPinMode((prevPinMode) => !prevPinMode);
-        setSelectedLocation(null);
-    };
+  const handleApiLoaded = (map: google.maps.Map, maps: typeof google.maps) => {
+    setMap(map);
+    setMapsApi(maps);
+  };
 
-    const handleApiLoad = (map: google.maps.Map) => {
-        setMap(map);
-        map.addListener('click', handleMapClick);
-    };
+  const handleMapClick = (event: { lat: any; lng: any; }) => {
+    const { lat, lng } = event;
+    if (map && mapsApi) {
+      new mapsApi.Marker({
+        position: { lat, lng },
+        map: map
+      });
 
-    return (
-        <div>
-            <h1>GeoGuessr</h1>
-            <div style={{ width: '100%', height: '500px' }}>
-                <GoogleMapReact
-                    bootstrapURLKeys={{ key: GOOGLE_MAPS_API_KEY }}
-                    defaultCenter={{ lat: 0, lng: 0 }}
-                    defaultZoom={2}
-                    yesIWantToUseGoogleMapApiInternals
-                    onGoogleApiLoaded={({ map }) => handleApiLoad(map)}
-                >
-                    {pins.map((pin, index) => (
-                        <Marker
-                            key={index}
-                            lat={pin.lat}
-                            lng={pin.lng}
-                            text={`Pin ${index + 1}`}
-                        />
-                    ))}
-                </GoogleMapReact>
-            </div>
-            <div>
-                <button onClick={togglePinMode}>
-                    {pinMode ? 'Disable Pin Mode' : 'Enable Pin Mode'}
-                </button>
-            </div>
-            {selectedLocation && (
-                <div>
-                    <h2>Selected Location:</h2>
-                    <p>Latitude: {selectedLocation.lat}</p>
-                    <p>Longitude: {selectedLocation.lng}</p>
-                </div>
-            )}
-            <div>
-                <h2>Pins:</h2>
-                <ul>
-                    {pins.map((pin, index) => (
-                        <li key={index}>
-                            Latitude: {pin.lat}, Longitude: {pin.lng}
-                        </li>
-                    ))}
-                </ul>
-            </div>
-        </div>
-    );
+      setMarkers(prevMarkers => [
+        ...prevMarkers,
+        { lat, lng }
+      ]);
+    } 
+  };
+
+  return (
+    <div >
+      <h1>GeoGuessr</h1>
+      <div className="map-container">
+        <GoogleMapReact
+          bootstrapURLKeys={{ key: GOOGLE_MAPS_API_KEY }}
+          defaultCenter={{ lat: 0, lng: 0 }}
+          defaultZoom={2}
+          yesIWantToUseGoogleMapApiInternals
+          onGoogleApiLoaded={({ map, maps }) => handleApiLoaded(map, maps)}
+          onClick={handleMapClick}
+        />
+      </div>
+      <div className="marker-list">
+        <h2>Markers:</h2>
+        <ul>
+          {markers.map((marker, index) => (
+            <li key={index}>Marker {index + 1}: ({marker.lat}, {marker.lng})</li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
 };
 
 export default GeoguesserPage;
