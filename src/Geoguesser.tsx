@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import GoogleMapReact from 'google-map-react';
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
@@ -63,6 +63,20 @@ const GeoguesserPage: React.FC = () => {
       ]);
     } 
   };
+
+  const checkRoomStatus = async () => {}
+
+  // Periodically check room status
+  useEffect(() => {
+
+    // Update the player list every interval
+    const intervalId = setInterval(() => {
+      checkRoomStatus();
+    }, refreshTime);
+
+    // Clear timer and count again
+    return () => clearInterval(intervalId);
+  });
 
   return (
     <div >
