@@ -1,0 +1,21 @@
+.pictionary-page {
+  display: flex;
+  flex-direction: row;
+  height: 100vh; /* Full height of the viewport */
+  justify-items: center;
+}
+
+.chat-room-container {
+  margin: 10px;
+  flex: 1; /* Flex grow to take up 1 portion of the space */
+  overflow-y: auto; /* For scrolling in the chat room */
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  max-width: 22%;
+}
+
+.drawing-canvas-container {
+  flex: 1;
+  display: flex;
+}

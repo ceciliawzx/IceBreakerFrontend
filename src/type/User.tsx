@@ -1,10 +1,11 @@
-export {User};
+export { User };
 
 class User {
   roomCode: string;
   userID: string;
   displayName: string;
   isAdmin: boolean;
+  isPresenter: boolean;
   profileImage: string;
   completed: boolean;
   constructor(
@@ -12,6 +13,7 @@ class User {
     userID: string,
     displayName: string,
     isAdmin: boolean,
+    isPresenter: boolean,
     profileImage: string,
     completed: boolean
   ) {
@@ -19,6 +21,7 @@ class User {
     this.userID = userID;
     this.displayName = displayName;
     this.isAdmin = isAdmin;
+    this.isPresenter = isPresenter;
     this.profileImage = profileImage;
     this.completed = completed;
   }
