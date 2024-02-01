@@ -263,7 +263,7 @@ const Wordle = () => {
       <div className="right-column">
         <div className="guest-list">
           <h2>Joined Guests:</h2>
-          <div className="guest-container">
+          <div className="column-guest-container">
             {guests.map((guest, index) => (
               <div key={index} className="guest-row">
                 <div className="guest">

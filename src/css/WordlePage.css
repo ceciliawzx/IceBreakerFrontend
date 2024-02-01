@@ -31,7 +31,7 @@
   flex: 0.3;
 }
 
-.guest-container {
+.column-guest-container {
   display: flex; /* Aligns children of guest-container in a row */
   flex-direction: column;
   align-items: center; /* Optional: Center the items horizontally */

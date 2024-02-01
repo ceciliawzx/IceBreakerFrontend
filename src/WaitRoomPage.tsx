@@ -53,18 +53,18 @@ const WaitRoomPage = () => {
 
   const handleWordle = async () => {
     // TODO: give field
-    // const response = await fetch(
-    //   `${serverPort}/startWordle?roomCode=${roomCode}&userID=${presenter?.userID}&field=FirstName`,
-    //   {
-    //     method: "POST",
-    //   }
-    // );
-    // if (!response.ok) {
-    //   throw new Error(`HTTP error! Status: ${response.status}`);
-    // }
-    navigate("/WordlePage", {
-      state: { user, admin, presenter, guests },
-    });
+    const response = await fetch(
+      `${serverPort}/startWordle?roomCode=${roomCode}&userID=${presenter?.userID}&field=FirstName`,
+      {
+        method: "POST",
+      }
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    // navigate("/WordlePage", {
+    //   state: { user, admin, presenter, guests },
+    // });
   };
 
   const handleUserInformation = () => {
@@ -101,8 +101,6 @@ const WaitRoomPage = () => {
 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
-      } else {
-        setShowDismissPopup(true);
       }
     } else {
       // user leave room
@@ -267,11 +265,11 @@ const WaitRoomPage = () => {
       }
 
       // If start wordle, go to wordle page
-      // if (data.roomStatus == "WORDLING") {
-      //   navigate("/WordlePage", {
-      //     state: { user, admin, presenter, guests },
-      //   });
-      // }
+      if (data.roomStatus == "WORDLING") {
+        navigate("/WordlePage", {
+          state: { user, admin, presenter, guests },
+        });
+      }
     } catch (error) {
       console.error("Error fetching players:", error);
     }
@@ -358,7 +356,7 @@ const WaitRoomPage = () => {
 
       <div className="guest-list">
         <h2>Joined Guests:</h2>
-        <div className="guest-container">
+        <div className="row-guest-container">
           {guests.map((guest, index) => (
             <div key={index} className="guest">
               <div className="avatar-container">

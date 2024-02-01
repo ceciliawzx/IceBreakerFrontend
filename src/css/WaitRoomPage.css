@@ -46,7 +46,7 @@
   border-radius: 50%; /* Make the image circular */
 }
 
-.guest-container {
+.row-guest-container {
   display: flex; /* Aligns children of guest-container in a row */
   justify-content: center; /* Center the items horizontally */
   align-items: center; /* Center the items vertically */
