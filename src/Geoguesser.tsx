@@ -15,6 +15,9 @@ const GeoguesserPage: React.FC = () => {
   const [mapsApi, setMapsApi] = useState<typeof google.maps>();
   const [historyMarkers, setHistoryMarkers] = useState<{lat: number, lng: number}[]>([]);
   const [currentMarker, setCurrentMarker] = useState<google.maps.Marker | null>(null);
+  const [showSubmitPopup, setShowSubmitPopup] = useState(false);
+  const [isMapInteractive, setIsMapInteractive] = useState(true);
+
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -32,9 +35,16 @@ const GeoguesserPage: React.FC = () => {
     setMapsApi(maps);
   };
 
+  const handleSubmitAnswer = () => {
+    if (currentMarker) {
+      setShowSubmitPopup(true);
+      setIsMapInteractive(false); 
+    }
+  }
+
   const handleMapClick = (event: { lat: any; lng: any; }) => {
     const { lat, lng } = event;
-    if (map && mapsApi) {
+    if (isMapInteractive && map && mapsApi) {
 
       if (currentMarker) {
         currentMarker.setMap(null);
@@ -56,7 +66,7 @@ const GeoguesserPage: React.FC = () => {
 
   return (
     <div >
-      <h1>
+      <h1 className="header-title">
         Welcome to Geoguesser, {displayName}!
       </h1>
       <div className="map-container">
@@ -69,15 +79,28 @@ const GeoguesserPage: React.FC = () => {
           onClick={handleMapClick}
         />
       </div>
+      <button className="common-button" onClick={handleSubmitAnswer}>
+          Submit Answer
+        </button>
       <div className="marker-list">
         <h2>Marker History:</h2>
         <ul>
-
-          {historyMarkers.map((marker, index) => (
-            <li key={index}>Marker {index + 1}: ({marker.lat}, {marker.lng})</li>
+          {historyMarkers.slice().reverse().map((marker, index) => (
+            <li key={index}>Marker {historyMarkers.length - index}: ({marker.lat}, {marker.lng})</li>
           ))}
         </ul>
       </div>
+    
+    {/* Submit popup */}
+    {showSubmitPopup && currentMarker &&(
+      <div className="submit-popup">
+      <div className="submit-popup-inner">
+        <h3>You have submitted your answer!</h3>
+        <p>Location: ({currentMarker?.getPosition()?.lat().toFixed(3)}, {currentMarker?.getPosition()?.lng().toFixed(3)})</p>
+        <p>Now please wait for others!</p>
+      </div>
+    </div>
+    )}
     </div>
   );
 };
