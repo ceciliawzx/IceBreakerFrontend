@@ -6,6 +6,7 @@ import { PresentRoomInfo } from './type/PresentRoomInfo';
 import { refreshTime } from './macro/MacroConst';
 import { GameType } from './type/GameType';
 import { RoomStatus } from './type/RoomStatus';
+import { User } from './type/User';
 import './css/PresentPage.css';
 
 const PresentPage = () => {
@@ -15,6 +16,7 @@ const PresentPage = () => {
   const userID: string = user.userID;
   const roomCode: string = user.roomCode;
   const presenter: UserProfile = location.state?.presenter;
+  const admin: User = location.state?.admin;
   const [presenterInfo, setPresenterInfo] = useState<UserProfile | null>(null);
   const [presentRoomInfo, setPresentRoomInfo] = useState<PresentRoomInfo>({
     firstName: false,
@@ -193,7 +195,7 @@ const PresentPage = () => {
       const data = await response.json();
       setPresenterInfo(data.userInfo);
     } catch (error) {
-      console.error('Error fetching presenterInfo:', error);
+      console.error("Error fetching presenterInfo:", error);
     }
   };
 
@@ -204,7 +206,7 @@ const PresentPage = () => {
       const data = await response.json();
       setPresentRoomInfo(data.presentRoomInfo);
     } catch (error) {
-      console.error('Error fetching presentRoomInfo:', error);
+      console.error("Error fetching presentRoomInfo:", error);
     }
   };
 
@@ -212,9 +214,9 @@ const PresentPage = () => {
     const url = `${serverPort}/setPresentRoomInfo?roomCode=${roomCode}`;
     try {
       const response = await fetch(url, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(newPresentRoomInfo),
       });
@@ -223,7 +225,7 @@ const PresentPage = () => {
         checkPresentRoomInfo();
       }
     } catch (error) {
-      console.error('Error setting presentRoomInfo in backend: ', error);
+      console.error("Error setting presentRoomInfo in backend: ", error);
     }
   };
 
@@ -235,6 +237,22 @@ const PresentPage = () => {
     };
     updatePresentRoomInfo(newPresentRoomInfo);
   };
+
+  const handleBack = async () => {
+    const url = `${serverPort}/backToWaitRoom?roomCode=${roomCode}`;
+    try {
+      const response = await fetch(url, {
+        method: "POST"
+      });
+      if (response.ok) {
+        navigate("/WaitRoomPage", {
+          state: { user, admin },
+        });
+      }
+    } catch (error) {
+      console.error("Error returning to WaitRoom:", error);
+    }
+  }
 
   return (
     <div className="present-page-container">
@@ -254,6 +272,16 @@ const PresentPage = () => {
         <p>Feeling: {renderInfoOrGameSelector('feeling')}</p>
         <p>Favourite Food: {renderInfoOrGameSelector('favFood')}</p>
         <p>Favorite Activity: {renderInfoOrGameSelector('favActivity')}</p>
+      </div>
+      <div>
+        {userID === admin.userID && (
+          <button
+            className="admin-only-button"
+            onClick={() => handleBack()}
+          >
+            Back
+          </button>
+        )}
       </div>
     </div>
   );
