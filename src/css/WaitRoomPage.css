@@ -88,7 +88,7 @@
 }
 
 .admin-only-button {
-  background-color: #5d99e2;
+  background-color: var(--admin-button);
   color: white;
   border: none;
   cursor: pointer;
@@ -98,16 +98,16 @@
 }
 
 .admin-only-button:hover {
-  background-color: #4e5ed2;
+  background-color: var(--admin-button-hover);
 }
 
 .admin-only-button:disabled {
-  background-color: #cccccc; /* Grey color for disabled state */
+  background-color: var(--gray-background); /* Grey color for disabled state */
   cursor: not-allowed; /* Change cursor to indicate the button is not clickable */
 }
 
 .common-button {
-  background-color: #4caf50;
+  background-color: var(--common-button);
   color: white;
   border: none;
   cursor: pointer;
@@ -117,14 +117,14 @@
 }
 
 .common-button:hover {
-  background-color: #45a049;
+  background-color: var(--common-button-hover);
 }
 
 .leave-room-button {
   position: absolute;
   top: 30px; /* Adjust the top distance as needed */
   right: 30px; /* Adjust the right distance as needed */
-  background-color: #e3242b;
+  background-color: var(--red-button);
   color: white;
   border: none;
   cursor: pointer;
@@ -134,7 +134,7 @@
 }
 
 .leave-room-button:hover {
-  background-color: #c01016;
+  background-color: var(--red-button-hover);
 }
 
 .kick-button {
@@ -154,12 +154,12 @@
   top: -17px;
   right: -27px;
   background-color: transparent;
-  border: 2px solid #c01016;
+  border: 2px solid var(--red-button-hover);
 }
 
 .change-presenter-popup {
-  background-color: #fff;
-  border: 1px solid #ccc;
+  background-color: white;
+  border: 1px solid var(--gray-background);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   padding: 20px;
   text-align: center;
@@ -186,6 +186,6 @@
 }
 
 .change-presenter-popup li.selected {
-  background-color: #4caf50;
+  background-color: var(--common-button);
   color: white;
 }

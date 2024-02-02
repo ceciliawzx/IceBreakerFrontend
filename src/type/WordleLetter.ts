@@ -1,8 +1,8 @@
 export enum LetterStatus {
-  UNCHECKED = "unchecked",
-  GRAY = "gray",
-  YELLOW = "yellow",
-  GREEN = "green",
+  UNCHECKED = "UNCHECKED",
+  GREY = "GREY",
+  YELLOW = "YELLOW",
+  GREEN = "GREEN",
 }
 
 export class WordleLetter {

@@ -131,14 +131,6 @@
   line-height: 30px;
 }
 
-.row-1 {
-  background-color: #ffcccb; /* Light red */
-}
-
-.row-2 {
-  background-color: #c2e0c6; /* Light green */
-}
-
-.row-3 {
-  background-color: #cfd8dc; /* Light blue-gray */
+.row-1 .row-2 .row-3 {
+  background-color: var(--gray-background);
 }

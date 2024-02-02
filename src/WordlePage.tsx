@@ -8,12 +8,12 @@ import { serverPort, websocketPort } from "./macro/MacroServer";
 import { LetterStatus, WordleLetter } from "./type/WordleLetter";
 import { connect, sendMsg } from "./utils/ChatService";
 
-interface ChatMessage {
-  roomNumber: number;
-  content: string;
-  timestamp: string;
-  sender: string;
-  senderId: string;
+interface WordleMsg {
+  isCheck: boolean;
+  letters: WordleLetter[];
+  roomCode: string;
+  isCorrect: boolean;
+  allLetterStat: LetterStatus[];
 }
 
 const Wordle = () => {
@@ -33,10 +33,10 @@ const Wordle = () => {
   const [showProfilePopup, setShowProfilePopup] = useState(false);
 
   /* Web socket */
-  const socketUrl = `${serverPort}/chat?userId=${userID}`;
-  const websocketUrl = `${websocketPort}/chat?userId=${userID}`;
-  const topic = `/topic/room/${roomCode}`;
-  const destination = `/app/room/${roomCode}/sendMessage`;
+  const socketUrl = `${serverPort}/chat`;
+  const websocketUrl = `${websocketPort}/chat`;
+  const topic = `/topic/room/${roomCode}/wordle`;
+  const destination = `/app/room/${roomCode}/wordle`;
 
   const totalAttempts = Math.max(6, guests.length);
 
@@ -59,7 +59,7 @@ const Wordle = () => {
 
   // Initialize web socket and fetch word
   useEffect(() => {
-    connect(socketUrl, websocketUrl, topic, (msg: WordleLetter[]) => {
+    connect(socketUrl, websocketUrl, topic, (msg: WordleMsg) => {
       // Change current guess status
       // Change correct
       // Change all letter status
@@ -109,6 +109,15 @@ const Wordle = () => {
     } catch (error) {
       console.error("Error fetching wordle length:", error);
     }
+  };
+
+  // TODO: send json file to backend via web socket
+  const sendMsg = () => {
+    // bool isCheck
+    // List<Letter> letters
+    // String roomCode
+    // bool isCorrect   -- null
+    // List<WordleStateCode> allLetterStat  -- null
   };
 
   const handleInputChange = (row: number, col: number, value: string) => {
@@ -259,7 +268,7 @@ const Wordle = () => {
     switch (status) {
       case LetterStatus.UNCHECKED:
         return { backgroundColor: "transparent" };
-      case LetterStatus.GRAY:
+      case LetterStatus.GREY:
         return { backgroundColor: "#b8b8b8" };
       case LetterStatus.YELLOW:
         return { backgroundColor: "#ffe479" };
@@ -279,7 +288,7 @@ const Wordle = () => {
     );
 
     // set value
-    updatedGuess[row].map((letter, _) => letter.setStatus(LetterStatus.GRAY));
+    updatedGuess[row].map((letter, _) => letter.setStatus(LetterStatus.GREY));
 
     setCurrentGuess(updatedGuess); // update input
   };
@@ -333,7 +342,10 @@ const Wordle = () => {
         )}
         <div className="alphabet-list">
           {Array.from(alphabet).map((letter, index) => (
-            <div key={index} className={`alphabet-block row-${Math.floor(index / 9) + 1}`}>
+            <div
+              key={index}
+              className={`alphabet-block row-${Math.floor(index / 9) + 1}`}
+            >
               {/* You can customize the styling or add other elements as needed */}
               {letter}
             </div>
