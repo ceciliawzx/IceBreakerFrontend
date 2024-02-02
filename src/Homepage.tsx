@@ -16,6 +16,11 @@ const Homepage: React.FC = () => {
     navigate("/JoinRoomPage");
   };
 
+  const handleJoinMockRoom = ()  => {
+    setLog("Join Mock Room clicked");
+    navigate("/JoinMockRoomPage");
+  };
+
   return (
     <div className="home-page">
       <h1>Welcome to the Room Page</h1>
@@ -33,6 +38,13 @@ const Homepage: React.FC = () => {
           data-testid="join-room-button"
         >
           Join Room
+        </button>
+        <button
+          className="button"
+          onClick={handleJoinMockRoom}
+          data-testid="join-mockroom-button"
+        >
+          Join Mock Room
         </button>
       </div>
       {log && <p data-testid="log-message">{log}</p>}
