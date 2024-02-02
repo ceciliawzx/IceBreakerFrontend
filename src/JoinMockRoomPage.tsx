@@ -76,6 +76,20 @@ const JoinMockRoomPage = () => {
     }
   };
 
+  const handleResetMockServer = async () => {
+    const responseResetRoom = await fetch(
+      `${serverPort}/restartMockRoom`,
+      { method: "POST" }
+    );
+
+    if (!responseResetRoom.ok) {
+      throw new Error(`HTTP error! Status: ${responseResetRoom.status}`); // Error message
+    }
+    console.log("Success")
+
+    const userIsAdminData = await responseResetRoom.json();
+  };
+
   return (
     <div className="join-room-page">
       <h1>Join a New Room</h1>
@@ -94,7 +108,15 @@ const JoinMockRoomPage = () => {
           </button>
           {message && <p className="message">{message}</p>}
         </form>
+        <button
+          className='admin-only-button'
+          onClick={handleResetMockServer}
+        >
+          Reset mock room
+        </button>
+        
       </div>
+   
       {showPopup && (
         <div className="popup">
           <p>Please enter a displayname.</p>
