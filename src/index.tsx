@@ -8,12 +8,12 @@ import WaitRoomPage from "./WaitRoomPage";
 import UserProfilePage from "./UserProfilePage";
 import reportWebVitals from "./service/reportWebVitals";
 import CreateRoomPage from "./CreateRoomPage";
-import PresentPage from './PresentPage';
-import PictionaryPage from './PictionaryPage';
+import PresentPage from "./PresentPage";
+import PictionaryPage from "./PictionaryPage";
 import WordlePage from "./WordlePage";
 
 const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
+  document.getElementById("root") as HTMLElement
 );
 root.render(
   <Router>
@@ -24,8 +24,8 @@ root.render(
       <Route path="/WaitRoomPage" element={<WaitRoomPage />} />
       <Route path="/UserProfilePage" element={<UserProfilePage />} />
       <Route path="/WordlePage" element={<WordlePage />} />
-      <Route path="/PresentPage" element={<PresentPage/>} />
-      <Route path='/PictionaryRoomPage' element={<PictionaryPage />} />
+      <Route path="/PresentPage" element={<PresentPage />} />
+      <Route path="/PictionaryRoomPage" element={<PictionaryPage />} />
     </Routes>
   </Router>
 );

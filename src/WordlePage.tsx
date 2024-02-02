@@ -9,8 +9,10 @@ import { LetterStatus, WordleLetter } from "./type/WordleLetter";
 import { connect, sendMsg } from "./utils/ChatService";
 
 interface WordleMsg {
+  currentAttempt: number;
+  totalAttempt: number;
   isCheck: boolean;
-  letters: WordleLetter[];
+  letters: WordleLetter[][];
   roomCode: string;
   isCorrect: boolean;
   allLetterStat: LetterStatus[];
@@ -38,9 +40,6 @@ const Wordle = () => {
   const topic = `/topic/room/${roomCode}/wordle`;
   const destination = `/app/room/${roomCode}/wordle`;
 
-  const [send, setSend] = useState(false);
-  const [isCheck, setIsCheck] = useState(false);
-
   /* Wordle related */
   const totalAttempts = Math.max(6, guests.length);
 
@@ -63,7 +62,7 @@ const Wordle = () => {
 
   // Initialize web socket and fetch word
   useEffect(() => {
-    connect(socketUrl, websocketUrl, topic, (msg: string) => {
+    connect(socketUrl, websocketUrl, topic, (msg: WordleMsg) => {
       receiveWordleMessage(msg);
     });
 
@@ -118,14 +117,16 @@ const Wordle = () => {
   // send message
   const sendWordleMessage = (
     icCheck: boolean,
-    currentGuess: WordleLetter[]
+    updatedGuess: WordleLetter[][]
   ) => {
     console.log("Send Message");
-    console.log(currentGuess);
+    console.log(updatedGuess);
 
     sendMsg(destination, {
+      currentAttempt: currentAttempt,
+      totalAttempt: totalAttempts,
       isCheck: icCheck,
-      letters: currentGuess,
+      letters: updatedGuess,
       roomCode: roomCode,
       isCorrect: null,
       allLetterStat: null,
@@ -133,36 +134,15 @@ const Wordle = () => {
   };
 
   // receive and parse message
-  const receiveWordleMessage = (msg: any) => {
+  const receiveWordleMessage = (msg: WordleMsg) => {
     console.log("Receive Message");
     console.log(msg.letters);
     try {
-      // Change current guess status
-      // make deep copy
-      const updatedGuess = currentGuess.map((row) =>
-        row.map(
-          (letter) => new WordleLetter(letter.getLetter(), letter.getState())
-        )
-      );
-
-      // update which row
-      const checkResult = msg.isCheck;
-      const changeLine = checkResult ? currentAttempt - 1 : currentAttempt;
-      const resultLetters = msg.letters;
-
-      // set value
-      for (let col = 0; col < targetCharNum; col++) {
-        updatedGuess[changeLine][col].setLetter(
-          resultLetters[col].getLetter() ?? ""
-        );
-      }
-
-      console.log(currentGuess);
-      console.log(updatedGuess);
-      setCurrentGuess(updatedGuess);
+      // Update guess
+      setCurrentGuess(msg.letters);
 
       // Check if is correct
-      if (checkResult) {
+      if (msg.isCheck) {
         setCorrect(msg.isCorrect);
         console.log("Change correct");
       }
@@ -171,11 +151,11 @@ const Wordle = () => {
       const resultLetterStatus: LetterStatus[] = msg.allLetterStat;
       const updatedLetterStatus = allLetterStatus.map(
         (original, index) =>
-          new WordleLetter(original.getLetter(), resultLetterStatus[index])
+          new WordleLetter(original.letter, resultLetterStatus[index])
       );
       setAllLetterStatus(updatedLetterStatus);
     } catch (error) {
-      console.error("Error parsing JSON:", error);
+      console.error("Error parsing:", error);
     }
   };
 
@@ -188,9 +168,7 @@ const Wordle = () => {
 
     // make deep copy
     const updatedGuess = currentGuess.map((row) =>
-      row.map(
-        (letter) => new WordleLetter(letter.getLetter(), letter.getState())
-      )
+      row.map((letter) => new WordleLetter(letter.letter, letter.state))
     );
 
     // set value
@@ -204,7 +182,7 @@ const Wordle = () => {
     }
 
     // sendMessage
-    sendWordleMessage(false, updatedGuess[row]);
+    sendWordleMessage(false, updatedGuess);
   };
 
   const handleBackspace = (row: number, col: number) => {
@@ -215,13 +193,11 @@ const Wordle = () => {
 
     // make deep copy
     const updatedGuess = currentGuess.map((row) =>
-      row.map(
-        (letter) => new WordleLetter(letter.getLetter(), letter.getState())
-      )
+      row.map((letter) => new WordleLetter(letter.letter, letter.state))
     );
 
     // if delete already occupied grid
-    if (currentGuess[row][col].getLetter() != "") {
+    if (currentGuess[row][col].letter != "") {
       updatedGuess[row][col].setLetter("");
     } else {
       // Move the cursor back
@@ -234,7 +210,7 @@ const Wordle = () => {
     //setCurrentGuess(updatedGuess);
 
     // sendMessage
-    sendWordleMessage(false, updatedGuess[row]);
+    sendWordleMessage(false, updatedGuess);
   };
 
   // Press "Enter" = Press gues
@@ -251,14 +227,12 @@ const Wordle = () => {
     }
 
     // If still have empty grid, do not submit guess
-    if (
-      currentGuess[currentAttempt].some((letter) => letter.getLetter() == "")
-    ) {
+    if (currentGuess[currentAttempt].some((letter) => letter.letter === "")) {
       return;
     }
 
     const fullGuess = currentGuess[currentAttempt]
-      .map((letter) => letter.getLetter())
+      .map((letter) => letter.letter)
       .join("");
     if (fullGuess == targetWord) {
       setCorrect(true);
@@ -277,7 +251,7 @@ const Wordle = () => {
     setCurrentAttempt(currentAttempt + 1);
 
     // sendMessage
-    sendWordleMessage(true, currentGuess[currentAttempt]);
+    sendWordleMessage(true, currentGuess);
   };
 
   const handleBack = async () => {
@@ -350,9 +324,7 @@ const Wordle = () => {
   const checkGuessStatus = (row: number) => {
     // make deep copy
     const updatedGuess = currentGuess.map((row) =>
-      row.map(
-        (letter) => new WordleLetter(letter.getLetter(), letter.getState())
-      )
+      row.map((letter) => new WordleLetter(letter.letter, letter.state))
     );
 
     // set value
@@ -386,7 +358,8 @@ const Wordle = () => {
                   id={`input-${rowIndex}-${columnIndex}`}
                   type="text"
                   maxLength={1}
-                  value={letter.getLetter()}
+                  // value={letter.getLetter()}
+                  value={letter.letter}
                   onChange={(e) =>
                     handleInputChange(rowIndex, columnIndex, e.target.value)
                   }
@@ -397,7 +370,7 @@ const Wordle = () => {
                       handleBackspace(rowIndex, columnIndex);
                     }
                   }}
-                  style={getStatusStyle(letter.getState())}
+                  style={getStatusStyle(letter.state)}
                 />
               ))}
             </div>
