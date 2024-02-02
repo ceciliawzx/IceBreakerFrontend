@@ -55,6 +55,13 @@ const WaitRoomPage = () => {
     });
   };
 
+  const handleGeoguesser = () => {
+    navigate("/GeoguesserPage", {
+      state: { user, presenter, admin, guests },
+    });
+  };
+
+
   const handleWordle = async () => {
     // TODO: give field
     const response = await fetch(
@@ -452,6 +459,12 @@ const WaitRoomPage = () => {
           Start Wordle
         </button>
       }
+      {
+        <button className="common-button" onClick={handleGeoguesser}>
+          Enter Geoguesser
+        </button>
+      }
+
       {
         <button className="common-button" onClick={handleUserInformation}>
           Enter your information
