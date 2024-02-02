@@ -76,19 +76,6 @@ const WaitRoomPage = () => {
     });
   };
 
-  const handlePictionaryRoom = async () => {
-    const response = await fetch(
-      `${serverPort}/startDrawAndGuess?roomCode=${roomCode}&target=mockword`,
-      // `${serverPort}/startDrawAndGuess?roomCode=${roomCode}`,
-      {
-        method: "POST",
-      }
-    );
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-  };
-
   const handleKickUser = async (userID: string) => {
     // kick this user
     const response = await fetch(
@@ -297,19 +284,7 @@ const WaitRoomPage = () => {
         setAllGuestsCompleted(allCompleted);
       }
 
-      // if (data.roomStatus === "PICTURING") {
-      //   navigate("/PictionaryRoomPage", {
-      //     state: { user },
-      //   });
-      // }
-
-      // // If the RoomSatus is PRESENTING, navigate everyone to the present page.
-      // if (data.roomStatus === "PRESENTING") {
-      //   console.log("GameStatus = PRESENTING, ",  user, admin, presenter, guests);
-      //   navigate("/PresentPage", {
-      //     state: { user, admin, presenter, guests },
-      //   });
-      // }
+      console.log('Game status', data.roomStatus);
 
       if (data.roomStatus) {
         console.log("RoomStatus", data.roomStatus);
@@ -336,23 +311,7 @@ const WaitRoomPage = () => {
       console.error("Error fetching player:", error);
     }
   };
-
-  // // Periodically check room status
-  // useEffect(() => {
-  //   // Check whether the user is admin
-  //   checkAdminStatus();
-  //   // Check whether the user is presenter
-  //   checkPresenterStatus();
-
-  //   // Update the player list every interval
-  //   const intervalId = setInterval(() => {
-  //     checkRoomStatus();
-  //     checkKickOut();
-  //   }, refreshTime);
-
-  //   // Clear timer and count again
-  //   return () => clearInterval(intervalId);
-  // }, [userID, roomCode]);
+  
 
   useEffect(() => {
     // Check whether the user is admin
@@ -386,11 +345,6 @@ const WaitRoomPage = () => {
       console.log("GameStatus = PRESENTING, ", user, admin, presenter, guests);
       navigate("/PresentPage", {
         state: { user, admin, presenter, guests },
-      });
-    }
-    if (roomStatus === RoomStatus.PICTURING) {
-      navigate("/PictionaryRoomPage", {
-        state: { user },
       });
     }
     // Clear timer and count again
@@ -503,11 +457,6 @@ const WaitRoomPage = () => {
           Enter your information
         </button>
       }
-      {isPresenter && (
-        <button className="start-room-button" onClick={handlePictionaryRoom}>
-          Pictionary
-        </button>
-      )}
       {
         <button className="leave-room-button" onClick={handleLeaveRoom}>
           Leave Room

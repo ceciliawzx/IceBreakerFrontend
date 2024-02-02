@@ -10,6 +10,7 @@ import reportWebVitals from "./service/reportWebVitals";
 import CreateRoomPage from "./CreateRoomPage";
 import PresentPage from "./PresentPage";
 import PictionaryPage from "./PictionaryPage";
+import JoinMockRoomPage from "./JoinMockRoomPage";
 import WordlePage from "./WordlePage";
 
 const root = ReactDOM.createRoot(
@@ -23,9 +24,10 @@ root.render(
       <Route path="/JoinRoompage" element={<JoinRoomPage />} />
       <Route path="/WaitRoomPage" element={<WaitRoomPage />} />
       <Route path="/UserProfilePage" element={<UserProfilePage />} />
-      <Route path="/WordlePage" element={<WordlePage />} />
       <Route path="/PresentPage" element={<PresentPage />} />
+      <Route path="/WordlePage" element={<WordlePage />} />
       <Route path="/PictionaryRoomPage" element={<PictionaryPage />} />
+      <Route path="/JoinMockRoompage" element={<JoinMockRoomPage />} />
     </Routes>
   </Router>
 );
