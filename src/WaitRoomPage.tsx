@@ -44,8 +44,6 @@ const WaitRoomPage = () => {
     );
     console.log("start room");
     console.log(response);
-    console.log("start room");
-    console.log(response);
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
@@ -156,8 +154,6 @@ const WaitRoomPage = () => {
 
         const data = await response.json();
 
-        console.log(data);
-
         setSelectedUserProfile(
           new UserProfile(
             data.userInfo.displayName,
@@ -222,7 +218,6 @@ const WaitRoomPage = () => {
       const response = await fetch(url);
       const data = await response.json();
       setIsPresenter(data === true);
-      console.log("setting is presenter: ", data);
     } catch (error) {
       console.error("Error checking admin status:", error);
     }
@@ -301,8 +296,6 @@ const WaitRoomPage = () => {
         );
         setAllGuestsCompleted(allCompleted);
       }
-
-      console.log("Game status", data.roomStatus);
 
       // if (data.roomStatus === "PICTURING") {
       //   navigate("/PictionaryRoomPage", {

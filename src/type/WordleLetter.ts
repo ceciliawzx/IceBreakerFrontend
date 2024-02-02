@@ -6,31 +6,31 @@ export enum LetterStatus {
 }
 
 export class WordleLetter {
-  private value: string;
-  private status: LetterStatus;
+  private letter: string;
+  private state: LetterStatus;
 
   constructor(value: string, status: LetterStatus) {
-    this.value = value;
-    this.status = status;
+    this.letter = value;
+    this.state = status;
   }
 
   // Getter for the value
-  getValue(): string {
-    return this.value;
+  getLetter(): string {
+    return this.letter;
   }
 
   // Setter for the value
-  setValue(newValue: string): void {
-    this.value = newValue;
+  setLetter(newValue: string): void {
+    this.letter = newValue;
   }
 
   // Getter for the status
-  getStatus(): LetterStatus {
-    return this.status;
+  getState(): LetterStatus {
+    return this.state;
   }
 
   // Setter for the status
-  setStatus(newStatus: LetterStatus): void {
-    this.status = newStatus;
+  setState(newStatus: LetterStatus): void {
+    this.state = newStatus;
   }
 }
