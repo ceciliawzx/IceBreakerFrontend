@@ -59,8 +59,21 @@ const Wordle = () => {
     )
   );
 
+  /*
+      TODO:
+      1. alphabet change color accordingly
+      2. only selected user can type
+      3. give answer after total attempts reached
+      4. return to present room after finish
+      5. change field linked into wordle room
+      6. add admin avatar
+      7. Ensure input after web socket connected
+      8. test
+  */
+
   // Initialize web socket and fetch word
   useEffect(() => {
+    // Initialize web socket
     connect(socketUrl, websocketUrl, topic, (msg: WordleMsg) => {
       receiveWordleMessage(msg);
     });
@@ -71,7 +84,6 @@ const Wordle = () => {
 
   // Initialize grid
   useEffect(() => {
-    // Check if targetCharNum is greater than 0
     if (targetCharNum > 0) {
       // Initialize currentGuess
       const initialGuess = Array.from({ length: totalAttempts }, () =>
@@ -85,10 +97,9 @@ const Wordle = () => {
   // Set focus
   useEffect(() => {
     document.getElementById("input-0-0")?.focus();
-
-    console.log(currentGuess);
   }, [initialized]);
 
+  // Fetch target word length
   const fetchWordLength = async () => {
     try {
       const response = await fetch(
@@ -113,14 +124,11 @@ const Wordle = () => {
     }
   };
 
-  // send message
+  // send message via websocket
   const sendWordleMessage = (
     icCheck: boolean,
     updatedGuess: WordleLetter[][]
   ) => {
-    console.log("Send Message");
-    console.log(updatedGuess);
-
     sendMsg(destination, {
       currentAttempt: currentAttempt,
       totalAttempt: totalAttempts,
@@ -132,10 +140,8 @@ const Wordle = () => {
     });
   };
 
-  // receive and parse message
+  // receive and parse message from websocket
   const receiveWordleMessage = (msg: WordleMsg) => {
-    console.log("Receive Message");
-    console.log(msg.letters);
     try {
       // Update guess
       setCurrentGuess(msg.letters);
@@ -143,10 +149,9 @@ const Wordle = () => {
       // Check if is correct
       if (msg.isCheck) {
         setCorrect(msg.isCorrect);
-        console.log("Change correct");
       }
 
-      // Change all letter status
+      // Change alphabet status
       const resultLetterStatus: LetterStatus[] = msg.allLetterStat;
       const updatedLetterStatus = allLetterStatus.map(
         (original, index) =>
@@ -172,7 +177,6 @@ const Wordle = () => {
 
     // set value
     updatedGuess[row][col].setLetter(value.toUpperCase());
-    //setCurrentGuess(updatedGuess); // update input
 
     // Cursor auto move
     if (col < updatedGuess[row].length - 1) {
@@ -206,8 +210,6 @@ const Wordle = () => {
       updatedGuess[row][col - 1].setLetter("");
     }
 
-    //setCurrentGuess(updatedGuess);
-
     // sendMessage
     sendWordleMessage(false, updatedGuess);
   };
@@ -236,9 +238,6 @@ const Wordle = () => {
     // Change next guesser
     setCurrentGuesser(guests[(currentAttempt + 1) % guests.length]);
 
-    // Check and change status
-    checkGuessStatus(currentAttempt);
-
     setCurrentAttempt(currentAttempt + 1);
 
     // sendMessage
@@ -246,15 +245,15 @@ const Wordle = () => {
   };
 
   const handleBack = async () => {
-    // const response = await fetch(
-    //   `${serverPort}/backToWaitRoom?roomCode=${roomCode}`,
-    //   {
-    //     method: "POST",
-    //   }
-    // );
-    // if (!response.ok) {
-    //   throw new Error(`HTTP error! Status: ${response.status}`);
-    // }
+    const response = await fetch(
+      `${serverPort}/backToWaitRoom?roomCode=${roomCode}`,
+      {
+        method: "POST",
+      }
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
 
     navigate("/WaitRoomPage", {
       state: { user, admin, presenter, guests },
@@ -310,18 +309,6 @@ const Wordle = () => {
       default:
         return {};
     }
-  };
-
-  const checkGuessStatus = (row: number) => {
-    // make deep copy
-    const updatedGuess = currentGuess.map((row) =>
-      row.map((letter) => new WordleLetter(letter.letter, letter.state))
-    );
-
-    // set value
-    updatedGuess[row].map((letter, _) => letter.setState(LetterStatus.GREY));
-
-    //setCurrentGuess(updatedGuess); // update input
   };
 
   return (
