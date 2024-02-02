@@ -24,7 +24,7 @@ const GeoguesserPage: React.FC = () => {
   const [showSubmitPopup, setShowSubmitPopup] = useState(false);
   const [isMapInteractive, setIsMapInteractive] = useState(true);
   const [guestWaitingPopup, setGuestWaitingPopup] = useState(false);
-  const [geoguesserStatus, setGeoguesserStatus] = useState<GeoguesserStatus>(GeoguesserStatus.PRE_CHOOSE);
+  const [geoguesserStatus, setGeoguesserStatus] = useState<GeoguesserStatus>();
   const [showAllSubmitPopup, setShowAllSubmitPopup] = useState(false);
 
   const location = useLocation();
@@ -104,38 +104,39 @@ const GeoguesserPage: React.FC = () => {
       }
 
       if (data) {
-        setGeoguesserStatus(data);
-        console.log("set status:", geoguesserStatus);
+        setGeoguesserStatus(data as GeoguesserStatus);
+        console.log("status get:",data,"statue set:", geoguesserStatus)
       } else {
         throw new Error("Invalid status received:", data);
       }
+
+      if (geoguesserStatus === GeoguesserStatus.PRE_CHOOSE) {
+        setGuestWaitingPopup(true);
+      } else if (geoguesserStatus === GeoguesserStatus.PLAYER_CHOOSE) {
+        setGuestWaitingPopup(false);
+      } else if (geoguesserStatus === GeoguesserStatus.SUBMITTED) {
+        setShowSubmitPopup(false);
+        setShowAllSubmitPopup(true);
+      }
+
     } catch (error) {
       console.error("Failed to fetch room status:", error);
-    }
-
-    if (geoguesserStatus === GeoguesserStatus.PRE_CHOOSE){
-      setGuestWaitingPopup(true);
-    } else if(geoguesserStatus === GeoguesserStatus.PLAYER_CHOOSE){
-      setGuestWaitingPopup(false);
-    } else if(geoguesserStatus === GeoguesserStatus.SUBMITTED){
-      setShowSubmitPopup(false);
-      setShowAllSubmitPopup(true);
     }
   }
 
   // Periodically check room status
   useEffect(() => {
+    checkRoomStatus();
 
     // Update the player list every interval
-    const intervalId = setInterval(async () => {
-      
+    const intervalId = setInterval(() => {
       checkRoomStatus();
-
     }, refreshTime);
 
     // Clear timer and count again
     return () => clearInterval(intervalId);
-  }, [roomCode, refreshTime, geoguesserStatus]);
+  }, [userID, roomCode]);
+  
 
   return (
     <div >
