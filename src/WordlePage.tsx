@@ -45,7 +45,6 @@ const Wordle = () => {
 
   const [currentGuesser, setCurrentGuesser] = useState<User>(guests[0]);
   const [currentAttempt, setCurrentAttempt] = useState<number>(0);
-  const [targetWord, setTargetWord] = useState<string>("APPLE"); // Set your target word
   const [targetCharNum, setTargetCharNum] = useState<number>(0);
   const [correct, setCorrect] = useState(false);
   const [initialized, setInitialized] = useState(false);
@@ -231,14 +230,6 @@ const Wordle = () => {
       return;
     }
 
-    const fullGuess = currentGuess[currentAttempt]
-      .map((letter) => letter.letter)
-      .join("");
-    if (fullGuess == targetWord) {
-      setCorrect(true);
-      console.log("Right!");
-    }
-
     // Move cursor to the first grid next row
     document.getElementById(`input-${currentAttempt + 1}-0`)?.focus();
 
@@ -377,10 +368,7 @@ const Wordle = () => {
           ))}
         </div>
         {correct && <h2> You guessed the word! </h2>}
-        {reachMaxAttempt() && <h2> Finished </h2>}
-        {reachMaxAttempt() && !correct && (
-          <h2> The correct word is {targetWord} </h2>
-        )}
+        {reachMaxAttempt() && <h2> Finished. You failed. </h2>}
         <div className="alphabet-list">
           {Array.from(alphabet).map((letter, index) => (
             <div
