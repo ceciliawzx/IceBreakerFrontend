@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { UserProfile } from './type/UserProfile';
 import { serverPort } from './macro/MacroServer';
 import { PresentRoomInfo } from './type/PresentRoomInfo';
 import { refreshTime } from './macro/MacroConst';
-
+import { GameType } from './type/GameType';
+import { RoomStatus } from './type/RoomStatus';
 import './css/PresentPage.css';
 
 const PresentPage = () => {
@@ -24,11 +25,157 @@ const PresentPage = () => {
     favFood: false,
     favActivity: false,
   });
+  const isPresenter: boolean = user.userID === presenter.userID;
+  const [availableGamesForField, setAvailableGamesForField] = useState({
+    firstName: [],
+    lastName: [],
+    country: [],
+    city: [],
+    feeling: [],
+    favFood: [],
+    favActivity: [],
+  });
+  // state to track gameSelector
+  const [activeGameSelector, setActiveGameSelector] = useState(null);
+  const [roomStatus, setRoomStatus] = useState<RoomStatus>(
+    RoomStatus.PRESENTING
+  );
+  const [target, setTarget] = useState<string>('');
 
-  // fetch detailed information of presenter when entering the room
+  // Fetch RoomStatus for navigation
+  const checkRoomStatus = async () => {
+    const url = `${serverPort}/getPlayers?roomCode=${roomCode}`;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Room cannot be found');
+      }
+      const data = await response.json();
+      if (data.roomStatus) {
+        console.log('RoomStatus', data.roomStatus);
+        setRoomStatus(data.roomStatus);
+      }
+    } catch (error) {
+      console.error('Error fetching getPlayers:', error);
+    }
+  };
+
   useEffect(() => {
+    // Update the player list every interval
+    const intervalId = setInterval(() => {
+      checkRoomStatus();
+    }, refreshTime);
+    if (roomStatus === RoomStatus.PICTURING) {
+      navigate('/PictionaryRoomPage', {
+        state: { user, isPresenter: isPresenter },
+      });
+    }
+    // Clear timer and count again
+    return () => clearInterval(intervalId);
+    // Add other navigation conditions if needed
+  }, [roomStatus, user, presenter]);
+
+  // Fetch presenterInfo
+  useEffect(() => {
+    // fetch detailed information of presenter when entering the room
     fetchPresenterInfo();
+    // Refetch available games for each field when the component mounts
+    Object.keys(presentRoomInfo).forEach((fieldName) => {
+      fetchAvailableGames(fieldName);
+    });
   }, []);
+
+  // Function to toggle the game selector submenu
+  const toggleGameSelector = (fieldName: any) => {
+    setActiveGameSelector(activeGameSelector === fieldName ? null : fieldName);
+  };
+
+  // Render GameSelector or Information
+  const renderInfoOrGameSelector = (fieldName: keyof PresentRoomInfo) => {
+    const info = presenterInfo?.[fieldName];
+    const games = availableGamesForField[fieldName] || [];
+    const isRevealed = presentRoomInfo[fieldName];
+
+    if (isPresenter) {
+      return (
+        <>
+          {isRevealed ? (
+            info
+          ) : (
+            <>
+              <button onClick={() => toggleGameSelector(fieldName)}>
+                Select a Game
+              </button>
+              {activeGameSelector === fieldName && (
+                <div id="game-selector">
+                  {games.map((gameType) => (
+                    <button
+                      key={gameType}
+                      onClick={() => handleGameSelection(gameType, fieldName)}
+                    >
+                      {gameType}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </>
+      );
+    } else {
+      return isRevealed ? info : '********';
+    }
+  };
+
+  const fetchAvailableGames = async (fieldName: any) => {
+    const url = `${serverPort}/availableGames?roomCode=${roomCode}&userID=${userID}&fieldName=${fieldName}`;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Failed to fetch available games');
+      }
+      const availableGames = await response.json();
+      console.log(fieldName, availableGames); // Log to see the fetched data
+      setAvailableGamesForField((prevGames) => ({
+        ...prevGames,
+        [fieldName]: availableGames,
+      }));
+    } catch (error) {
+      console.error(`Error fetching available games for ${fieldName}:`, error);
+    }
+  };
+
+  const handleGameSelection = (
+    gameType: GameType,
+    fieldName: keyof PresentRoomInfo
+  ) => {
+    if (gameType === GameType.REVEAL) {
+      // Directly reveal the information for this field
+      handleToggleReveal(fieldName);
+    } else {
+      // for Pictionary
+      const handlePictionaryRoom = async () => {
+        const target = presenterInfo ? presenterInfo[fieldName] : '';
+        const response = await fetch(
+          `${serverPort}/startDrawAndGuess?roomCode=${roomCode}&target=${target}`,
+          {
+            method: 'POST',
+          }
+        );
+        if (!response.ok) {
+          throw new Error(
+            `HTTP error when startDrawAndGuess! Status: ${response.status}`
+          );
+        }
+      };
+      if (gameType === GameType.PICTIONARY) {
+        handlePictionaryRoom();
+      } else {
+        // TODO: for other games
+      }
+    }
+    setActiveGameSelector(null);
+  };
 
   useEffect(() => {
     // Check what fields of presentRoomInfo are revealed every interval
@@ -48,7 +195,7 @@ const PresentPage = () => {
     } catch (error) {
       console.error('Error fetching presenterInfo:', error);
     }
-  }
+  };
 
   const checkPresentRoomInfo = async () => {
     const url = `${serverPort}/getPresentRoomInfo?roomCode=${roomCode}`;
@@ -81,6 +228,7 @@ const PresentPage = () => {
   };
 
   const handleToggleReveal = (field: keyof PresentRoomInfo) => {
+    if (!isPresenter) return;
     const newPresentRoomInfo: PresentRoomInfo = {
       ...presentRoomInfo,
       [field]: true,
@@ -88,67 +236,24 @@ const PresentPage = () => {
     updatePresentRoomInfo(newPresentRoomInfo);
   };
 
-  const revealDefaultInfo =
-    presenter.userID === userID ? 'Click to Reveal' : '********';
-
   return (
-    <div className='present-page-container'>
-      <div className='presenter-container'>
+    <div className="present-page-container">
+      <div className="presenter-container">
         <img
           src={presenter?.profileImage}
           alt={presenter?.displayName}
-          className='presenter-avatar'
+          className="presenter-avatar"
         />
         <h2>{presenter?.displayName}</h2>
       </div>
-
-      <div className='presenter-info'>
-        <p>
-          First Name:
-          <span onClick={() => handleToggleReveal('firstName')}>
-            {presentRoomInfo.firstName
-              ? presenterInfo?.firstName
-              : revealDefaultInfo}
-          </span>
-        </p>
-        <p>
-          Last Name:{' '}
-          <span onClick={() => handleToggleReveal('lastName')}>
-            {presentRoomInfo.lastName ? presenterInfo?.lastName : revealDefaultInfo}
-          </span>
-        </p>
-        <p>
-          City:{' '}
-          <span onClick={() => handleToggleReveal('city')}>
-            {presentRoomInfo.city ? presenterInfo?.city : revealDefaultInfo}
-          </span>
-        </p>
-        <p>
-          Country:{' '}
-          <span onClick={() => handleToggleReveal('country')}>
-            {presentRoomInfo.country ? presenterInfo?.country : revealDefaultInfo}
-          </span>
-        </p>
-        <p>
-          Felling:{' '}
-          <span onClick={() => handleToggleReveal('feeling')}>
-            {presentRoomInfo.feeling ? presenterInfo?.feeling : revealDefaultInfo}
-          </span>
-        </p>
-        <p>
-          Favorite Food:{' '}
-          <span onClick={() => handleToggleReveal('favFood')}>
-            {presentRoomInfo.favFood ? presenterInfo?.favFood : revealDefaultInfo}
-          </span>
-        </p>
-        <p>
-          Favorite Activity:{' '}
-          <span onClick={() => handleToggleReveal('favActivity')}>
-            {presentRoomInfo.favActivity
-              ? presenterInfo?.favActivity
-              : revealDefaultInfo}
-          </span>
-        </p>
+      <div className="presenter-info">
+        <p>First Name: {renderInfoOrGameSelector('firstName')}</p>
+        <p>Last Name: {renderInfoOrGameSelector('lastName')}</p>
+        <p>City: {renderInfoOrGameSelector('city')}</p>
+        <p>Country: {renderInfoOrGameSelector('country')}</p>
+        <p>Feeling: {renderInfoOrGameSelector('feeling')}</p>
+        <p>Favourite Food: {renderInfoOrGameSelector('favFood')}</p>
+        <p>Favorite Activity: {renderInfoOrGameSelector('favActivity')}</p>
       </div>
     </div>
   );
