@@ -102,3 +102,43 @@
   font-size: 20px; /* Adjust the font size */
   font-weight: bold; /* Make the font bold */
 }
+
+.alphabet-list {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr); /* 9 columns for the first row */
+  grid-gap: 5px; /* Adjust the gap as needed */
+}
+
+/* Styles for the second row */
+.alphabet-list .row-2 {
+  grid-template-columns: repeat(9, 1fr); /* 9 columns for the second row */
+}
+
+/* Styles for the third row */
+.alphabet-list .row-3 {
+  grid-template-columns: repeat(8, 1fr); /* 8 columns for the third row */
+}
+
+/* Common styles for alphabet blocks */
+.alphabet-block {
+  display: inline-block;
+  grid-template-columns: repeat(9, 1fr);
+  width: 30px;
+  height: 30px;
+  border: 1px solid #ccc;
+  margin: 5px;
+  text-align: center;
+  line-height: 30px;
+}
+
+.row-1 {
+  background-color: #ffcccb; /* Light red */
+}
+
+.row-2 {
+  background-color: #c2e0c6; /* Light green */
+}
+
+.row-3 {
+  background-color: #cfd8dc; /* Light blue-gray */
+}

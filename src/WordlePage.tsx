@@ -4,22 +4,39 @@ import { useNavigate } from "react-router-dom";
 import "./css/WordlePage.css";
 import { User } from "./type/User";
 import { UserProfile } from "./type/UserProfile";
-import { serverPort } from "./macro/MacroServer";
+import { serverPort, websocketPort } from "./macro/MacroServer";
 import { LetterStatus, WordleLetter } from "./type/WordleLetter";
+import { connect, sendMsg } from "./utils/ChatService";
+
+interface ChatMessage {
+  roomNumber: number;
+  content: string;
+  timestamp: string;
+  sender: string;
+  senderId: string;
+}
 
 const Wordle = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const user = location.state?.user;
+  const userID = user.userID;
   const roomCode = user.roomCode;
   const isAdmin = user.isAdmin;
   const admin = location.state?.admin;
   const presenter = location.state?.presenter;
   const guests: User[] = location.state?.guests;
 
+  /* Pop up */
   const [selectedUserProfile, setSelectedUserProfile] =
     useState<UserProfile | null>(null);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
+
+  /* Web socket */
+  const socketUrl = `${serverPort}/chat?userId=${userID}`;
+  const websocketUrl = `${websocketPort}/chat?userId=${userID}`;
+  const topic = `/topic/room/${roomCode}`;
+  const destination = `/app/room/${roomCode}/sendMessage`;
 
   const totalAttempts = Math.max(6, guests.length);
 
@@ -33,9 +50,23 @@ const Wordle = () => {
   // totalAttempts: rowNum; targeteCharNum: coluNum
   const [currentGuess, setCurrentGuess] = useState<WordleLetter[][]>([]);
 
-  // Fetch target word length
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const [allLetterStatus, setAllLetterStatus] = useState<WordleLetter[]>(
+    Array.from(alphabet).map(
+      (letter) => new WordleLetter(letter, LetterStatus.UNCHECKED)
+    )
+  );
+
+  // Initialize web socket and fetch word
   useEffect(() => {
-    fetchWordleLength();
+    connect(socketUrl, websocketUrl, topic, (msg: WordleLetter[]) => {
+      // Change current guess status
+      // Change correct
+      // Change all letter status
+    });
+
+    // fetch target word length
+    fetchWordLength();
   }, []);
 
   // Initialize grid
@@ -56,7 +87,7 @@ const Wordle = () => {
     document.getElementById("input-0-0")?.focus();
   }, [initialized]);
 
-  const fetchWordleLength = async () => {
+  const fetchWordLength = async () => {
     try {
       const response = await fetch(
         `${serverPort}/getWordleInfo?roomCode=${roomCode}`,
@@ -172,7 +203,17 @@ const Wordle = () => {
     setCurrentAttempt(currentAttempt + 1);
   };
 
-  const handleBack = () => {
+  const handleBack = async () => {
+    // const response = await fetch(
+    //   `${serverPort}/backToWaitRoom?roomCode=${roomCode}`,
+    //   {
+    //     method: "POST",
+    //   }
+    // );
+    // if (!response.ok) {
+    //   throw new Error(`HTTP error! Status: ${response.status}`);
+    // }
+
     navigate("/WaitRoomPage", {
       state: { user, admin, presenter, guests },
     });
@@ -180,7 +221,7 @@ const Wordle = () => {
 
   const handleViewProfile = async (user: User | null) => {
     if (user) {
-      const url = `${serverPort}/getPlayer?userID=${user.userID}&roomCode=${roomCode}`;
+      const url = `${serverPort}/getPlayer?userID=${userID}&roomCode=${roomCode}`;
       try {
         const response = await fetch(url);
         if (!response.ok) {
@@ -290,6 +331,14 @@ const Wordle = () => {
         {reachMaxAttempt() && !correct && (
           <h2> The correct word is {targetWord} </h2>
         )}
+        <div className="alphabet-list">
+          {Array.from(alphabet).map((letter, index) => (
+            <div key={index} className={`alphabet-block row-${Math.floor(index / 9) + 1}`}>
+              {/* You can customize the styling or add other elements as needed */}
+              {letter}
+            </div>
+          ))}
+        </div>
         <button className="common-button" onClick={handleGuess}>
           Guess
         </button>
