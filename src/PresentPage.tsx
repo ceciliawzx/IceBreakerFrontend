@@ -1,90 +1,95 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { User } from './type/User';
 import { UserProfile } from './type/UserProfile';
 import { serverPort } from './macro/MacroServer';
-import { PresentRoomInfo } from './type/PresentRoomInfo'; 
+import { PresentRoomInfo } from './type/PresentRoomInfo';
+import { refreshTime } from './macro/MacroConst';
 
 import './css/PresentPage.css';
 
-
-//  TODO
 const PresentPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const user = location.state?.user;
-  const userID = user.userID;
-  const roomCode = user.roomCode;
-  const presenter = location.state?.presenter;
-  const [presentRoomInfo, setPresentRoomInfo] = useState<PresentRoomInfo | null>(null);
-
-  const [revealInfo, setRevealInfo] = useState({
+  const user: UserProfile = location.state?.user;
+  const userID: string = user.userID;
+  const roomCode: string = user.roomCode;
+  const presenter: UserProfile = location.state?.presenter;
+  const [presenterInfo, setPresenterInfo] = useState<UserProfile | null>(null);
+  const [presentRoomInfo, setPresentRoomInfo] = useState<PresentRoomInfo>({
     firstName: false,
     lastName: false,
     country: false,
     city: false,
-    felling: false,
+    feeling: false,
     favFood: false,
     favActivity: false,
   });
-  const [fetchedFirstName, setFetchedFirstName] = useState("");
-  const [fetchedLastName, setFetchedLastName] = useState("");
-  const [fetchedCountry, setFetchedCountry] = useState("");
-  const [fetchedCity, setFetchedCity] = useState("");
-  const [fetchedFelling, setFetchedFelling] = useState("");
-  const [fetchedFavFood, setFetchedFavFood] = useState("");
-  const [fetchedFavActivity, setFetchedFavActivity] = useState("");
-  type RevealInfo = {
-    firstName: boolean;
-    lastName: boolean;
-    country: boolean;
-    city: boolean;
-    felling: boolean;
-    favFood: boolean;
-    favActivity: boolean;
+
+  // fetch detailed information of presenter when entering the room
+  useEffect(() => {
+    fetchPresenterInfo();
+  }, []);
+
+  useEffect(() => {
+    // Check what fields of presentRoomInfo are revealed every interval
+    const intervalId = setInterval(() => {
+      checkPresentRoomInfo();
+    }, refreshTime);
+    return () => clearInterval(intervalId);
+    // Add other navigation conditions if needed
+  }, [user, presenter]);
+
+  const fetchPresenterInfo = async () => {
+    const url = `${serverPort}/getPlayer?roomCode=${roomCode}&userID=${presenter.userID}`;
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      setPresenterInfo(data.userInfo);
+    } catch (error) {
+      console.error('Error fetching presenterInfo:', error);
+    }
+  }
+
+  const checkPresentRoomInfo = async () => {
+    const url = `${serverPort}/getPresentRoomInfo?roomCode=${roomCode}`;
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      setPresentRoomInfo(data.presentRoomInfo);
+    } catch (error) {
+      console.error('Error fetching presentRoomInfo:', error);
+    }
   };
 
-  const fetchUserDataField = async (field: keyof RevealInfo) => {
+  const updatePresentRoomInfo = async (newPresentRoomInfo: PresentRoomInfo) => {
+    const url = `${serverPort}/setPresentRoomInfo?roomCode=${roomCode}`;
     try {
-      const response = await fetch(
-        `${serverPort}/getPlayer?userID=${presenter.userID}&roomCode=${user.roomCode}`
-      );
-      if (!response.ok) {
-        throw new Error('Error fetching data');
-      }
-      const data = await response.json();
-      if (field === 'firstName') {
-        setFetchedFirstName(data.userInfo.firstName);
-      }
-      if (field === "lastName") {
-        setFetchedLastName(data.userInfo.lastName);
-      }
-      if (field === "country") {
-        setFetchedCountry(data.userInfo.country);
-      }
-      if (field === "city") {
-        setFetchedCity(data.userInfo.city);
-      }
-      if (field === "felling") {
-        setFetchedFelling(data.userInfo.felling);
-      }
-      if (field === "favFood") {
-        setFetchedFavFood(data.userInfo.favFood);
-      }
-      if (field === "favActivity") {
-        setFetchedFavActivity(data.userInfo.favActivity);
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newPresentRoomInfo),
+      });
+      if (response) {
+        // Re-fetch the updated state after a successful update
+        checkPresentRoomInfo();
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error setting presentRoomInfo in backend: ', error);
     }
   };
 
-  const handleToggleReveal = (field: keyof RevealInfo) => {
-    if (!revealInfo[field]) {
-      fetchUserDataField(field);
-    }
-    setRevealInfo((prev) => ({ ...prev, [field]: true }));
+  const handleToggleReveal = (field: keyof PresentRoomInfo) => {
+    const newPresentRoomInfo: PresentRoomInfo = {
+      ...presentRoomInfo,
+      [field]: true,
+    };
+    updatePresentRoomInfo(newPresentRoomInfo);
   };
+
+  const revealDefaultInfo =
+    presenter.userID === userID ? 'Click to Reveal' : '********';
 
   return (
     <div className='present-page-container'>
@@ -101,43 +106,47 @@ const PresentPage = () => {
         <p>
           First Name:
           <span onClick={() => handleToggleReveal('firstName')}>
-            {revealInfo.firstName ? fetchedFirstName : userID === presenter.userID ? 'Click to reveal' : "*********" }
+            {presentRoomInfo.firstName
+              ? presenterInfo?.firstName
+              : revealDefaultInfo}
           </span>
         </p>
         <p>
-          Last Name:{" "}
-          <span onClick={() => handleToggleReveal("lastName")}>
-            {revealInfo.lastName ? fetchedLastName : "Click to reveal"}
+          Last Name:{' '}
+          <span onClick={() => handleToggleReveal('lastName')}>
+            {presentRoomInfo.lastName ? presenterInfo?.lastName : revealDefaultInfo}
           </span>
         </p>
         <p>
-          City:{" "}
-          <span onClick={() => handleToggleReveal("city")}>
-            {revealInfo.city ? fetchedCity : "Click to reveal"}
+          City:{' '}
+          <span onClick={() => handleToggleReveal('city')}>
+            {presentRoomInfo.city ? presenterInfo?.city : revealDefaultInfo}
           </span>
         </p>
         <p>
-          Country:{" "}
-          <span onClick={() => handleToggleReveal("country")}>
-            {revealInfo.country ? fetchedCountry : "Click to reveal"}
+          Country:{' '}
+          <span onClick={() => handleToggleReveal('country')}>
+            {presentRoomInfo.country ? presenterInfo?.country : revealDefaultInfo}
           </span>
         </p>
         <p>
-          Felling:{" "}
-          <span onClick={() => handleToggleReveal("felling")}>
-            {revealInfo.felling ? fetchedFelling : "Click to reveal"}
+          Felling:{' '}
+          <span onClick={() => handleToggleReveal('feeling')}>
+            {presentRoomInfo.feeling ? presenterInfo?.feeling : revealDefaultInfo}
           </span>
         </p>
         <p>
-          Favorite Food:{" "}
-          <span onClick={() => handleToggleReveal("favFood")}>
-            {revealInfo.favFood ? fetchedFavFood : "Click to reveal"}
+          Favorite Food:{' '}
+          <span onClick={() => handleToggleReveal('favFood')}>
+            {presentRoomInfo.favFood ? presenterInfo?.favFood : revealDefaultInfo}
           </span>
         </p>
         <p>
-          Favorite Activity:{" "}
-          <span onClick={() => handleToggleReveal("favActivity")}>
-            {revealInfo.favActivity ? fetchedFavActivity : "Click to reveal"}
+          Favorite Activity:{' '}
+          <span onClick={() => handleToggleReveal('favActivity')}>
+            {presentRoomInfo.favActivity
+              ? presenterInfo?.favActivity
+              : revealDefaultInfo}
           </span>
         </p>
       </div>

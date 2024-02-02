@@ -285,21 +285,7 @@ const WaitRoomPage = () => {
       }
 
       console.log('Game status', data.roomStatus);
-
-      // if (data.roomStatus === "PICTURING") {
-      //   navigate("/PictionaryRoomPage", {
-      //     state: { user },
-      //   });
-      // }
-
-      // // If the RoomSatus is PRESENTING, navigate everyone to the present page.
-      // if (data.roomStatus === "PRESENTING") {
-      //   console.log("GameStatus = PRESENTING, ",  user, admin, presenter, guests);
-      //   navigate("/PresentPage", {
-      //     state: { user, admin, presenter, guests },
-      //   });
-      // }
-
+      
       if (data.roomStatus) {
         console.log('RoomStatus', data.roomStatus);
         setRoomStatus(data.roomStatus);
