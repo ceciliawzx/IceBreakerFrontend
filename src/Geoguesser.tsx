@@ -8,6 +8,12 @@ import { User } from "./type/User";
 import { UserProfile } from "./type/UserProfile";
 import "./css/Geoguesser.css";
 
+enum GeoguesserStatus {
+  PRE_CHOOSE = "PRE_CHOOSE",
+  PLAYER_CHOOSE = "PLAYER_CHOOSE",
+  SUBMITTED = "SUBMITTED"
+}
+
 const GOOGLE_MAPS_API_KEY = 'AIzaSyDENKVeABbLKd8DG_8H0RJLeh7y4FBqrUs';
 
 const GeoguesserPage: React.FC = () => {
@@ -17,7 +23,8 @@ const GeoguesserPage: React.FC = () => {
   const [currentMarker, setCurrentMarker] = useState<google.maps.Marker | null>(null);
   const [showSubmitPopup, setShowSubmitPopup] = useState(false);
   const [isMapInteractive, setIsMapInteractive] = useState(true);
-
+  const [showWaitingPopup, setShowWaitingPopup] = useState(false);
+  const [geoguesserStatus, setGeoguesserStatus] = useState<GeoguesserStatus>(GeoguesserStatus.PRE_CHOOSE);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -26,6 +33,8 @@ const GeoguesserPage: React.FC = () => {
   const roomCode = user.roomCode;
   const displayName = user.displayName;
   const presenter = location.state?.presenter;
+  const pretID = presenter ? presenter.userID : null;
+  const isPret = (pretID === userID);
   const admin = location.state?.admin;
   const guests = location.state?.guests;
 
@@ -64,19 +73,44 @@ const GeoguesserPage: React.FC = () => {
     } 
   };
 
-  const checkRoomStatus = async () => {}
+  const checkRoomStatus = async () => {
+    try {
+      const response = await fetch(
+        `${serverPort}/getGeoguesserStatus?roomCode=${roomCode}`,
+        { method: "GET" }
+      );
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      if (data) {
+        setGeoguesserStatus(data);
+        console.log("set status:", geoguesserStatus);
+      } else {
+        throw new Error("Invalid status received:", data);
+      }
+
+      
+
+    } catch (error) {
+      console.error("Failed to fetch room status:", error);
+    }
+  };
 
   // Periodically check room status
   useEffect(() => {
 
     // Update the player list every interval
-    const intervalId = setInterval(() => {
+    const intervalId = setInterval(async () => {
+      
       checkRoomStatus();
+
     }, refreshTime);
 
     // Clear timer and count again
     return () => clearInterval(intervalId);
-  });
+  }, [roomCode, refreshTime]);
 
   return (
     <div >
@@ -115,6 +149,16 @@ const GeoguesserPage: React.FC = () => {
       </div>
     </div>
     )}
+
+    {/* Waiting popup */}
+    {showWaitingPopup && (
+      <div className="waiting-popup">
+        <div className="waiting-popup-inner">
+          <h3>The presenter is choosing a location, please wait.</h3>
+        </div>
+      </div>
+    )}
+
     </div>
   );
 };
