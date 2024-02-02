@@ -1,16 +1,20 @@
 import React, { useEffect, useCallback, useState } from 'react';
-import DrawingCanvas from './DrawingCanvas';
+import DrawingCanvas from './pictionary/DrawingCanvas';
+import ChatRoom from './ChatRoomPage';
 import { useLocation } from 'react-router-dom';
-import { DrawingData, DrawingMessage } from '../type/DrawingCanvas';
-import { connect, sendMsg } from '../utils/ChatService';
-import { serverPort, websocketPort } from '../macro/MacroServer';
+import { DrawingData, DrawingMessage } from './type/DrawingCanvas';
+import { connect, sendMsg } from './utils/ChatService';
+import { serverPort, websocketPort } from './macro/MacroServer';
+import './css/PictionaryPage.css';
+import { User } from './type/User';
 
 const PictionaryPage = () => {
   const location = useLocation();
   const [externalDrawing, setExternalDrawing] = useState<DrawingMessage>();
-  const user = location.state?.user;
+  const user: User = location.state?.user;
   const userId = user?.userID;
-  const isDrawer = user?.isPresenter;
+  // const isDrawer = user?.isPresenter;
+  const isDrawer = location.state?.isPresenter;
   const displayName = user?.displayName;
   const roomCode = user?.roomCode;
 
@@ -42,14 +46,18 @@ const PictionaryPage = () => {
     [roomCode]
   );
 
-  // Pass externalDrawing to DrawingCanvas
   return (
-    <div>
-      <DrawingCanvas
-        isDrawer={isDrawer}
-        onDraw={handleDraw}
-        externalDrawing={externalDrawing}
-      />
+    <div className='pictionary-page'>
+      <div className='chat-room-container'>
+        <ChatRoom />
+      </div>
+      <div className='drawing-canvas-container'>
+        <DrawingCanvas
+          isDrawer={isDrawer}
+          onDraw={handleDraw}
+          externalDrawing={externalDrawing}
+        />
+      </div>
     </div>
   );
 };

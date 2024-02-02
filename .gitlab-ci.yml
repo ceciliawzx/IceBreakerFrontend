@@ -50,3 +50,4 @@ dev_deploy:
     - scp -r build/* zw4021@texel01:/vol/project/2023/60021/g236002112/dev
   except:
     - master
+  

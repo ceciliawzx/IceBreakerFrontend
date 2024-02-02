@@ -6,6 +6,8 @@ import { serverPort } from "./macro/MacroServer";
 import { refreshTime } from "./macro/MacroConst";
 import { User } from "./type/User";
 import { UserProfile } from "./type/UserProfile";
+import { RoomStatus } from "./type/RoomStatus";
+import exportUserProfileAsPDF from "./utils/ExportPDF";
 
 const WaitRoomPage = () => {
   const location = useLocation();
@@ -30,6 +32,7 @@ const WaitRoomPage = () => {
   const [selectedUserProfile, setSelectedUserProfile] =
     useState<UserProfile | null>(null);
   const [allGuestsCompleted, setAllGuestsCompleted] = useState(false);
+  const [roomStatus, setRoomStatus] = useState<RoomStatus>(RoomStatus.WAITING);
 
   const handleStartRoom = async () => {
     // Tell server that to start room
@@ -39,9 +42,6 @@ const WaitRoomPage = () => {
         method: "POST",
       }
     );
-    navigate("/PresentPage", {
-      state: { user, admin, presenter, guests },
-    });
     console.log("start room");
     console.log(response);
     if (!response.ok) {
@@ -51,26 +51,14 @@ const WaitRoomPage = () => {
 
   const handleChatRoom = () => {
     navigate("/ChatRoomPage", {
-      state: { userID, roomCode, displayName },
+      state: { user },
     });
   };
 
-  const handleGeoguesser = () => {
-    navigate("/GeoguesserPage", {
-      state: { user, presenter, admin, guests },
-    });
-  };
-
-  const handleUserInformation = () => {
-    const preID = presenter?.userID;
-    navigate("/UserProfilePage", {
-      state: { user, preID },
-    });
-  };
-
-  const handlePictionaryRoom = async () => {
+  const handleWordle = async () => {
+    // TODO: give field
     const response = await fetch(
-      `${serverPort}/startDrawAndGuess?roomCode=${roomCode}`,
+      `${serverPort}/startWordle?roomCode=${roomCode}&userID=${presenter?.userID}&field=firstName`,
       {
         method: "POST",
       }
@@ -78,6 +66,14 @@ const WaitRoomPage = () => {
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
+  };
+
+  const handleUserInformation = () => {
+    const preID = presenter?.userID;
+
+    navigate("/UserProfilePage", {
+      state: { user, preID },
+    });
   };
 
   const handleKickUser = async (userID: string) => {
@@ -97,8 +93,6 @@ const WaitRoomPage = () => {
   const handleLeaveRoom = async () => {
     // If admin leaves, send http request to delete room and all user should be kicked out
     if (isAdmin) {
-      // TODO: send http request
-
       // Destroy room
       const response = await fetch(
         `${serverPort}/destroyRoom?roomCode=${roomCode}`,
@@ -109,8 +103,6 @@ const WaitRoomPage = () => {
 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
-      } else {
-        setShowDismissPopup(true);
       }
     } else {
       // user leave room
@@ -149,8 +141,6 @@ const WaitRoomPage = () => {
 
         const data = await response.json();
 
-        console.log(data);
-
         setSelectedUserProfile(
           new UserProfile(
             data.userInfo.displayName,
@@ -177,7 +167,7 @@ const WaitRoomPage = () => {
   const confirmChangePresenter = () => {
     var newPresenter;
     if (selectedPresenterUserID) {
-      if (selectedPresenterUserID == admin?.userID) {
+      if (selectedPresenterUserID === admin?.userID) {
         newPresenter = admin;
       } else {
         newPresenter = guests.find(
@@ -215,14 +205,13 @@ const WaitRoomPage = () => {
       const response = await fetch(url);
       const data = await response.json();
       setIsPresenter(data === true);
-      console.log("setting is presenter: ", data);
     } catch (error) {
       console.error("Error checking admin status:", error);
     }
   };
 
   // Fetch the players & check if room start from the backend
-  const checkRoomStatus = async () => {
+  const checkPlayers = async () => {
     const url = `${serverPort}/getPlayers?roomCode=${roomCode}`;
     try {
       const response = await fetch(url);
@@ -244,6 +233,7 @@ const WaitRoomPage = () => {
       });
 
       if (data.admin) {
+        console.log("setting admin ", data.admin);
         setAdmin(
           new User(
             roomCode,
@@ -258,6 +248,7 @@ const WaitRoomPage = () => {
         );
       }
       if (data.presenter) {
+        console.log("setting presenter ", data.presenter);
         setPresenter(
           new User(
             roomCode,
@@ -271,6 +262,7 @@ const WaitRoomPage = () => {
         );
       }
       if (data.otherPlayers) {
+        console.log("setting others ", data.otherPlayers);
         const updatedGuests = data.otherPlayers.map(
           (guest: User) =>
             new User(
@@ -283,7 +275,6 @@ const WaitRoomPage = () => {
               guest.completed
             )
         );
-
         setGuests(updatedGuests);
 
         // Check if all guests have completed
@@ -293,20 +284,11 @@ const WaitRoomPage = () => {
         setAllGuestsCompleted(allCompleted);
       }
 
-      // // if moderator starts game, navigate to input phase
-      // if (data.gameStatus) {
-      //   navigate("/UserProfilePage", {
-      //     state: { user },
-      //   });
+      console.log('Game status', data.roomStatus);
 
-      // Change Admin to non-presenter when presenting page is completed
-
-      console.log("Game status", data.roomStatus);
-
-      if (data.roomStatus === "PICTURING") {
-        navigate("/PictionaryRoomPage", {
-          state: { user },
-        });
+      if (data.roomStatus) {
+        console.log("RoomStatus", data.roomStatus);
+        setRoomStatus(data.roomStatus);
       }
     } catch (error) {
       console.error("Error fetching players:", error);
@@ -329,23 +311,45 @@ const WaitRoomPage = () => {
       console.error("Error fetching player:", error);
     }
   };
+  
 
-  // Periodically check room status
   useEffect(() => {
     // Check whether the user is admin
     checkAdminStatus();
     // Check whether the user is presenter
     checkPresenterStatus();
+    checkPlayers();
 
     // Update the player list every interval
     const intervalId = setInterval(() => {
-      checkRoomStatus();
+      checkPlayers();
       checkKickOut();
     }, refreshTime);
 
+    // Start wordle
+    if (roomStatus === RoomStatus.WORDLING) {
+      navigate("/WordlePage", {
+        state: { user, admin, presenter, guests },
+      });
+    }
+
+    // Start wordle
+    if (roomStatus === RoomStatus.WORDLING) {
+      navigate("/WordlePage", {
+        state: { user, admin, presenter, guests },
+      });
+    }
+
+    // If the RoomStatus is PRESENTING, navigate all users to the PresentPage
+    if (roomStatus === RoomStatus.PRESENTING) {
+      console.log("GameStatus = PRESENTING, ", user, admin, presenter, guests);
+      navigate("/PresentPage", {
+        state: { user, admin, presenter, guests },
+      });
+    }
     // Clear timer and count again
     return () => clearInterval(intervalId);
-  }, [userID, roomCode]);
+  }, [roomStatus, user, admin, presenter, guests]);
 
   // main render
   return (
@@ -396,7 +400,7 @@ const WaitRoomPage = () => {
 
       <div className="guest-list">
         <h2>Joined Guests:</h2>
-        <div className="guest-container">
+        <div className="row-guest-container">
           {guests.map((guest, index) => (
             <div key={index} className="guest">
               <div className="avatar-container">
@@ -444,8 +448,8 @@ const WaitRoomPage = () => {
         </button>
       }
       {
-        <button className="common-button" onClick={handleGeoguesser}>
-          Enter Geoguesser
+        <button className="common-button" onClick={handleWordle}>
+          Start Wordle
         </button>
       }
       {
@@ -453,11 +457,6 @@ const WaitRoomPage = () => {
           Enter your information
         </button>
       }
-      {isPresenter && (
-        <button className="start-room-button" onClick={handlePictionaryRoom}>
-          Pictionary
-        </button>
-      )}
       {
         <button className="leave-room-button" onClick={handleLeaveRoom}>
           Leave Room
@@ -519,6 +518,11 @@ const WaitRoomPage = () => {
           <p>Favourite food: {selectedUserProfile.favFood}</p>
           <p>Favourite activity: {selectedUserProfile.favActivity}</p>
           <button onClick={() => setShowProfilePopup(false)}>Close</button>
+          <div>
+            <button onClick={() => exportUserProfileAsPDF(selectedUserProfile)}>
+              Export as PDF
+            </button>
+          </div>
         </div>
       )}
     </div>

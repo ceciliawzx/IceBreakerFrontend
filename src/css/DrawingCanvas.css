@@ -10,14 +10,11 @@
   cursor: pointer;
 }
 
-#canvas-container {
-  display: flex;
-  justify-content: center;
-}
-
 #drawing-canvas {
   background-color: rgb(248, 223, 194);
   border: 1px solid #ccc; /* border around the canvas */
+  border-radius: 8px; 
+
 }
 
 #color-selector {

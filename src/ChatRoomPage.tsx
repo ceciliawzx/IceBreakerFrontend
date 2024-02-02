@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
-import { connect, sendMsg } from './utils/ChatService';
-import { serverPort, websocketPort } from './macro/MacroServer';
-import './css/ChatRoomPage.css';
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { connect, sendMsg } from "./utils/ChatService";
+import { serverPort, websocketPort } from "./macro/MacroServer";
+import "./css/ChatRoomPage.css";
 
 interface ChatMessage {
   roomNumber: number;
@@ -22,12 +22,10 @@ const ChatRoom: React.FC = () => {
   const [message, setMessage] = useState<string>("");
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
 
-
   const socketUrl = `${serverPort}/chat?userId=${userID}`;
   const websocketUrl = `${websocketPort}/chat?userId=${userID}`;
   const topic = `/topic/room/${roomCode}`;
   const destination = `/app/room/${roomCode}/sendMessage`;
-
 
   useEffect(() => {
     connect(socketUrl, websocketUrl, topic, (msg: ChatMessage) => {
@@ -35,9 +33,8 @@ const ChatRoom: React.FC = () => {
     });
   }, []);
 
-
   const handleSendMessage = () => {
-    if (message.trim() !== '') {
+    if (message.trim() !== "") {
       sendMsg(destination, {
         roomCode,
         content: message,
@@ -45,19 +42,19 @@ const ChatRoom: React.FC = () => {
         sender: displayName,
         senderId: userID,
       });
-      setMessage('');
+      setMessage("");
     }
   };
 
   const handleKeyPress = (e: any) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleSendMessage();
     }
   };
 
   const extractMessage = (fullMessage: string) => {
-    if (fullMessage.includes('Server has received your message')) {
-      const parts = fullMessage.split(':');
+    if (fullMessage.includes("Server has received your message")) {
+      const parts = fullMessage.split(":");
       if (parts.length === 2) {
         const message = parts[1].trim();
         return `${message}`;
@@ -69,21 +66,21 @@ const ChatRoom: React.FC = () => {
 
   return (
     <div className={`chat-room-page`}>
-      <div className='chat-room-bar'>
-        <div className='chat-room-header'>
-          <div className='room-details'>
+      <div className="chat-room-bar">
+        <div className="chat-room-header">
+          <div className="room-details">
             Room Code:
-            <span className='highlighted-sender'>{roomCode}</span> | Display
+            <span className="highlighted-sender">{roomCode}</span> | Display
             Name:
-            <span className='highlighted-sender'>{displayName}</span>
+            <span className="highlighted-sender">{displayName}</span>
           </div>
         </div>
-        <div className='message-display'>
+        <div className="message-display">
           {chatHistory.map((msg, index) => (
-            <div key={index} className='message'>
+            <div key={index} className="message">
               <span
                 className={
-                  msg.sender === displayName ? 'green-sender' : 'yellow-sender'
+                  msg.sender === displayName ? "green-sender" : "yellow-sender"
                 }
               >
                 {msg.sender}:
@@ -93,12 +90,12 @@ const ChatRoom: React.FC = () => {
             </div>
           ))}
         </div>
-        <div className='input-container' onKeyDown={handleKeyPress}>
+        <div className="input-container" onKeyDown={handleKeyPress}>
           <input
-            type='text'
+            type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder='Type a message...'
+            placeholder="Type a message..."
           />
           <button onClick={handleSendMessage}>Send</button>
         </div>
