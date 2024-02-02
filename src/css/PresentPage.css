@@ -1,34 +1,70 @@
 .present-page-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .presenter-container {
-    text-align: center;
-  }
-  
-  .presenter-avatar {
-    width: 100px; /* Adjust as needed */
-    height: 100px; /* Adjust as needed */
-    border-radius: 50%;
-    margin-bottom: 10px;
-  }
-  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 90%; /* Adjust based on preference */
+  max-width: 800px; /* Limit max width for larger screens */
+  margin: auto; /* Center the container */
+}
+
+.presenter-container {
+  text-align: center;
+  padding: 20px;
+  border-bottom: 1px solid #ccc; /* Visually separate the header */
+}
+
+.presenter-avatar {
+  /* Set a background image and make it circular */
+  background-size: cover;
+  background-position: center;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%; /* Make the image circular */
+}
+
+.presenter-info {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(200px, 1fr)
+  ); /* Responsive grid */
+  gap: 15px; /* Space between items */
+  padding: 15px;
+}
+
+.game-selection-submenu {
+  position: absolute;
+  z-index: 100;
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  row-gap: 2px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
   .presenter-info {
-    margin-top: 20px;
-    border: 1px solid #ccc;
-    padding: 15px;
-    border-radius: 5px;
+    grid-template-columns: 1fr; /* Stack items on smaller screens */
   }
-  
-  .content.blurred {
-    filter: blur(5px); /* Adjust the blur level as needed */
-  }
-  
-  
-  .presenter-info.blurred {
-    filter: blur(5px); /* Adjust the blur level as needed */
-  }
-  
+}
+
+.presenter-info.blurred {
+  filter: blur(5px); /* Adjust the blur level as needed */
+}
+
+#game-selector {
+  position: absolute;
+  left: 55%;
+  z-index: 100;
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  row-gap: 3px;
+}
