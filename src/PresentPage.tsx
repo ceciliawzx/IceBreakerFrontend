@@ -43,6 +43,7 @@ const PresentPage = () => {
   const [roomStatus, setRoomStatus] = useState<RoomStatus>(
     RoomStatus.PRESENTING
   );
+  const [selectedField, setSelectedField] = useState<keyof PresentRoomInfo>();
 
   // Update the RoomStatus list every interval
   useEffect(() => {
@@ -73,7 +74,7 @@ const PresentPage = () => {
     // Navigate to Pictionary
     if (roomStatus === RoomStatus.PICTURING) {
       navigate("/PictionaryRoomPage", {
-        state: { user, isPresenter: isPresenter },
+        state: { user, isPresenter: isPresenter, admin, presenter, presentRoomInfo, selectedField },
       });
     }
     // Back to WaitRoom
@@ -161,12 +162,13 @@ const PresentPage = () => {
     gameType: GameType,
     fieldName: keyof PresentRoomInfo
   ) => {
+    setSelectedField(fieldName);
     if (gameType === GameType.REVEAL) {
       // Directly reveal the information for this field
       handleToggleReveal(fieldName);
     } else {
       // for Pictionary
-      const handlePictionaryRoom = async () => {
+      const handlePictionaryRoom = async (fieldName: keyof PresentRoomInfo) => {
         const target = presenterInfo ? presenterInfo[fieldName] : "";
         const response = await fetch(
           `${serverPort}/startDrawAndGuess?roomCode=${roomCode}&target=${target}`,
@@ -181,7 +183,7 @@ const PresentPage = () => {
         }
       };
       if (gameType === GameType.PICTIONARY) {
-        handlePictionaryRoom();
+        handlePictionaryRoom(fieldName);
       } else {
         // TODO: for other games
       }
@@ -262,20 +264,6 @@ const PresentPage = () => {
     }
   };
 
-  // const handleBackToPresentRoom = async () => {
-  //   const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;
-  //   try {
-  //     const response = await fetch(url, {
-  //       method: 'POST',
-  //     });
-  //     // if (response.ok) {
-  //     //   setRoomStatus(RoomStatus.PRESENTING);
-  //     // }
-  //   } catch (error) {
-  //     console.error('Error returning to WaitRoom:', error);
-  //   }
-  // };
-
   return (
     <div className="present-page-container">
       <div className="presenter-container">
@@ -305,17 +293,6 @@ const PresentPage = () => {
           </button>
         )}
       </div>
-      {/* <div>
-        {isPresenter ||
-          (userID === admin.userID && (
-            <button
-              className="admin-only-button"
-              onClick={() => handleBackToPresentRoom()}
-            >
-              Back to PresentRoom
-            </button>
-          ))}
-      </div> */}
     </div>
   );
 };

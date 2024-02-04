@@ -324,16 +324,6 @@ const WaitRoomPage = () => {
     // Add other navigation conditions if needed
   }, [roomStatus, user, admin, presenter, guests]);
 
-  // useEffect(() => {
-  //   if (roomStatus === "PRESENTING") {
-  //     console.log("GameStatus = PRESENTING, ",  user, admin, presenter, guests);
-  //     navigate("/PresentPage", {
-  //       state: { user, admin, presenter, guests },
-  //     });
-  //   }
-  //   // Add other navigation conditions if needed
-  // }, [roomStatus, user, admin, presenter, guests]);
-
   // main render
   return (
     <div className='wait-room-page'>
