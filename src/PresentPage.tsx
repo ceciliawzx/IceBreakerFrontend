@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { UserProfile } from './type/UserProfile';
-import { serverPort } from './macro/MacroServer';
-import { PresentRoomInfo } from './type/PresentRoomInfo';
-import { refreshTime } from './macro/MacroConst';
-import { GameType } from './type/GameType';
-import { RoomStatus } from './type/RoomStatus';
-import { User } from './type/User';
-import './css/PresentPage.css';
+import React, { useState, useEffect, useRef } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { UserProfile } from "./type/UserProfile";
+import { serverPort } from "./macro/MacroServer";
+import { PresentRoomInfo } from "./type/PresentRoomInfo";
+import { refreshTime } from "./macro/MacroConst";
+import { GameType } from "./type/GameType";
+import { RoomStatus } from "./type/RoomStatus";
+import { User } from "./type/User";
+import { checkRoomStatus } from "./utils/CheckRoomStatus";
+import "./css/PresentPage.css";
 
 const PresentPage = () => {
   const location = useLocation();
@@ -42,34 +43,43 @@ const PresentPage = () => {
   const [roomStatus, setRoomStatus] = useState<RoomStatus>(
     RoomStatus.PRESENTING
   );
-  const [target, setTarget] = useState<string>('');
 
-  // Fetch RoomStatus for navigation
-  const checkRoomStatus = async () => {
-    const url = `${serverPort}/getPlayers?roomCode=${roomCode}`;
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error('Room cannot be found');
-      }
-      const data = await response.json();
-      if (data.roomStatus) {
-        console.log('RoomStatus', data.roomStatus);
-        setRoomStatus(data.roomStatus);
-      }
-    } catch (error) {
-      console.error('Error fetching getPlayers:', error);
-    }
-  };
-
+  // Update the RoomStatus list every interval
   useEffect(() => {
-    // Update the player list every interval
-    const intervalId = setInterval(() => {
-      checkRoomStatus();
+    // Define an IIFE to handle async operation
+    (async () => {
+      try {
+        const data = await checkRoomStatus({ roomCode });
+        if (data && data.roomStatus) {
+          setRoomStatus(data.roomStatus);
+        }
+      } catch (error) {
+        console.error("Error fetching getPlayers:", error);
+      }
+    })();
+
+    // Setup the interval for refreshing the data
+    const intervalId = setInterval(async () => {
+      try {
+        const data = await checkRoomStatus({ roomCode });
+        if (data && data.roomStatus) {
+          setRoomStatus(data.roomStatus);
+        }
+      } catch (error) {
+        console.error("Error fetching getPlayers on interval:", error);
+      }
     }, refreshTime);
+
+    // Navigate to Pictionary
     if (roomStatus === RoomStatus.PICTURING) {
-      navigate('/PictionaryRoomPage', {
+      navigate("/PictionaryRoomPage", {
         state: { user, isPresenter: isPresenter },
+      });
+    }
+    // Back to WaitRoom
+    if (roomStatus === RoomStatus.WAITING) {
+      navigate("/WaitRoomPage", {
+        state: { user, admin },
       });
     }
     // Clear timer and count again
@@ -125,7 +135,7 @@ const PresentPage = () => {
         </>
       );
     } else {
-      return isRevealed ? info : '********';
+      return isRevealed ? info : "********";
     }
   };
 
@@ -134,7 +144,7 @@ const PresentPage = () => {
     try {
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error('Failed to fetch available games');
+        throw new Error("Failed to fetch available games");
       }
       const availableGames = await response.json();
       console.log(fieldName, availableGames); // Log to see the fetched data
@@ -157,11 +167,11 @@ const PresentPage = () => {
     } else {
       // for Pictionary
       const handlePictionaryRoom = async () => {
-        const target = presenterInfo ? presenterInfo[fieldName] : '';
+        const target = presenterInfo ? presenterInfo[fieldName] : "";
         const response = await fetch(
           `${serverPort}/startDrawAndGuess?roomCode=${roomCode}&target=${target}`,
           {
-            method: 'POST',
+            method: "POST",
           }
         );
         if (!response.ok) {
@@ -238,21 +248,33 @@ const PresentPage = () => {
     updatePresentRoomInfo(newPresentRoomInfo);
   };
 
-  const handleBack = async () => {
+  const handleBackToWaitRoom = async () => {
     const url = `${serverPort}/backToWaitRoom?roomCode=${roomCode}`;
     try {
       const response = await fetch(url, {
-        method: "POST"
+        method: "POST",
       });
-      if (response.ok) {
-        navigate("/WaitRoomPage", {
-          state: { user, admin },
-        });
-      }
+      // if (response.ok) {
+      //   setRoomStatus(RoomStatus.WAITING);
+      // }
     } catch (error) {
       console.error("Error returning to WaitRoom:", error);
     }
-  }
+  };
+
+  // const handleBackToPresentRoom = async () => {
+  //   const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;
+  //   try {
+  //     const response = await fetch(url, {
+  //       method: 'POST',
+  //     });
+  //     // if (response.ok) {
+  //     //   setRoomStatus(RoomStatus.PRESENTING);
+  //     // }
+  //   } catch (error) {
+  //     console.error('Error returning to WaitRoom:', error);
+  //   }
+  // };
 
   return (
     <div className="present-page-container">
@@ -265,24 +287,35 @@ const PresentPage = () => {
         <h2>{presenter?.displayName}</h2>
       </div>
       <div className="presenter-info">
-        <p>First Name: {renderInfoOrGameSelector('firstName')}</p>
-        <p>Last Name: {renderInfoOrGameSelector('lastName')}</p>
-        <p>City: {renderInfoOrGameSelector('city')}</p>
-        <p>Country: {renderInfoOrGameSelector('country')}</p>
-        <p>Feeling: {renderInfoOrGameSelector('feeling')}</p>
-        <p>Favourite Food: {renderInfoOrGameSelector('favFood')}</p>
-        <p>Favorite Activity: {renderInfoOrGameSelector('favActivity')}</p>
+        <p>First Name: {renderInfoOrGameSelector("firstName")}</p>
+        <p>Last Name: {renderInfoOrGameSelector("lastName")}</p>
+        <p>City: {renderInfoOrGameSelector("city")}</p>
+        <p>Country: {renderInfoOrGameSelector("country")}</p>
+        <p>Feeling: {renderInfoOrGameSelector("feeling")}</p>
+        <p>Favourite Food: {renderInfoOrGameSelector("favFood")}</p>
+        <p>Favorite Activity: {renderInfoOrGameSelector("favActivity")}</p>
       </div>
       <div>
         {userID === admin.userID && (
           <button
             className="admin-only-button"
-            onClick={() => handleBack()}
+            onClick={() => handleBackToWaitRoom()}
           >
-            Back
+            Back to WaitRoom
           </button>
         )}
       </div>
+      {/* <div>
+        {isPresenter ||
+          (userID === admin.userID && (
+            <button
+              className="admin-only-button"
+              onClick={() => handleBackToPresentRoom()}
+            >
+              Back to PresentRoom
+            </button>
+          ))}
+      </div> */}
     </div>
   );
 };
