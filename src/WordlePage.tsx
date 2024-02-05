@@ -69,6 +69,7 @@ const Wordle = () => {
       6. add admin avatar
       7. Ensure input after web socket connected
       8. test
+      9. can delete first column with value
   */
 
   // Initialize web socket and fetch word
