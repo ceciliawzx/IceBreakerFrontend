@@ -18,6 +18,7 @@ const PresentPage = () => {
   const roomCode: string = user.roomCode;
   const presenter: UserProfile = location.state?.presenter;
   const admin: User = location.state?.admin;
+  const guests: UserProfile[] = location.state?.guests;
   const [presenterInfo, setPresenterInfo] = useState<UserProfile | null>(null);
   const [presentRoomInfo, setPresentRoomInfo] = useState<PresentRoomInfo>({
     firstName: false,
@@ -187,6 +188,24 @@ const PresentPage = () => {
       } else {
         // TODO: for other games
       }
+
+      const handleWordle = async () => {
+        const response = await fetch(
+          `${serverPort}/startWordle?roomCode=${roomCode}&userID=${presenter?.userID}&field=${fieldName}`,
+          {
+            method: "POST",
+          }
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+      };
+
+      if (gameType === GameType.WORDLE) {
+        handleWordle();
+      } else {
+        // TODO: for other games
+      }
     }
     setActiveGameSelector(null);
   };
@@ -256,9 +275,6 @@ const PresentPage = () => {
       const response = await fetch(url, {
         method: "POST",
       });
-      // if (response.ok) {
-      //   setRoomStatus(RoomStatus.WAITING);
-      // }
     } catch (error) {
       console.error("Error returning to WaitRoom:", error);
     }

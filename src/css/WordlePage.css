@@ -1,0 +1,136 @@
+.wordle-page {
+  margin-top: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.wordle-container {
+  display: flex;
+  justify-content: space-between;
+  /* max-width: 1200px;  */
+  margin: 0 auto;
+}
+
+.left-column {
+  flex: 0.1;
+}
+
+.main-column {
+  flex: 0.6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.right-column {
+  flex: 0.3;
+}
+
+.column-guest-container {
+  display: flex; /* Aligns children of guest-container in a row */
+  flex-direction: column;
+  align-items: center; /* Optional: Center the items horizontally */
+  position: relative;
+}
+
+.guest-row {
+  display: flex; /* Aligns children of guest-container in a row */
+  flex-direction: row;
+  align-items: center; /* Optional: Center the items horizontally */
+}
+
+.arrow-indicator {
+  position: absolute;
+  top: 50%;
+  left: -20px; /* Adjust the distance from the left */
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 10px 0 10px 15px; /* Adjust the size and direction of the arrow */
+  border-color: transparent transparent transparent #5d99e2; /* Adjust the arrow color */
+}
+
+.common-button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.common-button:hover {
+  background-color: #45a049;
+}
+
+.admin-only-button {
+  background-color: #5d99e2;
+  color: white;
+  border: none;
+  cursor: pointer;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.admin-only-button:hover {
+  background-color: #4e5ed2;
+}
+
+.admin-only-button:disabled {
+  background-color: #cccccc; /* Grey color for disabled state */
+  cursor: not-allowed; /* Change cursor to indicate the button is not clickable */
+}
+
+.wordle-input-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.wordle-input-row input {
+  width: 40px;
+  height: 40px;
+  text-align: center;
+  font-size: 20px; /* Adjust the font size */
+  font-weight: bold; /* Make the font bold */
+}
+
+.alphabet-list {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr); /* 9 columns for the first row */
+  grid-gap: 5px; /* Adjust the gap as needed */
+}
+
+/* Styles for the second row */
+.alphabet-list .row-2 {
+  grid-template-columns: repeat(9, 1fr); /* 9 columns for the second row */
+}
+
+/* Styles for the third row */
+.alphabet-list .row-3 {
+  grid-template-columns: repeat(8, 1fr); /* 8 columns for the third row */
+}
+
+/* Common styles for alphabet blocks */
+.alphabet-block {
+  display: inline-block;
+  grid-template-columns: repeat(9, 1fr);
+  width: 30px;
+  height: 30px;
+  border: 1px solid #ccc;
+  margin: 5px;
+  text-align: center;
+  line-height: 30px;
+}
+
+.row-1 .row-2 .row-3 {
+  background-color: var(--gray-background);
+}

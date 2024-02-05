@@ -1,0 +1,14 @@
+:root {
+  --common-button: #4caf50;
+  --common-button-hover: #45a049;
+  --admin-button: #5d99e2;
+  --admin-button-hover: #4e5ed2;
+  --red-button: #e3242b;
+  --red-button-hover: #c01016;
+
+  --gray-background: #cccccc;
+
+  --wordle-unchecked: #b8b8b8;
+  --wordle-yellow: #ffe479;
+  --wordle-green: #7ed78c;
+}
