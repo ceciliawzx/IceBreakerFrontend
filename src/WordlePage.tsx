@@ -233,8 +233,8 @@ const Wordle = () => {
   };
 
   const handleBackspace = (row: number, col: number) => {
-    // first column, cannot delete
-    if (col <= 0) {
+    // If empty first column, cannot delete
+    if (col <= 0 && currentGuess[row][col].letter === "") {
       return;
     }
 
