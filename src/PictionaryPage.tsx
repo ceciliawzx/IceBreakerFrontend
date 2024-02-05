@@ -7,7 +7,7 @@ import { connect, sendMsg } from "./utils/ChatService";
 import { serverPort, websocketPort } from "./macro/MacroServer";
 import "./css/PictionaryPage.css";
 import { User } from "./type/User";
-import { checkRoomStatus } from "./utils/CheckRoomStatus";
+import { checkRoomStatus, updatePresentRoomInfo } from "./utils/RoomOperation";
 import { RoomStatus } from "./type/RoomStatus";
 import { refreshTime } from "./macro/MacroConst";
 import { PresentRoomInfo } from "./type/PresentRoomInfo";
@@ -23,6 +23,7 @@ const PictionaryPage = () => {
   const roomCode = user?.roomCode;
   const admin = location.state?.admin;
   const presenter = location.state?.presenter;
+  const guests = location.state?.guests;
   const isPresenter = location.state?.isPresenter;
   const presentRoomInfo = location.state?.presentRoomInfo;
   const fieldName = location.state?.selectedField;
@@ -61,7 +62,7 @@ const PictionaryPage = () => {
     // Navigate to PresentPage
     if (roomStatus === RoomStatus.PRESENTING) {
       navigate("/PresentPage", {
-        state: { user, admin, presenter },
+        state: { user, admin, presenter, guests },
       });
     }
     // Clear timer and count again
@@ -97,21 +98,6 @@ const PictionaryPage = () => {
     [roomCode]
   );
 
-  const updatePresentRoomInfo = async (newPresentRoomInfo: PresentRoomInfo) => {
-    const url = `${serverPort}/setPresentRoomInfo?roomCode=${roomCode}`;
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newPresentRoomInfo),
-      });
-    } catch (error) {
-      console.error("Error setting presentRoomInfo in backend: ", error);
-    }
-  };
-
   // navigate back to presentRoom
   const handleBackToPresentRoom = async () => {
     // Assume info has been revealed when navigating back to present room, update presentRoomInfo
@@ -119,8 +105,7 @@ const PictionaryPage = () => {
       ...presentRoomInfo,
       [fieldName]: true,
     };
-    updatePresentRoomInfo(newPresentRoomInfo);
-
+    updatePresentRoomInfo({roomCode, newPresentRoomInfo});
     const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;
     try {
       const response = await fetch(url, {

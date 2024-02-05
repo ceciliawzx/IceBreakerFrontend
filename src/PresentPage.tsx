@@ -7,7 +7,7 @@ import { refreshTime } from "./macro/MacroConst";
 import { GameType } from "./type/GameType";
 import { RoomStatus } from "./type/RoomStatus";
 import { User } from "./type/User";
-import { checkRoomStatus } from "./utils/CheckRoomStatus";
+import { checkRoomStatus } from "./utils/RoomOperation";
 import "./css/PresentPage.css";
 
 const PresentPage = () => {
@@ -75,7 +75,28 @@ const PresentPage = () => {
     // Navigate to Pictionary
     if (roomStatus === RoomStatus.PICTURING) {
       navigate("/PictionaryRoomPage", {
-        state: { user, isPresenter: isPresenter, admin, presenter, presentRoomInfo, selectedField },
+        state: {
+          user,
+          isPresenter: isPresenter,
+          admin,
+          presenter,
+          guests,
+          presentRoomInfo,
+          selectedField,
+        },
+      });
+    }
+    // Navigate to Wordle
+    if (roomStatus === RoomStatus.WORDLING) {
+      navigate("/WordlePage", {
+        state: {
+          user,
+          admin,
+          presenter,
+          guests,
+          presentRoomInfo,
+          selectedField,
+        },
       });
     }
     // Back to WaitRoom
@@ -185,10 +206,7 @@ const PresentPage = () => {
       };
       if (gameType === GameType.PICTIONARY) {
         handlePictionaryRoom(fieldName);
-      } else {
-        // TODO: for other games
       }
-
       const handleWordle = async () => {
         const response = await fetch(
           `${serverPort}/startWordle?roomCode=${roomCode}&userID=${presenter?.userID}&field=${fieldName}`,
@@ -200,7 +218,6 @@ const PresentPage = () => {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
       };
-
       if (gameType === GameType.WORDLE) {
         handleWordle();
       } else {

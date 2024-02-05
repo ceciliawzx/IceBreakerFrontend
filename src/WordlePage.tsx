@@ -7,6 +7,8 @@ import { UserProfile } from "./type/UserProfile";
 import { serverPort, websocketPort } from "./macro/MacroServer";
 import { LetterStatus, WordleLetter } from "./type/WordleLetter";
 import { connect, sendMsg } from "./utils/ChatService";
+import { updatePresentRoomInfo } from "./utils/RoomOperation";
+import { PresentRoomInfo } from "./type/PresentRoomInfo";
 
 interface WordleMsg {
   currentAttempt: number;
@@ -33,6 +35,8 @@ const Wordle = () => {
   const admin = location.state?.admin;
   const presenter = location.state?.presenter;
   const guests: User[] = location.state?.guests;
+  const presentRoomInfo = location.state?.presentRoomInfo;
+  const fieldName = location.state?.selectedField;
 
   /* Pop up */
   const [selectedUserProfile, setSelectedUserProfile] =
@@ -292,6 +296,12 @@ const Wordle = () => {
   };
 
   const handleBack = async () => {
+    // Update PresentRoomInfo
+    const newPresentRoomInfo: PresentRoomInfo = {
+      ...presentRoomInfo,
+      [fieldName]: true,
+    };
+    updatePresentRoomInfo({ roomCode, newPresentRoomInfo });
     // Change room status
     const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;
     try {
