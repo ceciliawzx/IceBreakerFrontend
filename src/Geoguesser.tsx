@@ -98,27 +98,15 @@ const GeoguesserPage: React.FC = () => {
         `${serverPort}/getGeoguesserStatus?roomCode=${roomCode}`,
         { method: "GET" }
       );
-      const data = await response.json();
+      
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
-      if (data) {
-        setGeoguesserStatus(data as GeoguesserStatus);
-        console.log("status get:",data,"statue set:", geoguesserStatus)
-      } else {
-        throw new Error("Invalid status received:", data);
-      }
-
-      if (geoguesserStatus === GeoguesserStatus.PRE_CHOOSE) {
-        setGuestWaitingPopup(true);
-      } else if (geoguesserStatus === GeoguesserStatus.PLAYER_CHOOSE) {
-        setGuestWaitingPopup(false);
-      } else if (geoguesserStatus === GeoguesserStatus.SUBMITTED) {
-        setShowSubmitPopup(false);
-        setShowAllSubmitPopup(true);
-      }
-
+      const data = await response.json();
+      setGeoguesserStatus(data);
+      console.log("status get:",data,"statue set:", geoguesserStatus);
+      
     } catch (error) {
       console.error("Failed to fetch room status:", error);
     }
@@ -128,14 +116,15 @@ const GeoguesserPage: React.FC = () => {
   useEffect(() => {
     checkRoomStatus();
 
-    // Update the player list every interval
-    const intervalId = setInterval(() => {
-      checkRoomStatus();
-    }, refreshTime);
-
-    // Clear timer and count again
-    return () => clearInterval(intervalId);
-  }, [userID, roomCode]);
+    if (geoguesserStatus === GeoguesserStatus.PRE_CHOOSE) {
+      setGuestWaitingPopup(true);
+    } else if (geoguesserStatus === GeoguesserStatus.PLAYER_CHOOSE) {
+      setGuestWaitingPopup(false);
+    } else if (geoguesserStatus === GeoguesserStatus.SUBMITTED) {
+      setShowSubmitPopup(false);
+      setShowAllSubmitPopup(true);
+    }
+  }, [geoguesserStatus]);
   
 
   return (

@@ -61,7 +61,6 @@ const WaitRoomPage = () => {
     });
   };
 
-
   const handleWordle = async () => {
     // TODO: give field
     const response = await fetch(
