@@ -18,7 +18,12 @@ interface WordleMsg {
   allLetterStat: LetterStatus[];
 }
 
+interface BackMsg {
+  roomCode: string;
+}
+
 const Wordle = () => {
+  const rootStyles = getComputedStyle(document.documentElement);
   const navigate = useNavigate();
   const location = useLocation();
   const user = location.state?.user;
@@ -46,6 +51,7 @@ const Wordle = () => {
   const [currentGuesser, setCurrentGuesser] = useState<User>(guests[0]);
   const [currentAttempt, setCurrentAttempt] = useState<number>(0);
   const [targetCharNum, setTargetCharNum] = useState<number>(0);
+  const [targetWord, setTargetWord] = useState<string>("");
   const [correct, setCorrect] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
@@ -53,33 +59,25 @@ const Wordle = () => {
   const [currentGuess, setCurrentGuess] = useState<WordleLetter[][]>([]);
 
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const [allLetterStatus, setAllLetterStatus] = useState<WordleLetter[]>(
-    Array.from(alphabet).map(
-      (letter) => new WordleLetter(letter, LetterStatus.UNCHECKED)
-    )
+  const [allLetterStatus, setAllLetterStatus] = useState<LetterStatus[]>(
+    Array.from(alphabet).map((_) => LetterStatus.UNCHECKED)
   );
 
   /*
       TODO:
-      1. alphabet change color accordingly
-      2. only selected user can type
-      3. give answer after total attempts reached
-      4. return to present room after finish
-      5. change field linked into wordle room
-      6. add admin avatar
-      7. Ensure input after web socket connected
-      8. test
+      Ensure input after web socket connected
   */
 
   // Initialize web socket and fetch word
   useEffect(() => {
     // Initialize web socket
-    connect(socketUrl, websocketUrl, topic, (msg: WordleMsg) => {
-      receiveWordleMessage(msg);
+    connect(socketUrl, websocketUrl, topic, (msg: WordleMsg | BackMsg) => {
+      receiveMessage(msg);
     });
 
-    // fetch target word length
+    // fetch target word
     fetchWordLength();
+    fetchTargetWord();
   }, []);
 
   // Initialize grid
@@ -94,10 +92,25 @@ const Wordle = () => {
     }
   }, [targetCharNum]);
 
-  // Set focus
+  // When grid initialized
   useEffect(() => {
-    document.getElementById("input-0-0")?.focus();
+    if (isSameUser(user, currentGuesser)) {
+      document.getElementById("input-0-0")?.focus();
+    }
   }, [initialized]);
+
+  // When submit
+  useEffect(() => {
+    const nextGuesser = guests[currentAttempt % guests.length];
+
+    // Change to next guesser
+    setCurrentGuesser(nextGuesser);
+
+    // Move cursor to the first grid next row
+    if (isSameUser(user, nextGuesser)) {
+      document.getElementById(`input-${currentAttempt}-0`)?.focus();
+    }
+  }, [currentAttempt]);
 
   // Fetch target word length
   const fetchWordLength = async () => {
@@ -124,6 +137,31 @@ const Wordle = () => {
     }
   };
 
+  // Fetch target word
+  const fetchTargetWord = async () => {
+    try {
+      const response = await fetch(
+        `${serverPort}/getWordleAnswer?roomCode=${roomCode}`,
+        {
+          method: "GET",
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const targetWord = await response.text();
+
+      if (targetWord != "ERROR") {
+        setTargetWord(targetWord);
+      } else {
+        console.error("Game cannot be found.");
+      }
+    } catch (error) {
+      console.error("Error fetching wordle answer:", error);
+    }
+  };
+
   // send message via websocket
   const sendWordleMessage = (
     icCheck: boolean,
@@ -141,32 +179,49 @@ const Wordle = () => {
   };
 
   // receive and parse message from websocket
-  const receiveWordleMessage = (msg: WordleMsg) => {
+  const receiveMessage = (msg: WordleMsg | BackMsg) => {
     try {
-      // Update guess
-      setCurrentGuess(msg.letters);
-
-      // Check if is correct
-      if (msg.isCheck) {
-        setCorrect(msg.isCorrect);
+      // If contain letters field, is WordleMsg
+      if ("letters" in msg) {
+        handleWordleMessage(msg as WordleMsg);
+      } else {
+        handleBackMessage();
       }
-
-      // Change alphabet status
-      const resultLetterStatus: LetterStatus[] = msg.allLetterStat;
-      const updatedLetterStatus = allLetterStatus.map(
-        (original, index) =>
-          new WordleLetter(original.letter, resultLetterStatus[index])
-      );
-      setAllLetterStatus(updatedLetterStatus);
     } catch (error) {
       console.error("Error parsing:", error);
     }
   };
 
+  // Update wordle page
+  const handleWordleMessage = (msg: WordleMsg) => {
+    setCurrentGuess(msg.letters);
+
+    if (msg.isCheck) {
+      setCorrect(msg.isCorrect);
+      setCurrentAttempt((prevAttempt) => prevAttempt + 1);
+    }
+
+    setAllLetterStatus(msg.allLetterStat);
+  };
+
+  // Back to present page
+  const handleBackMessage = async () => {
+    navigate("/PresentPage", {
+      state: { user, admin, presenter, guests },
+    });
+  };
+
   const handleInputChange = (row: number, col: number, value: string) => {
-    // Can only modify the current row and should input character
-    // If already correct, disable input
-    if (row !== currentAttempt || !/^[a-zA-Z]$/.test(value) || correct) {
+    /* Disable input when:
+       1. User is not current guesser
+       2. Input is not alphabet
+       3. Has got the correct answer
+    */
+    if (
+      // !isSameUser(user, currentGuesser) ||
+      !/^[a-zA-Z]$/.test(value) ||
+      correct
+    ) {
       return;
     }
 
@@ -189,8 +244,8 @@ const Wordle = () => {
   };
 
   const handleBackspace = (row: number, col: number) => {
-    // first column, cannot delete
-    if (col <= 0) {
+    // If empty first column, cannot delete
+    if (col <= 0 && currentGuess[row][col].letter === "") {
       return;
     }
 
@@ -232,32 +287,23 @@ const Wordle = () => {
       return;
     }
 
-    // Move cursor to the first grid next row
-    document.getElementById(`input-${currentAttempt + 1}-0`)?.focus();
-
-    // Change next guesser
-    setCurrentGuesser(guests[(currentAttempt + 1) % guests.length]);
-
-    setCurrentAttempt(currentAttempt + 1);
-
     // sendMessage
     sendWordleMessage(true, currentGuess);
   };
 
   const handleBack = async () => {
-    const response = await fetch(
-      `${serverPort}/backToWaitRoom?roomCode=${roomCode}`,
-      {
+    // Change room status
+    const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;
+    try {
+      const response = await fetch(url, {
         method: "POST",
+      });
+      if (!response.ok) {
+        console.log(`HTTP error! Status: ${response.status}`);
       }
-    );
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
+    } catch (error) {
+      console.error("Error returning to PresentRoom:", error);
     }
-
-    navigate("/WaitRoomPage", {
-      state: { user, admin, presenter, guests },
-    });
   };
 
   const handleViewProfile = async (user: User | null) => {
@@ -296,25 +342,33 @@ const Wordle = () => {
 
   const reachMaxAttempt = () => currentAttempt >= totalAttempts;
 
+  const isSameUser = (self: User, other: User) => self.userID === other.userID;
+
   const getStatusStyle = (status: LetterStatus) => {
     switch (status) {
-      case LetterStatus.UNCHECKED:
-        return { backgroundColor: "transparent" };
       case LetterStatus.GREY:
-        return { backgroundColor: "#b8b8b8" };
+        return {
+          backgroundColor: rootStyles.getPropertyValue("--wordle-unchecked"),
+        };
       case LetterStatus.YELLOW:
-        return { backgroundColor: "#ffe479" };
+        return {
+          backgroundColor: rootStyles.getPropertyValue("--wordle-yellow"),
+        };
       case LetterStatus.GREEN:
-        return { backgroundColor: "#7ed78c" };
+        return {
+          backgroundColor: rootStyles.getPropertyValue("--wordle-green"),
+        };
       default:
-        return {};
+        return {
+          backgroundColor: "transparent",
+        };
     }
   };
 
   return (
     <div className="wordle-container">
       <div className="left-column">
-        <div className="presenter">
+        <div className="presenter" style={{ marginBottom: "60%" }}>
           <h2>Presenter:</h2>
           <img
             src={`${presenter?.profileImage}`}
@@ -322,11 +376,29 @@ const Wordle = () => {
             className="presenter-avatar"
           />
           <p>{presenter?.displayName}</p>
+          {isAdmin && (
+            <button
+              className="admin-only-button"
+              onClick={() => handleViewProfile(presenter)}
+            >
+              View Profile
+            </button>
+          )}
+        </div>
+
+        <div className="presenter">
+          <h2>Admin:</h2>
+          <img
+            src={`${admin?.profileImage}`}
+            alt="Admin's Image"
+            className="presenter-avatar"
+          />
+          <p>{admin?.displayName}</p>
         </div>
       </div>
       <div className="main-column" onKeyDown={handleKeyPress}>
         <h1>Welcome to Wordle, {user.displayName}!</h1>
-        <p>Current guesser is: {currentGuesser?.displayName}</p>
+        <h2>Current guesser is: {currentGuesser?.displayName}</h2>
         <div className="wordle-input">
           {currentGuess.map((_, rowIndex) => (
             <div key={rowIndex} className="wordle-input-row">
@@ -349,18 +421,23 @@ const Wordle = () => {
                     }
                   }}
                   style={getStatusStyle(letter.state)}
+                  disabled={rowIndex !== currentAttempt}
                 />
               ))}
             </div>
           ))}
         </div>
+
         {correct && <h2> You guessed the word! </h2>}
-        {reachMaxAttempt() && <h2> Finished. You failed. </h2>}
+        {reachMaxAttempt() && !correct && (
+          <h2>The correct answer is: {targetWord}</h2>
+        )}
         <div className="alphabet-list">
           {Array.from(alphabet).map((letter, index) => (
             <div
               key={index}
               className={`alphabet-block row-${Math.floor(index / 9) + 1}`}
+              style={getStatusStyle(allLetterStatus[index])}
             >
               {/* You can customize the styling or add other elements as needed */}
               {letter}
@@ -370,9 +447,11 @@ const Wordle = () => {
         <button className="common-button" onClick={handleGuess}>
           Guess
         </button>
-        <button className="common-button" onClick={handleBack}>
-          Back
-        </button>
+        {isAdmin && (
+          <button className="common-button" onClick={handleBack}>
+            Back
+          </button>
+        )}
       </div>
       <div className="right-column">
         <div className="guest-list">
@@ -381,7 +460,7 @@ const Wordle = () => {
             {guests.map((guest, index) => (
               <div key={index} className="guest-row">
                 <div className="guest">
-                  {guest.userID == currentGuesser.userID && (
+                  {isSameUser(guest, currentGuesser) && (
                     <div className="arrow-indicator"></div>
                   )}
 
