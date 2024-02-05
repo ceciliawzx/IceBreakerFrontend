@@ -64,7 +64,7 @@ const Wordle = () => {
 
   /*
       TODO:
-      4. return to present room after finish
+      4. 
       5. change field linked into wordle room
       7. Ensure input after web socket connected
   */
@@ -181,33 +181,15 @@ const Wordle = () => {
     });
   };
 
-  const sendBackMessage = async () => {
-    console.log("send");
-
-    // Change room status
-    const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-      });
-      if (response.ok) {
-        // Broadcast back message
-        sendMsg(destination, {
-          roomCode: roomCode,
-        });
-      }
-    } catch (error) {
-      console.error("Error returning to PresentRoom:", error);
-    }
-  };
-
   // receive and parse message from websocket
   const receiveMessage = (msg: WordleMsg | BackMsg) => {
+    console.log("receive");
     try {
       // If contain letters field, is WordleMsg
       if ("letters" in msg) {
         handleWordleMessage(msg as WordleMsg);
       } else {
+        console.log("Back");
         handleBackMessage();
       }
     } catch (error) {
@@ -312,6 +294,22 @@ const Wordle = () => {
 
     // sendMessage
     sendWordleMessage(true, currentGuess);
+  };
+
+  const handleBack = async () => {
+    // Change room status
+    const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+      });
+      if (response.ok) {
+        // Broadcast back message
+        console.log("send message");
+      }
+    } catch (error) {
+      console.error("Error returning to PresentRoom:", error);
+    }
   };
 
   const handleViewProfile = async (user: User | null) => {
@@ -450,7 +448,7 @@ const Wordle = () => {
           Guess
         </button>
         {isAdmin && (
-          <button className="common-button" onClick={sendBackMessage}>
+          <button className="common-button" onClick={handleBack}>
             Back
           </button>
         )}
