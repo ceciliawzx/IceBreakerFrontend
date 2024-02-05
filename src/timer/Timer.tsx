@@ -7,7 +7,7 @@ import { RoomStatus } from "../type/RoomStatus";
 
 // roomStatus: when timer stops, what status should the room go to
 // defaultTime: set the timer to defaultTime at beginning
-const Timer = ({
+export const Timer = ({
   user,
   roomCode,
   roomStatus,
@@ -32,11 +32,8 @@ const Timer = ({
   useEffect(() => {
     // Define the topic to subscribe to for timer updates
     const topic = `/topic/room/${roomCode}/timer`;
-    const subscriptions = [
-      { topic, onMessageReceived: onTimerMessageReceived },
-    ];
     // Connect to WebSocket and subscribe to the timer topic
-    const client = connect(socketUrl, websocketUrl, subscriptions);
+    const client = connect(socketUrl, websocketUrl, topic, onTimerMessageReceived);
 
     // Start the timer automatically
     startTimer(defaultTime);

@@ -11,6 +11,7 @@ import { checkRoomStatus, updatePresentRoomInfo } from "./utils/RoomOperation";
 import { RoomStatus } from "./type/RoomStatus";
 import { refreshTime } from "./macro/MacroConst";
 import { PresentRoomInfo } from "./type/PresentRoomInfo";
+import { Timer } from "./timer/Timer";
 
 const PictionaryPage = () => {
   const location = useLocation();
@@ -79,11 +80,7 @@ const PictionaryPage = () => {
     const socketUrl = `${serverPort}/chat?userId=${userID}`;
     const websocketUrl = `${websocketPort}/chat?userId=${userID}`;
     const topic = `/topic/room/${roomCode}/drawing`;
-    const subsciptionConfig = {
-      topic: topic,
-      onMessageReceived: handleReceivedDrawing
-    };
-    connect(socketUrl, websocketUrl, [subsciptionConfig]);
+    connect(socketUrl, websocketUrl, topic, handleReceivedDrawing);
   }, []);
 
   // Send DrawingMessage to server
@@ -140,6 +137,14 @@ const PictionaryPage = () => {
               Back to PresentRoom
             </button>
           )}
+        </div>
+        <div>
+          <Timer
+            user={user}
+            roomCode={roomCode}
+            roomStatus={RoomStatus.PRESENTING}
+            defaultTime={40}
+          />
         </div>
       </div>
     </div>

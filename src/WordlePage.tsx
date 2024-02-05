@@ -74,14 +74,12 @@ const Wordle = () => {
 
   // Initialize web socket and fetch word
   useEffect(() => {
-    const subscriptionConfig = {
-      topic: topic,
-      onMessageReceived: (msg: WordleMsg | BackMsg) => {
-        receiveMessage(msg);
-      }
+    const onMessageReceived = (msg: WordleMsg | BackMsg) => {
+      receiveMessage(msg);
     };
+
     // Initialize web socket
-    connect(socketUrl, websocketUrl, [subscriptionConfig]);
+    connect(socketUrl, websocketUrl, topic, onMessageReceived);
 
     // fetch target word
     fetchWordLength();
