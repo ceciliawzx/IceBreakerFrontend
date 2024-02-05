@@ -8,6 +8,7 @@ import { GameType } from "./type/GameType";
 import { RoomStatus } from "./type/RoomStatus";
 import { User } from "./type/User";
 import { checkRoomStatus } from "./utils/RoomOperation";
+import { updatePresentRoomInfo } from './utils/RoomOperation';
 import "./css/PresentPage.css";
 
 const PresentPage = () => {
@@ -258,24 +259,7 @@ const PresentPage = () => {
     }
   };
 
-  const updatePresentRoomInfo = async (newPresentRoomInfo: PresentRoomInfo) => {
-    const url = `${serverPort}/setPresentRoomInfo?roomCode=${roomCode}`;
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newPresentRoomInfo),
-      });
-      if (response) {
-        // Re-fetch the updated state after a successful update
-        checkPresentRoomInfo();
-      }
-    } catch (error) {
-      console.error("Error setting presentRoomInfo in backend: ", error);
-    }
-  };
+
 
   const handleToggleReveal = (field: keyof PresentRoomInfo) => {
     if (!isPresenter) return;
@@ -283,7 +267,7 @@ const PresentPage = () => {
       ...presentRoomInfo,
       [field]: true,
     };
-    updatePresentRoomInfo(newPresentRoomInfo);
+    updatePresentRoomInfo({roomCode, newPresentRoomInfo});
   };
 
   const handleBackToWaitRoom = async () => {

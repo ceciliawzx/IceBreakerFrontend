@@ -2,11 +2,12 @@ import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
 
 let client: Client | null = null;
+
 const connect = (
   socketUrl: string,
   webSocketUrl: string,
   topic: string,
-  onMessageReceived: (msg: any) => void
+  onMessageReceived: (msg: any) => void,
 ) => {
   const socket = new SockJS(socketUrl);
   client = new Client({
@@ -18,7 +19,7 @@ const connect = (
         if (client && client.connected) {
           console.log(`Subscribing to topic ${topic}`);
           client.subscribe(topic, (message) => {
-            // console.log("receiving message ", message.body);
+            console.log("receiving message ", message.body);
             onMessageReceived(JSON.parse(message.body));
           });
         } else {

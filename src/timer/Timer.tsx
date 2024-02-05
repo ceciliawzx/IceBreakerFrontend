@@ -18,43 +18,43 @@ export const Timer = ({
   roomStatus: RoomStatus;
   defaultTime: number;
 }) => {
-  const [timeLeft, setTimeLeft] = useState(null);
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const userID = user.userID;
+  const [isConnected, setIsConnected] = useState(false); // Use to track connection status
+
   const socketUrl = `${serverPort}/chat?userId=${userID}`;
   const websocketUrl = `${websocketPort}/chat?userId=${userID}`;
 
-  // Callback function to handle incoming timer messages
-  const onTimerMessageReceived = useCallback((msg: any) => {
+  const onTimerMessageReceived = useCallback((msg: number) => {
     setTimeLeft(msg);
   }, []);
 
-  // Connect to websocket and start timer
   useEffect(() => {
-    // Define the topic to subscribe to for timer updates
+    // Connect to WebSocket and set up subscription
     const topic = `/topic/room/${roomCode}/timer`;
-    // Connect to WebSocket and subscribe to the timer topic
-    const client = connect(socketUrl, websocketUrl, topic, onTimerMessageReceived);
-
-    // Start the timer automatically
-    startTimer(defaultTime);
-
-    return () => {
-      if (client) {
-        client.deactivate(); // Clean up on component unmount
-      }
-    };
+    connect(socketUrl, websocketUrl, topic, onTimerMessageReceived);
+    setIsConnected(true);
   }, []);
+  
 
   // Function to start the timer
   const startTimer = (seconds: number) => {
     const destination = `/app/room/${roomCode}/startTimer`;
-    const timerMessage = {
-      roomCode,
-      roomStatus,
-      seconds,
+    const timerMessage: TimerMessage = {
+      roomCode: roomCode,
+      roomStatus: roomStatus,
+      seconds: seconds,
     };
     sendMsg(destination, timerMessage);
   };
+
+//   useEffect(() => {
+//     // Once connected, attempt to start the timer after a brief delay
+//     if (isConnected) {
+//       const delay = 2000; // Delay in milliseconds
+//       setTimeout(() => startTimer(defaultTime), delay);
+//     }
+//   }, [isConnected]);
 
   // Function to send a message to modify the timer
   const modifyTimer = (seconds: number) => {
@@ -86,6 +86,7 @@ export const Timer = ({
       </div>
       {user.isAdmin && (
         <div>
+          <button onClick={() => startTimer(40)}>Start Timer</button>
           <button onClick={() => modifyTimer(30)}>Add 30 Seconds</button>
           <button onClick={stopTimer}>Skip Timer</button>
         </div>

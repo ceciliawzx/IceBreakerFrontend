@@ -61,6 +61,12 @@ const PictionaryPage = () => {
     }, refreshTime);
 
     // Navigate to PresentPage
+    // Assume info has been revealed when navigating back to present room, update presentRoomInfo
+    const newPresentRoomInfo: PresentRoomInfo = {
+      ...presentRoomInfo,
+      [fieldName]: true,
+    };
+    updatePresentRoomInfo({ roomCode, newPresentRoomInfo });
     if (roomStatus === RoomStatus.PRESENTING) {
       navigate("/PresentPage", {
         state: { user, admin, presenter, guests },
@@ -101,12 +107,6 @@ const PictionaryPage = () => {
 
   // navigate back to presentRoom
   const handleBackToPresentRoom = async () => {
-    // Assume info has been revealed when navigating back to present room, update presentRoomInfo
-    const newPresentRoomInfo: PresentRoomInfo = {
-      ...presentRoomInfo,
-      [fieldName]: true,
-    };
-    updatePresentRoomInfo({ roomCode, newPresentRoomInfo });
     const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;
     try {
       const response = await fetch(url, {
