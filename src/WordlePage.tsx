@@ -23,6 +23,7 @@ interface BackMsg {
 }
 
 const Wordle = () => {
+  const rootStyles = getComputedStyle(document.documentElement);
   const navigate = useNavigate();
   const location = useLocation();
   const user = location.state?.user;
@@ -151,8 +152,6 @@ const Wordle = () => {
 
       const targetWord = await response.text();
 
-      console.log(targetWord);
-
       if (targetWord != "ERROR") {
         setTargetWord(targetWord);
       } else {
@@ -181,13 +180,11 @@ const Wordle = () => {
 
   // receive and parse message from websocket
   const receiveMessage = (msg: WordleMsg | BackMsg) => {
-    console.log("receive");
     try {
       // If contain letters field, is WordleMsg
       if ("letters" in msg) {
         handleWordleMessage(msg as WordleMsg);
       } else {
-        console.log("Back");
         handleBackMessage();
       }
     } catch (error) {
@@ -221,7 +218,7 @@ const Wordle = () => {
        3. Has got the correct answer
     */
     if (
-      !isSameUser(user, currentGuesser) ||
+      // !isSameUser(user, currentGuesser) ||
       !/^[a-zA-Z]$/.test(value) ||
       correct
     ) {
@@ -301,9 +298,8 @@ const Wordle = () => {
       const response = await fetch(url, {
         method: "POST",
       });
-      if (response.ok) {
-        // Broadcast back message
-        console.log("send message");
+      if (!response.ok) {
+        console.log(`HTTP error! Status: ${response.status}`);
       }
     } catch (error) {
       console.error("Error returning to PresentRoom:", error);
@@ -350,16 +346,22 @@ const Wordle = () => {
 
   const getStatusStyle = (status: LetterStatus) => {
     switch (status) {
-      case LetterStatus.UNCHECKED:
-        return { backgroundColor: "transparent" };
       case LetterStatus.GREY:
-        return { backgroundColor: "#b8b8b8" };
+        return {
+          backgroundColor: rootStyles.getPropertyValue("--wordle-unchecked"),
+        };
       case LetterStatus.YELLOW:
-        return { backgroundColor: "#ffe479" };
+        return {
+          backgroundColor: rootStyles.getPropertyValue("--wordle-yellow"),
+        };
       case LetterStatus.GREEN:
-        return { backgroundColor: "#7ed78c" };
+        return {
+          backgroundColor: rootStyles.getPropertyValue("--wordle-green"),
+        };
       default:
-        return { backgroundColor: "#b8b8b8" };
+        return {
+          backgroundColor: "transparent",
+        };
     }
   };
 
