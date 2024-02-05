@@ -63,9 +63,7 @@ const Wordle = () => {
       4. return to present room after finish
       5. change field linked into wordle room
       7. Ensure input after web socket connected
-      9. can delete first column with value
-      11. Add view presenter profile
-      12. Move current guessor's cursor better
+      11. 
   */
 
   // Initialize web socket and fetch word
@@ -360,6 +358,14 @@ const Wordle = () => {
             className="presenter-avatar"
           />
           <p>{presenter?.displayName}</p>
+          {isAdmin && (
+            <button
+              className="admin-only-button"
+              onClick={() => handleViewProfile(presenter)}
+            >
+              View Profile
+            </button>
+          )}
         </div>
 
         <div className="presenter">
@@ -374,7 +380,7 @@ const Wordle = () => {
       </div>
       <div className="main-column" onKeyDown={handleKeyPress}>
         <h1>Welcome to Wordle, {user.displayName}!</h1>
-        <p>Current guesser is: {currentGuesser?.displayName}</p>
+        <h2>Current guesser is: {currentGuesser?.displayName}</h2>
         <div className="wordle-input">
           {currentGuess.map((_, rowIndex) => (
             <div key={rowIndex} className="wordle-input-row">
