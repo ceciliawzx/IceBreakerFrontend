@@ -46,6 +46,7 @@ const Wordle = () => {
   const [currentGuesser, setCurrentGuesser] = useState<User>(guests[0]);
   const [currentAttempt, setCurrentAttempt] = useState<number>(0);
   const [targetCharNum, setTargetCharNum] = useState<number>(0);
+  const [targetWord, setTargetWord] = useState<string>("");
   const [correct, setCorrect] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
@@ -59,13 +60,10 @@ const Wordle = () => {
 
   /*
       TODO:
-      3. give answer after total attempts reached
       4. return to present room after finish
       5. change field linked into wordle room
       7. Ensure input after web socket connected
-      8. test
       9. can delete first column with value
-      10. fix fail and success pop up at same time
       11. Add view presenter profile
       12. Move current guessor's cursor better
   */
@@ -77,8 +75,9 @@ const Wordle = () => {
       receiveWordleMessage(msg);
     });
 
-    // fetch target word length
+    // fetch target word
     fetchWordLength();
+    fetchTargetWord();
   }, []);
 
   // Initialize grid
@@ -129,13 +128,37 @@ const Wordle = () => {
       const wordLength = await response.json();
 
       if (wordLength > 0) {
-        console.log(wordLength);
         setTargetCharNum(wordLength);
       } else {
         console.error("Game cannot be found.");
       }
     } catch (error) {
       console.error("Error fetching wordle length:", error);
+    }
+  };
+
+  // Fetch target word
+  const fetchTargetWord = async () => {
+    try {
+      const response = await fetch(
+        `${serverPort}/getWordleAnswer?roomCode=${roomCode}`,
+        {
+          method: "GET",
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const targetWord = await response.text();
+
+      if (targetWord != "ERROR") {
+        setTargetWord(targetWord);
+      } else {
+        console.error("Game cannot be found.");
+      }
+    } catch (error) {
+      console.error("Error fetching wordle answer:", error);
     }
   };
 
@@ -382,7 +405,9 @@ const Wordle = () => {
         </div>
 
         {correct && <h2> You guessed the word! </h2>}
-        {reachMaxAttempt() && <h2> Finished. You failed. </h2>}
+        {reachMaxAttempt() && !correct && (
+          <h2>The correct answer is: {targetWord}</h2>
+        )}
         <div className="alphabet-list">
           {Array.from(alphabet).map((letter, index) => (
             <div
