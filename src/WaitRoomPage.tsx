@@ -55,19 +55,6 @@ const WaitRoomPage = () => {
     });
   };
 
-  const handleWordle = async () => {
-    // TODO: give field
-    const response = await fetch(
-      `${serverPort}/startWordle?roomCode=${roomCode}&userID=${presenter?.userID}&field=firstName`,
-      {
-        method: "POST",
-      }
-    );
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-  };
-
   const handleUserInformation = () => {
     const preID = presenter?.userID;
 
@@ -284,7 +271,7 @@ const WaitRoomPage = () => {
         setAllGuestsCompleted(allCompleted);
       }
 
-      console.log('Game status', data.roomStatus);
+      console.log("Game status", data.roomStatus);
 
       if (data.roomStatus) {
         console.log("RoomStatus", data.roomStatus);
@@ -311,7 +298,6 @@ const WaitRoomPage = () => {
       console.error("Error fetching player:", error);
     }
   };
-  
 
   useEffect(() => {
     // Check whether the user is admin
@@ -325,20 +311,6 @@ const WaitRoomPage = () => {
       checkPlayers();
       checkKickOut();
     }, refreshTime);
-
-    // Start wordle
-    if (roomStatus === RoomStatus.WORDLING) {
-      navigate("/WordlePage", {
-        state: { user, admin, presenter, guests },
-      });
-    }
-
-    // Start wordle
-    if (roomStatus === RoomStatus.WORDLING) {
-      navigate("/WordlePage", {
-        state: { user, admin, presenter, guests },
-      });
-    }
 
     // If the RoomStatus is PRESENTING, navigate all users to the PresentPage
     if (roomStatus === RoomStatus.PRESENTING) {
@@ -445,11 +417,6 @@ const WaitRoomPage = () => {
       {
         <button className="common-button" onClick={handleChatRoom}>
           Chat Room
-        </button>
-      }
-      {
-        <button className="common-button" onClick={handleWordle}>
-          Start Wordle
         </button>
       }
       {

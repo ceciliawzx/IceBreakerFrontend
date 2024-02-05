@@ -18,6 +18,10 @@ interface WordleMsg {
   allLetterStat: LetterStatus[];
 }
 
+interface BackMsg {
+  roomCode: string;
+}
+
 const Wordle = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -63,14 +67,13 @@ const Wordle = () => {
       4. return to present room after finish
       5. change field linked into wordle room
       7. Ensure input after web socket connected
-      11. 
   */
 
   // Initialize web socket and fetch word
   useEffect(() => {
     // Initialize web socket
-    connect(socketUrl, websocketUrl, topic, (msg: WordleMsg) => {
-      receiveWordleMessage(msg);
+    connect(socketUrl, websocketUrl, topic, (msg: WordleMsg | BackMsg) => {
+      receiveMessage(msg);
     });
 
     // fetch target word
@@ -150,6 +153,8 @@ const Wordle = () => {
 
       const targetWord = await response.text();
 
+      console.log(targetWord);
+
       if (targetWord != "ERROR") {
         setTargetWord(targetWord);
       } else {
@@ -176,26 +181,57 @@ const Wordle = () => {
     });
   };
 
-  // receive and parse message from websocket
-  const receiveWordleMessage = (msg: WordleMsg) => {
+  const sendBackMessage = async () => {
+    console.log("send");
+
+    // Change room status
+    const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;
     try {
-      // Update guess
-      setCurrentGuess(msg.letters);
-
-      // If click the guess button
-      if (msg.isCheck) {
-        // Ccheck if answer is correct
-        setCorrect(msg.isCorrect);
-
-        // Update current attempt
-        setCurrentAttempt((prevAttempt) => prevAttempt + 1);
+      const response = await fetch(url, {
+        method: "POST",
+      });
+      if (response.ok) {
+        // Broadcast back message
+        sendMsg(destination, {
+          roomCode: roomCode,
+        });
       }
+    } catch (error) {
+      console.error("Error returning to PresentRoom:", error);
+    }
+  };
 
-      // Change alphabet status
-      setAllLetterStatus(msg.allLetterStat);
+  // receive and parse message from websocket
+  const receiveMessage = (msg: WordleMsg | BackMsg) => {
+    try {
+      // If contain letters field, is WordleMsg
+      if ("letters" in msg) {
+        handleWordleMessage(msg as WordleMsg);
+      } else {
+        handleBackMessage();
+      }
     } catch (error) {
       console.error("Error parsing:", error);
     }
+  };
+
+  // Update wordle page
+  const handleWordleMessage = (msg: WordleMsg) => {
+    setCurrentGuess(msg.letters);
+
+    if (msg.isCheck) {
+      setCorrect(msg.isCorrect);
+      setCurrentAttempt((prevAttempt) => prevAttempt + 1);
+    }
+
+    setAllLetterStatus(msg.allLetterStat);
+  };
+
+  // Back to present page
+  const handleBackMessage = async () => {
+    navigate("/PresentPage", {
+      state: { user, admin, presenter, guests },
+    });
   };
 
   const handleInputChange = (row: number, col: number, value: string) => {
@@ -205,7 +241,7 @@ const Wordle = () => {
        3. Has got the correct answer
     */
     if (
-      // !isSameUser(user, currentGuesser) ||
+      !isSameUser(user, currentGuesser) ||
       !/^[a-zA-Z]$/.test(value) ||
       correct
     ) {
@@ -276,22 +312,6 @@ const Wordle = () => {
 
     // sendMessage
     sendWordleMessage(true, currentGuess);
-  };
-
-  const handleBack = async () => {
-    const response = await fetch(
-      `${serverPort}/backToWaitRoom?roomCode=${roomCode}`,
-      {
-        method: "POST",
-      }
-    );
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-
-    navigate("/WaitRoomPage", {
-      state: { user, admin, presenter, guests },
-    });
   };
 
   const handleViewProfile = async (user: User | null) => {
@@ -429,9 +449,11 @@ const Wordle = () => {
         <button className="common-button" onClick={handleGuess}>
           Guess
         </button>
-        <button className="common-button" onClick={handleBack}>
-          Back
-        </button>
+        {isAdmin && (
+          <button className="common-button" onClick={sendBackMessage}>
+            Back
+          </button>
+        )}
       </div>
       <div className="right-column">
         <div className="guest-list">
