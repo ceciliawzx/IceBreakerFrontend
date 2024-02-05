@@ -38,7 +38,15 @@ const CreateRoomPage = () => {
         // Creating room is admin
 
         // change the isPresenter later
-        const user = new User(roomCode, userID, displayName, true, true, "", false);
+        const user = new User(
+          roomCode,
+          userID,
+          displayName,
+          true,
+          true,
+          "",
+          false
+        );
         navigate("/WaitRoomPage", {
           state: { user },
         });
@@ -53,7 +61,7 @@ const CreateRoomPage = () => {
   };
 
   return (
-    <div className="create-room-page">
+    <div className="center-page">
       <h1>Create a New Room</h1>
       <div>
         <input
@@ -64,7 +72,7 @@ const CreateRoomPage = () => {
           placeholder="Display Name"
         />
       </div>
-      <button onClick={createRoom} className="submit-button">
+      <button onClick={createRoom} className="common-button">
         Create Room
       </button>
       {message && <p className="error-message">{message}</p>}

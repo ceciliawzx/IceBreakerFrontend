@@ -12,7 +12,7 @@ import PresentPage from "./PresentPage";
 import PictionaryPage from "./PictionaryPage";
 import JoinMockRoomPage from "./JoinMockRoomPage";
 import WordlePage from "./WordlePage";
-import "./css/CommonColour.css";
+import "./css/CommonStyle.css";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
