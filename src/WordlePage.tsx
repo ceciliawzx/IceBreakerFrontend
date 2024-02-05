@@ -64,9 +64,7 @@ const Wordle = () => {
 
   /*
       TODO:
-      4. 
-      5. change field linked into wordle room
-      7. Ensure input after web socket connected
+      Ensure input after web socket connected
   */
 
   // Initialize web socket and fetch word
