@@ -53,10 +53,8 @@ const Wordle = () => {
   const [currentGuess, setCurrentGuess] = useState<WordleLetter[][]>([]);
 
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const [allLetterStatus, setAllLetterStatus] = useState<WordleLetter[]>(
-    Array.from(alphabet).map(
-      (letter) => new WordleLetter(letter, LetterStatus.UNCHECKED)
-    )
+  const [allLetterStatus, setAllLetterStatus] = useState<LetterStatus[]>(
+    Array.from(alphabet).map((_) => LetterStatus.UNCHECKED)
   );
 
   /*
@@ -70,6 +68,7 @@ const Wordle = () => {
       7. Ensure input after web socket connected
       8. test
       9. can delete first column with value
+      10. fix fail and success pop up at same time
   */
 
   // Initialize web socket and fetch word
@@ -153,12 +152,7 @@ const Wordle = () => {
       }
 
       // Change alphabet status
-      const resultLetterStatus: LetterStatus[] = msg.allLetterStat;
-      const updatedLetterStatus = allLetterStatus.map(
-        (original, index) =>
-          new WordleLetter(original.letter, resultLetterStatus[index])
-      );
-      setAllLetterStatus(updatedLetterStatus);
+      setAllLetterStatus(msg.allLetterStat);
     } catch (error) {
       console.error("Error parsing:", error);
     }
@@ -308,7 +302,7 @@ const Wordle = () => {
       case LetterStatus.GREEN:
         return { backgroundColor: "#7ed78c" };
       default:
-        return {};
+        return { backgroundColor: "#b8b8b8" };
     }
   };
 
@@ -362,6 +356,7 @@ const Wordle = () => {
             <div
               key={index}
               className={`alphabet-block row-${Math.floor(index / 9) + 1}`}
+              style={getStatusStyle(allLetterStatus[index])}
             >
               {/* You can customize the styling or add other elements as needed */}
               {letter}
