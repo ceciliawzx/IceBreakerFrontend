@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { serverPort } from "./macro/MacroServer";
 import { User } from "./type/User";
-import "./css/CreateRoomPage.css";
+import "./css/JoinRoomPage.css";
 
 const CreateRoomPage = () => {
   const navigate = useNavigate();

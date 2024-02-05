@@ -37,7 +37,15 @@ const JoinRoomPage = () => {
 
       if (userID) {
         // Joining room cannot be admin
-        const user = new User(roomCode, userID, displayName, false, false, "", false);
+        const user = new User(
+          roomCode,
+          userID,
+          displayName,
+          false,
+          false,
+          "",
+          false
+        );
         navigate("/WaitRoomPage", {
           state: { user },
         });
@@ -50,7 +58,7 @@ const JoinRoomPage = () => {
   };
 
   return (
-    <div className="join-room-page">
+    <div className="center-page">
       <h1>Join a New Room</h1>
       <div className="form-container">
         <form onSubmit={handleSubmit} className="form">
@@ -68,10 +76,10 @@ const JoinRoomPage = () => {
             onChange={(e) => setRoomCode(e.target.value)}
             placeholder="Room Code"
           />
-          <button type="submit" className="submit-button">
+          <button type="submit" className="common-button">
             Join Room
           </button>
-          {message && <p className="message">{message}</p>}
+          {message && <p>{message}</p>}
         </form>
       </div>
       {showPopup && (
