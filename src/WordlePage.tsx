@@ -59,8 +59,6 @@ const Wordle = () => {
 
   /*
       TODO:
-      1. alphabet change color accordingly
-      2. only selected user can type
       3. give answer after total attempts reached
       4. return to present room after finish
       5. change field linked into wordle room
@@ -69,6 +67,8 @@ const Wordle = () => {
       8. test
       9. can delete first column with value
       10. fix fail and success pop up at same time
+      11. Add view presenter profile
+      12. Move current guessor's cursor better
   */
 
   // Initialize web socket and fetch word
@@ -94,10 +94,25 @@ const Wordle = () => {
     }
   }, [targetCharNum]);
 
-  // Set focus
+  // When grid initialized
   useEffect(() => {
-    document.getElementById("input-0-0")?.focus();
+    if (isSameUser(user, currentGuesser)) {
+      document.getElementById("input-0-0")?.focus();
+    }
   }, [initialized]);
+
+  // When submit
+  useEffect(() => {
+    const nextGuesser = guests[currentAttempt % guests.length];
+
+    // Change to next guesser
+    setCurrentGuesser(nextGuesser);
+
+    // Move cursor to the first grid next row
+    if (isSameUser(user, nextGuesser)) {
+      document.getElementById(`input-${currentAttempt}-0`)?.focus();
+    }
+  }, [currentAttempt]);
 
   // Fetch target word length
   const fetchWordLength = async () => {
@@ -146,9 +161,13 @@ const Wordle = () => {
       // Update guess
       setCurrentGuess(msg.letters);
 
-      // Check if is correct
+      // If click the guess button
       if (msg.isCheck) {
+        // Ccheck if answer is correct
         setCorrect(msg.isCorrect);
+
+        // Update current attempt
+        setCurrentAttempt((prevAttempt) => prevAttempt + 1);
       }
 
       // Change alphabet status
@@ -159,9 +178,16 @@ const Wordle = () => {
   };
 
   const handleInputChange = (row: number, col: number, value: string) => {
-    // Can only modify the current row and should input character
-    // If already correct, disable input
-    if (row !== currentAttempt || !/^[a-zA-Z]$/.test(value) || correct) {
+    /* Disable input when:
+       1. User is not current guesser
+       2. Input is not alphabet
+       3. Has got the correct answer
+    */
+    if (
+      !isSameUser(user, currentGuesser) ||
+      !/^[a-zA-Z]$/.test(value) ||
+      correct
+    ) {
       return;
     }
 
@@ -227,14 +253,6 @@ const Wordle = () => {
       return;
     }
 
-    // Move cursor to the first grid next row
-    document.getElementById(`input-${currentAttempt + 1}-0`)?.focus();
-
-    // Change next guesser
-    setCurrentGuesser(guests[(currentAttempt + 1) % guests.length]);
-
-    setCurrentAttempt(currentAttempt + 1);
-
     // sendMessage
     sendWordleMessage(true, currentGuess);
   };
@@ -291,6 +309,8 @@ const Wordle = () => {
 
   const reachMaxAttempt = () => currentAttempt >= totalAttempts;
 
+  const isSameUser = (self: User, other: User) => self.userID === other.userID;
+
   const getStatusStyle = (status: LetterStatus) => {
     switch (status) {
       case LetterStatus.UNCHECKED:
@@ -309,7 +329,7 @@ const Wordle = () => {
   return (
     <div className="wordle-container">
       <div className="left-column">
-        <div className="presenter">
+        <div className="presenter" style={{ marginBottom: "60%" }}>
           <h2>Presenter:</h2>
           <img
             src={`${presenter?.profileImage}`}
@@ -317,6 +337,16 @@ const Wordle = () => {
             className="presenter-avatar"
           />
           <p>{presenter?.displayName}</p>
+        </div>
+
+        <div className="presenter">
+          <h2>Admin:</h2>
+          <img
+            src={`${admin?.profileImage}`}
+            alt="Admin's Image"
+            className="presenter-avatar"
+          />
+          <p>{admin?.displayName}</p>
         </div>
       </div>
       <div className="main-column" onKeyDown={handleKeyPress}>
@@ -344,11 +374,13 @@ const Wordle = () => {
                     }
                   }}
                   style={getStatusStyle(letter.state)}
+                  disabled={rowIndex !== currentAttempt}
                 />
               ))}
             </div>
           ))}
         </div>
+
         {correct && <h2> You guessed the word! </h2>}
         {reachMaxAttempt() && <h2> Finished. You failed. </h2>}
         <div className="alphabet-list">
@@ -377,7 +409,7 @@ const Wordle = () => {
             {guests.map((guest, index) => (
               <div key={index} className="guest-row">
                 <div className="guest">
-                  {guest.userID == currentGuesser.userID && (
+                  {isSameUser(guest, currentGuesser) && (
                     <div className="arrow-indicator"></div>
                   )}
 
