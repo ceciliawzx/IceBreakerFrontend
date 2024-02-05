@@ -62,7 +62,6 @@ const Wordle = () => {
       3. give answer after total attempts reached
       4. return to present room after finish
       5. change field linked into wordle room
-      6. add admin avatar
       7. Ensure input after web socket connected
       8. test
       9. can delete first column with value
@@ -130,6 +129,7 @@ const Wordle = () => {
       const wordLength = await response.json();
 
       if (wordLength > 0) {
+        console.log(wordLength);
         setTargetCharNum(wordLength);
       } else {
         console.error("Game cannot be found.");
@@ -184,7 +184,7 @@ const Wordle = () => {
        3. Has got the correct answer
     */
     if (
-      !isSameUser(user, currentGuesser) ||
+      // !isSameUser(user, currentGuesser) ||
       !/^[a-zA-Z]$/.test(value) ||
       correct
     ) {
