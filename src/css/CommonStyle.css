@@ -37,6 +37,7 @@
   justify-content: space-evenly; /* Center the items horizontally */
   align-items: center; /* Center the items vertically */
   flex-wrap: wrap; /* Wrap items to next line if space is not enough */
+  margin-bottom: 2%;
 }
 
 .column-container {

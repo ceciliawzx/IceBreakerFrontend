@@ -490,9 +490,17 @@ const WaitRoomPage = () => {
           <p>Feeling: {selectedUserProfile.feeling}</p>
           <p>Favourite food: {selectedUserProfile.favFood}</p>
           <p>Favourite activity: {selectedUserProfile.favActivity}</p>
-          <button onClick={() => setShowProfilePopup(false)}>Close</button>
+          <button
+            className="common-button"
+            onClick={() => setShowProfilePopup(false)}
+          >
+            Close
+          </button>
           <div>
-            <button onClick={() => exportUserProfileAsPDF(selectedUserProfile)}>
+            <button
+              className="common-button"
+              onClick={() => exportUserProfileAsPDF(selectedUserProfile)}
+            >
               Export as PDF
             </button>
           </div>
