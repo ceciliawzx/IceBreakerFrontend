@@ -60,8 +60,8 @@ const JoinRoomPage = () => {
   return (
     <div className="center-page">
       <h1>Join a New Room</h1>
-      <div className="form-container">
-        <form onSubmit={handleSubmit} className="form">
+      <div>
+        <form onSubmit={handleSubmit} className="column-container">
           <input
             type="text"
             className="form-input"
