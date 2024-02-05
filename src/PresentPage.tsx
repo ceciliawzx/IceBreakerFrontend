@@ -17,6 +17,7 @@ const PresentPage = () => {
   const roomCode: string = user.roomCode;
   const presenter: UserProfile = location.state?.presenter;
   const admin: User = location.state?.admin;
+  const guests: UserProfile[] = location.state?.guests;
   const [presenterInfo, setPresenterInfo] = useState<UserProfile | null>(null);
   const [presentRoomInfo, setPresentRoomInfo] = useState<PresentRoomInfo>({
     firstName: false,
@@ -69,7 +70,7 @@ const PresentPage = () => {
     }, refreshTime);
     if (roomStatus === RoomStatus.PICTURING) {
       navigate('/PictionaryRoomPage', {
-        state: { user, isPresenter: isPresenter },
+        state: { user, isPresenter: isPresenter, admin, presenter, guests },
       });
     }
     // Clear timer and count again
