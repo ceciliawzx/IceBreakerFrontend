@@ -6,7 +6,7 @@ import { User } from "./type/User";
 import { UserProfile } from "./type/UserProfile";
 import { serverPort, websocketPort } from "./macro/MacroServer";
 import { LetterStatus, WordleLetter } from "./type/WordleLetter";
-import { connect, sendMsg } from "./utils/ChatService";
+import { connect, sendMsg } from "./utils/WebSocketService";
 import { updatePresentRoomInfo } from "./utils/RoomOperation";
 import { PresentRoomInfo } from "./type/PresentRoomInfo";
 
@@ -74,10 +74,14 @@ const Wordle = () => {
 
   // Initialize web socket and fetch word
   useEffect(() => {
+    const subscriptionConfig = {
+      topic: topic,
+      onMessageReceived: (msg: WordleMsg | BackMsg) => {
+        receiveMessage(msg);
+      }
+    };
     // Initialize web socket
-    connect(socketUrl, websocketUrl, topic, (msg: WordleMsg | BackMsg) => {
-      receiveMessage(msg);
-    });
+    connect(socketUrl, websocketUrl, [subscriptionConfig]);
 
     // fetch target word
     fetchWordLength();

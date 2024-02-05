@@ -3,7 +3,7 @@ import DrawingCanvas from "./pictionary/DrawingCanvas";
 import ChatRoom from "./ChatRoomPage";
 import { useLocation, useNavigate } from "react-router-dom";
 import { DrawingData, DrawingMessage } from "./type/DrawingCanvas";
-import { connect, sendMsg } from "./utils/ChatService";
+import { connect, sendMsg } from "./utils/WebSocketService";
 import { serverPort, websocketPort } from "./macro/MacroServer";
 import "./css/PictionaryPage.css";
 import { User } from "./type/User";
@@ -79,7 +79,11 @@ const PictionaryPage = () => {
     const socketUrl = `${serverPort}/chat?userId=${userID}`;
     const websocketUrl = `${websocketPort}/chat?userId=${userID}`;
     const topic = `/topic/room/${roomCode}/drawing`;
-    connect(socketUrl, websocketUrl, topic, handleReceivedDrawing);
+    const subsciptionConfig = {
+      topic: topic,
+      onMessageReceived: handleReceivedDrawing
+    };
+    connect(socketUrl, websocketUrl, [subsciptionConfig]);
   }, []);
 
   // Send DrawingMessage to server
@@ -105,7 +109,7 @@ const PictionaryPage = () => {
       ...presentRoomInfo,
       [fieldName]: true,
     };
-    updatePresentRoomInfo({roomCode, newPresentRoomInfo});
+    updatePresentRoomInfo({ roomCode, newPresentRoomInfo });
     const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;
     try {
       const response = await fetch(url, {
