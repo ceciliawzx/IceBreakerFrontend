@@ -19,6 +19,8 @@ export const Timer = ({
   defaultTime: number;
 }) => {
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  // Use a string state to handle the input directly
+  const [inputValue, setInputValue] = useState<string>(defaultTime.toString());
   const userID = user.userID;
   const [isConnected, setIsConnected] = useState(false); // Use to track connection status
 
@@ -35,26 +37,17 @@ export const Timer = ({
     connect(socketUrl, websocketUrl, topic, onTimerMessageReceived);
     setIsConnected(true);
   }, []);
-  
 
-  // Function to start the timer
-  const startTimer = (seconds: number) => {
+  const startTimer = useCallback(() => {
+    const seconds = inputValue.trim() === "" ? defaultTime : Number(inputValue);
     const destination = `/app/room/${roomCode}/startTimer`;
     const timerMessage: TimerMessage = {
-      roomCode: roomCode,
-      roomStatus: roomStatus,
-      seconds: seconds,
+      roomCode,
+      roomStatus,
+      seconds,
     };
     sendMsg(destination, timerMessage);
-  };
-
-//   useEffect(() => {
-//     // Once connected, attempt to start the timer after a brief delay
-//     if (isConnected) {
-//       const delay = 2000; // Delay in milliseconds
-//       setTimeout(() => startTimer(defaultTime), delay);
-//     }
-//   }, [isConnected]);
+  }, [roomCode, roomStatus, inputValue, defaultTime]);
 
   // Function to send a message to modify the timer
   const modifyTimer = (seconds: number) => {
@@ -78,15 +71,18 @@ export const Timer = ({
     sendMsg(destination, timerMessage);
   };
 
-  return (
+ return (
     <div>
-      <div>
-        Timer:{" "}
-        {timeLeft !== null ? `${timeLeft} seconds` : "Waiting for timer..."}
-      </div>
+      <div>Timer: {timeLeft !== null ? `${timeLeft} seconds` : "Waiting for timer..."}</div>
       {user.isAdmin && (
         <div>
-          <button onClick={() => startTimer(40)}>Start Timer</button>
+          <input
+            type="number"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder="Set time"
+          />
+          <button onClick={startTimer}>Start Timer</button>
           <button onClick={() => modifyTimer(30)}>Add 30 Seconds</button>
           <button onClick={stopTimer}>Skip Timer</button>
         </div>
