@@ -24,9 +24,10 @@ const GeoguesserPage: React.FC = () => {
   const [showSubmitPopup, setShowSubmitPopup] = useState(false);
   const [isMapInteractive, setIsMapInteractive] = useState(true);
   const [guestWaitingPopup, setGuestWaitingPopup] = useState(false);
-  const [geoguesserStatus, setGeoguesserStatus] = useState<GeoguesserStatus>();
+  const [geoguesserStatus, setGeoguesserStatus] = useState<GeoguesserStatus>(GeoguesserStatus.PRE_CHOOSE);
   const [showAllSubmitPopup, setShowAllSubmitPopup] = useState(false);
   const [streetViewImageUrl, setStreetViewImageUrl] = useState<string>("");
+  const [userSubStatus, setUserSubStatus] = useState(false);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -59,22 +60,20 @@ const GeoguesserPage: React.FC = () => {
       const lat = currentMarker?.getPosition()?.lat().toFixed(3);
       const lng = currentMarker?.getPosition()?.lng().toFixed(3);
       const position = `${lat}, ${lng}`;
-      console.log("submitted position:", position);
 
       try {
         const response = await fetch(
           `${serverPort}/setTargetLocation?roomCode=${roomCode}&location=${position}&userID=${userID}`,
           { method: "POST" }
         );
-        if (!response.ok) {
+        if (response.ok) {
+          console.log("submitted position:", position);
+        } else {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
       } catch (error) {
         console.error("Failed to submit location:", error);
       }
-    
-      setShowSubmitPopup(true);
-      setIsMapInteractive(false); 
     }
   }
 
@@ -113,19 +112,44 @@ const GeoguesserPage: React.FC = () => {
       }
 
       const data = await response.json();
-      setGeoguesserStatus(data);
-      console.log("status get:",data,"statue set:", geoguesserStatus);
+      setGeoguesserStatus(data.status);
+      console.log("status set:", geoguesserStatus);
       
     } catch (error) {
       console.error("Failed to fetch room status:", error);
     }
   }
 
+  const checkUserSubmit = async () => {
+    try {
+      const response = await fetch(
+        `${serverPort}/getUserGeoSubmission?roomCode=${roomCode}&userID=${userID}`,
+        { method: "GET" }
+      );
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setUserSubStatus(data);
+      console.log("sub status set:", data, "user set:", userSubStatus);
+
+      if (userSubStatus) {
+        setShowSubmitPopup(true);
+        setIsMapInteractive(false); 
+      }
+
+    } catch (error) {
+      console.error("Failed to fetch user submit status:", error);
+    }
+  }
+
   // Periodically check room status
   useEffect(() => {
     checkRoomStatus();
-
-    if (geoguesserStatus === GeoguesserStatus.PRE_CHOOSE) {
+    checkUserSubmit();
+    if ((geoguesserStatus === GeoguesserStatus.PRE_CHOOSE) && !isPret) {
       setGuestWaitingPopup(true);
     } else if (geoguesserStatus === GeoguesserStatus.PLAYER_CHOOSE) {
       setGuestWaitingPopup(false);
@@ -133,6 +157,21 @@ const GeoguesserPage: React.FC = () => {
       setShowSubmitPopup(false);
       setShowAllSubmitPopup(true);
     }
+
+    const interval = setInterval(() => {
+      checkRoomStatus();
+      checkUserSubmit();
+      if ((geoguesserStatus === GeoguesserStatus.PRE_CHOOSE) && !isPret) {
+        setGuestWaitingPopup(true);
+      } else if (geoguesserStatus === GeoguesserStatus.PLAYER_CHOOSE) {
+        setGuestWaitingPopup(false);
+      } else if (geoguesserStatus === GeoguesserStatus.SUBMITTED) {
+        setShowSubmitPopup(false);
+        setShowAllSubmitPopup(true);
+      }
+    }, refreshTime); // Assuming 'refreshTime' is a predefined interval time
+
+    return () => clearInterval(interval);
   }, [geoguesserStatus]);
   
 
@@ -174,7 +213,7 @@ const GeoguesserPage: React.FC = () => {
     </div>
     )}
 
-    {/* Single Player Submitted popup */}
+    {/* AllPlayers Submitted popup */}
     {showAllSubmitPopup &&(
       <div className="waiting-popup">
       <div className="waiting-popup-inner">
@@ -184,7 +223,7 @@ const GeoguesserPage: React.FC = () => {
     )}
 
     {/* Guests Waiting popup */}
-    {guestWaitingPopup && !isPret && (
+    {guestWaitingPopup && (
       <div className="waiting-popup">
         <div className="waiting-popup-inner">
           <h3>The presenter is choosing a location, please wait.</h3>
