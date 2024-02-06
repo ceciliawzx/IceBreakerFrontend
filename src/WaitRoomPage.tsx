@@ -42,8 +42,6 @@ const WaitRoomPage = () => {
         method: "POST",
       }
     );
-    console.log("start room");
-    console.log(response);
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
@@ -220,7 +218,6 @@ const WaitRoomPage = () => {
       });
 
       if (data.admin) {
-        console.log("setting admin ", data.admin);
         setAdmin(
           new User(
             roomCode,
@@ -235,7 +232,6 @@ const WaitRoomPage = () => {
         );
       }
       if (data.presenter) {
-        console.log("setting presenter ", data.presenter);
         setPresenter(
           new User(
             roomCode,
@@ -249,7 +245,6 @@ const WaitRoomPage = () => {
         );
       }
       if (data.otherPlayers) {
-        console.log("setting others ", data.otherPlayers);
         const updatedGuests = data.otherPlayers.map(
           (guest: User) =>
             new User(
@@ -271,10 +266,7 @@ const WaitRoomPage = () => {
         setAllGuestsCompleted(allCompleted);
       }
 
-      console.log("Game status", data.roomStatus);
-
       if (data.roomStatus) {
-        console.log("RoomStatus", data.roomStatus);
         setRoomStatus(data.roomStatus);
       }
     } catch (error) {
@@ -314,7 +306,6 @@ const WaitRoomPage = () => {
 
     // If the RoomStatus is PRESENTING, navigate all users to the PresentPage
     if (roomStatus === RoomStatus.PRESENTING) {
-      console.log("GameStatus = PRESENTING, ", user, admin, presenter, guests);
       navigate("/PresentPage", {
         state: { user, admin, presenter, guests },
       });

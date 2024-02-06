@@ -1,5 +1,9 @@
 #color-selector {
-  text-align: center;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
 }
 
 .color-selector-button {
@@ -8,16 +12,13 @@
   margin: 2px;
   border: none;
   cursor: pointer;
+  border-radius: 30%;
 }
 
 #drawing-canvas {
   background-color: var(--pictionary-background);
   border: 1px solid var(--grey-background); /* border around the canvas */
   border-radius: 8px;
-}
-
-#color-selector {
-  padding: 10px;
 }
 
 #eraser {

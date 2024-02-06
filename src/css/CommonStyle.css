@@ -27,6 +27,13 @@
   text-align: center;
 }
 
+.row-page {
+  display: flex;
+  flex-direction: row;
+  height: 100vh; /* Full height of the viewport */
+  justify-items: center;
+}
+
 .center-page {
   display: flex;
   flex-direction: column;
@@ -80,14 +87,28 @@
 .common-button {
   background-color: var(--common-button);
   color: white;
-  border: none;
   cursor: pointer;
+  border: none;
   margin: 10px;
   padding: 10px;
   border-radius: 5px;
 }
 
 .common-button:hover {
+  background-color: var(--common-button-hover);
+}
+
+.small-common-button {
+  background-color: var(--common-button);
+  color: white;
+  cursor: pointer;
+  border: none;
+  margin: 5px;
+  padding: 5px;
+  border-radius: 5px;
+}
+
+.small-common-button:hover {
   background-color: var(--common-button-hover);
 }
 
