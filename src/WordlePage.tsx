@@ -409,15 +409,7 @@ const Wordle = () => {
           <p>{admin?.displayName}</p>
         </div>
 
-        <div className="presenter">
-          <h2>Admin:</h2>
-          <img
-            src={`${admin?.profileImage}`}
-            alt="Admin's Image"
-            className="presenter-avatar"
-          />
-          <p>{admin?.displayName}</p>
-        </div>
+       
       </div>
       <div className="main-column" onKeyDown={handleKeyPress}>
         <h1>Welcome to Wordle, {user.displayName}!</h1>
