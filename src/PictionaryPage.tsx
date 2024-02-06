@@ -131,6 +131,7 @@ const PictionaryPage = () => {
         <div>
           {(isPresenter || userID === admin.userID) && (
             <button
+              id="back-to-presentroom-button"
               className="admin-only-button"
               onClick={() => handleBackToPresentRoom()}
             >
