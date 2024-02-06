@@ -30,8 +30,8 @@
 .row-page {
   display: flex;
   flex-direction: row;
-  height: 100vh; /* Full height of the viewport */
   justify-items: center;
+  height: 100vh;
 }
 
 .center-page {
