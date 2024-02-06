@@ -10,6 +10,7 @@ import { LetterStatus } from "./type/WordleLetter";
 import { updatePresentRoomInfo } from "./utils/RoomOperation";
 import { PresentRoomInfo } from "./type/PresentRoomInfo";
 import "./css/HangmanPage.css";
+import { finished } from "stream/promises";
 
 interface HangmanMsg {
   guessLetter: string;
@@ -56,6 +57,8 @@ const HangmanPage = () => {
   const [currentGuesserId, setCurrentGuesserId] = useState(0);
   const [currentGuesser, setCurrentGuesser] = useState<User>(guests[0]);
   const [targetCharNum, setTargetCharNum] = useState<number>(0);
+  const [targetWord, setTargetWord] = useState<string>("");
+
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const [currentPositions, setCurrentPositions] = useState<number[]>([]);
   const [isFinished, setIsFinished] = useState(false);
@@ -75,8 +78,9 @@ const HangmanPage = () => {
     // Initialize web socket
     connect(socketUrl, websocketUrl, topic, onMessageReceived);
 
-    // fetch target word length
+    // fetch target word
     fetchWordLength();
+    fetchTargetWord();
   }, []);
 
   useEffect(() => {
@@ -113,6 +117,9 @@ const HangmanPage = () => {
       setMistakes(msg.currentWrongGuesses);
 
       setCurrentGuesserId((currentGuesserId) => currentGuesserId + 1);
+
+      console.log("correct: " + msg.isCorrect);
+      console.log("finish: " + msg.isFinished);
     } catch (error) {
       console.error("Error parsing:", error);
     }
@@ -141,6 +148,31 @@ const HangmanPage = () => {
       }
     } catch (error) {
       console.error("Error fetching wordle length:", error);
+    }
+  };
+
+  // Fetch target word
+  const fetchTargetWord = async () => {
+    try {
+      const response = await fetch(
+        `${serverPort}/getHangmanAnswer?roomCode=${roomCode}`,
+        {
+          method: "GET",
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const targetWord = await response.text();
+
+      if (targetWord != "ERROR") {
+        setTargetWord(targetWord);
+      } else {
+        console.error("Game cannot be found.");
+      }
+    } catch (error) {
+      console.error("Error fetching wordle answer:", error);
     }
   };
 
@@ -253,7 +285,9 @@ const HangmanPage = () => {
       default:
         return {
           ...baseStyle,
-          backgroundColor: rootStyles.getPropertyValue("--light-grey-background"),
+          backgroundColor: rootStyles.getPropertyValue(
+            "--light-grey-background"
+          ),
         };
     }
   };
@@ -301,20 +335,32 @@ const HangmanPage = () => {
           </pre>
         </div>
 
-        <p>{displayWord}</p>
+        <div className="hangman-input">
+          <p>{displayWord}</p>
+        </div>
+
         <div className="alphabet-list">
           {Array.from(alphabet).map((letter, index) => (
             <button
               key={index}
-              className={`hangman-alphabet-block row-${Math.floor(index / 9) + 1}`}
+              className={`hangman-alphabet-block row-${
+                Math.floor(index / 9) + 1
+              }`}
               style={getStatusStyle(allLetterStatus[index])}
               onClick={() => sendHangmanMessage(letter)} // Assuming sendWordleMessage is your function to handle guesses
-              disabled={allLetterStatus[index] !== LetterStatus.UNCHECKED} // Disable button if the letter has been guessed
+              // 114514
+              // disabled={!isSameUser(user, currentGuesser) || allLetterStatus[index] !== LetterStatus.UNCHECKED || isFinished}
+              disabled={allLetterStatus[index] !== LetterStatus.UNCHECKED || isFinished}
             >
               {letter}
             </button>
           ))}
         </div>
+
+        {correct && <h2> You guessed the word! </h2>}
+        {isFinished && !correct && (
+          <h2>The correct answer is: {targetWord} </h2>
+        )}
 
         {isAdmin && (
           <button className="admin-only-button" onClick={handleBack}>
@@ -322,24 +368,6 @@ const HangmanPage = () => {
           </button>
         )}
       </div>
-      {/* 
-        {correct && <h2> You guessed the word! </h2>}
-        {reachMaxAttempt() && !correct && (
-          <h2>The correct answer is: {targetWord}</h2>
-        )} */}
-
-      {/* <div className="alphabet-list">
-          {Array.from(alphabet).map((letter, index) => (
-            <div
-              key={index}
-              className={`alphabet-block row-${Math.floor(index / 9) + 1}`}
-              style={getStatusStyle(allLetterStatus[index])}
-            >
-            
-              {letter}
-            </div>
-          ))}
-        </div> */}
 
       <div className="right-column">
         <div>
