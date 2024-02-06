@@ -7,5 +7,5 @@ export enum RoomStatus {
   WORDLING = 'WORDLING',
   GAMING = 'GAMING',
   NON_EXIST = 'NON_EXIST',
-  HANGINGMAN = "HANGINGMAN"
+  HANGMAN = "HANGMAN"
 }

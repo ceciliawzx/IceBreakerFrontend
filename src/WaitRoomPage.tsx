@@ -304,13 +304,6 @@ const WaitRoomPage = () => {
         state: { user, admin, presenter, guests },
       });
     }
-
-    if (roomStatus === RoomStatus.HANGINGMAN) {
-      console.log("GameStatus = HANGINGMAN, ", user, admin, presenter, guests);
-      navigate("/HangmanPage", {
-        state: { user, admin, presenter, guests },
-      });
-    }
     // Clear timer and count again
     return () => clearInterval(intervalId);
   }, [roomStatus, user, admin, presenter, guests]);

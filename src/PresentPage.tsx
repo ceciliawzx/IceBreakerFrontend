@@ -10,6 +10,7 @@ import { User } from "./type/User";
 import { checkRoomStatus } from "./utils/RoomOperation";
 import { updatePresentRoomInfo } from './utils/RoomOperation';
 import "./css/PresentPage.css";
+import HangmanPage from './HangmanPage';
 
 const PresentPage = () => {
   const location = useLocation();
@@ -90,6 +91,19 @@ const PresentPage = () => {
     // Navigate to Wordle
     if (roomStatus === RoomStatus.WORDLING) {
       navigate("/WordlePage", {
+        state: {
+          user,
+          admin,
+          presenter,
+          guests,
+          presentRoomInfo,
+          selectedField,
+        },
+      });
+    }
+    // Navigate to Hangman
+    if (roomStatus === RoomStatus.HANGMAN) {
+      navigate("/HangmanPage", {
         state: {
           user,
           admin,
@@ -226,6 +240,20 @@ const PresentPage = () => {
         handleWordle();
       } else {
         // TODO: for other games
+      }
+      const handleHangman = async () => {
+        const response = await fetch(
+          `${serverPort}/startHangman?roomCode=${roomCode}&userID=${presenter?.userID}&field=${fieldName}`,
+          {
+            method: "POST",
+          }
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+      };
+      if (gameType === GameType.HANGMAN) {
+        handleHangman();
       }
     }
     setActiveGameSelector(null);
