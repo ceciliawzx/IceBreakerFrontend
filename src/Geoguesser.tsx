@@ -28,8 +28,8 @@ const GeoguesserPage: React.FC = () => {
   const [showAllSubmitPopup, setShowAllSubmitPopup] = useState(false);
   const [userSubStatus, setUserSubStatus] = useState(false);
   const [streetViewPanorama, setStreetViewPanorama] = useState<google.maps.StreetViewPanorama>();
-  const [winner, setWinner] = useState<string>();
-
+  const [winner, setWinner] = useState<UserProfile[]>([]);
+  const [winnerDistance, setWinnerDistance] = useState<number[]>([]);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -164,7 +164,7 @@ const GeoguesserPage: React.FC = () => {
   const checkWinner = async () => {
     try {
       const response = await fetch(
-        `${serverPort}/geoGuesserWinner?roomCode=${roomCode}`,
+        `${serverPort}/geoGuesserRank?roomCode=${roomCode}`,
         { method: "GET" }
       );
       
@@ -173,7 +173,9 @@ const GeoguesserPage: React.FC = () => {
       }
 
       const data = await response.json();
-      setWinner(data[0].displayName);
+      setWinner(data.rankPerson);
+      setWinnerDistance(data.rankDistance);
+      console.log("dataget:", data, "winner set:", winner, "winner distance set:", winnerDistance);
 
     } catch (error) {
       console.error("Failed to get winner:", error);
@@ -263,7 +265,17 @@ const GeoguesserPage: React.FC = () => {
       <div className="waiting-popup">
       <div className="waiting-popup-inner">
         <h3>All finished!</h3>
-        <h3>The winner is: {winner}</h3>
+        <h3>The winners are:</h3>
+          <ul>
+            {winner.map((winnerProfile, index) => {
+                const distance = winnerDistance[index];
+                return (
+                    <li key={index}>
+                        {winnerProfile.displayName}
+                    </li>
+                );
+            })}
+        </ul>
       </div>
     </div>
     )}
