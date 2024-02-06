@@ -134,6 +134,7 @@ const Wordle = () => {
       const wordLength = await response.json();
 
       if (wordLength > 0) {
+        console.log(wordLength);
         setTargetCharNum(wordLength);
       } else {
         console.error("Game cannot be found.");
@@ -396,6 +397,16 @@ const Wordle = () => {
               View Profile
             </button>
           )}
+        </div>
+
+        <div className="presenter">
+          <h2>Admin:</h2>
+          <img
+            src={`${admin?.profileImage}`}
+            alt="Admin's Image"
+            className="presenter-avatar"
+          />
+          <p>{admin?.displayName}</p>
         </div>
 
         <div className="presenter">
