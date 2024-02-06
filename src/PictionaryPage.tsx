@@ -23,16 +23,30 @@ const PictionaryPage = () => {
   const displayName = user?.displayName;
   const roomCode = user?.roomCode;
   const admin = location.state?.admin;
-  const presenter = location.state?.presenter;
+  const presenter: User = location.state?.presenter;
   const guests = location.state?.guests;
   const isPresenter = location.state?.isPresenter;
   const presentRoomInfo = location.state?.presentRoomInfo;
   const fieldName = location.state?.selectedField;
-
+  const [targetWord, setTargetWord] = useState("");
   const [roomStatus, setRoomStatus] = useState<RoomStatus>(
     RoomStatus.PICTURING
   );
   const navigate = useNavigate();
+
+  // Fetch targetWord
+  const fetchTargetWord = async () => {
+    const response = await fetch(
+      `${serverPort}/getTarget?roomCode=${roomCode}`
+    );
+    const data = await response.text();
+    if (data) {
+      console.log("data ", data);
+      setTargetWord(data.toString());
+    } else {
+      throw new Error(`HTTP error when getTarget! Status: ${response.status}`);
+    }
+  };
 
   // Handle navigation
   useEffect(() => {
@@ -82,7 +96,9 @@ const PictionaryPage = () => {
   }, []);
 
   useEffect(() => {
-    console.log("location info", location.state);
+    // set target word
+    fetchTargetWord();
+    // connect to drawing websocket
     const socketUrl = `${serverPort}/chat?userId=${userID}`;
     const websocketUrl = `${websocketPort}/chat?userId=${userID}`;
     const topic = `/topic/room/${roomCode}/drawing`;
@@ -128,6 +144,15 @@ const PictionaryPage = () => {
           onDraw={handleDraw}
           externalDrawing={externalDrawing}
         />
+        <div className="word-display">
+          {isPresenter || (admin && userID === admin.userID) ? (
+            <span>Target Word: {targetWord}</span> // Show the target word to the presenter and admin
+          ) : (
+            <span className="underscore-display">
+              {"_ ".repeat(targetWord.length).trim()}
+            </span>
+          )}
+        </div>
         <div>
           {(isPresenter || userID === admin.userID) && (
             <button
