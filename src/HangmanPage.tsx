@@ -9,7 +9,7 @@ import hangmanStages from "./HangmanStage";
 import { LetterStatus } from "./type/WordleLetter";
 import { updatePresentRoomInfo } from "./utils/RoomOperation";
 import { PresentRoomInfo } from "./type/PresentRoomInfo";
-import "./css/WordlePage.css";
+import "./css/HangmanPage.css";
 
 interface HangmanMsg {
   guessLetter: string;
@@ -51,9 +51,9 @@ const HangmanPage = () => {
   const destination = `/app/room/${roomCode}/hangman`;
 
   // Hangman game states
-  const [guessedLetters, setGuessedLetters] = useState<string[]>([]);
   const [mistakes, setMistakes] = useState(0);
   const [correct, setCorrect] = useState(false);
+  const [currentGuesserId, setCurrentGuesserId] = useState(0);
   const [currentGuesser, setCurrentGuesser] = useState<User>(guests[0]);
   const [targetCharNum, setTargetCharNum] = useState<number>(0);
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -78,6 +78,13 @@ const HangmanPage = () => {
     // fetch target word length
     fetchWordLength();
   }, []);
+
+  useEffect(() => {
+    const nextGuesser = guests[currentGuesserId % guests.length];
+
+    // Change to next guesser
+    setCurrentGuesser(nextGuesser);
+  }, [currentGuesserId]);
 
   // receive and parse message from websocket
   const receiveMessage = (msg: HangmanMsg | BackMsg) => {
@@ -104,8 +111,8 @@ const HangmanPage = () => {
       setCurrentPositions(msg.correctPositions);
       setAllLetterStatus(msg.allLetterStat);
       setMistakes(msg.currentWrongGuesses);
-      console.log(msg.currentWrongGuesses);
-      setAllLetterStatus(msg.allLetterStat);
+
+      setCurrentGuesserId((currentGuesserId) => currentGuesserId + 1);
     } catch (error) {
       console.error("Error parsing:", error);
     }
@@ -235,7 +242,7 @@ const HangmanPage = () => {
       case LetterStatus.GREY:
         return {
           ...baseStyle,
-          backgroundColor: rootStyles.getPropertyValue("--wordle-unchecked"),
+          backgroundColor: rootStyles.getPropertyValue("--hangman-red"),
         };
 
       case LetterStatus.GREEN:
@@ -246,7 +253,7 @@ const HangmanPage = () => {
       default:
         return {
           ...baseStyle,
-          backgroundColor: "white",
+          backgroundColor: rootStyles.getPropertyValue("--light-grey-background"),
         };
     }
   };
@@ -299,7 +306,7 @@ const HangmanPage = () => {
           {Array.from(alphabet).map((letter, index) => (
             <button
               key={index}
-              className={`alphabet-block row-${Math.floor(index / 9) + 1}`}
+              className={`hangman-alphabet-block row-${Math.floor(index / 9) + 1}`}
               style={getStatusStyle(allLetterStatus[index])}
               onClick={() => sendHangmanMessage(letter)} // Assuming sendWordleMessage is your function to handle guesses
               disabled={allLetterStatus[index] !== LetterStatus.UNCHECKED} // Disable button if the letter has been guessed
