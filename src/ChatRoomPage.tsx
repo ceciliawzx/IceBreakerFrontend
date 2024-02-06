@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import { connect, sendMsg } from "./utils/ChatService";
+import { connect, sendMsg } from "./utils/WebSocketService";
 import { serverPort, websocketPort } from "./macro/MacroServer";
 import "./css/ChatRoomPage.css";
 
@@ -28,9 +28,9 @@ const ChatRoom: React.FC = () => {
   const destination = `/app/room/${roomCode}/sendMessage`;
 
   useEffect(() => {
-    connect(socketUrl, websocketUrl, topic, (msg: ChatMessage) => {
-      setChatHistory((prevHistory) => [...prevHistory, msg]);
-    });
+    const onMessageReceived = (msg: ChatMessage) => {
+        setChatHistory((prevHistory) => [...prevHistory, msg])};
+    connect(socketUrl, websocketUrl, topic, onMessageReceived);
   }, []);
 
   const handleSendMessage = () => {

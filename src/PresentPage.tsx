@@ -7,6 +7,8 @@ import { refreshTime } from "./macro/MacroConst";
 import { GameType } from "./type/GameType";
 import { RoomStatus } from "./type/RoomStatus";
 import { User } from "./type/User";
+import { checkRoomStatus } from "./utils/RoomOperation";
+import { updatePresentRoomInfo } from './utils/RoomOperation';
 import "./css/PresentPage.css";
 
 const PresentPage = () => {
@@ -43,38 +45,65 @@ const PresentPage = () => {
   const [roomStatus, setRoomStatus] = useState<RoomStatus>(
     RoomStatus.PRESENTING
   );
-  const [target, setTarget] = useState<string>("");
+  const [selectedField, setSelectedField] = useState<keyof PresentRoomInfo>();
 
-  // Fetch RoomStatus for navigation
-  const checkRoomStatus = async () => {
-    const url = `${serverPort}/getPlayers?roomCode=${roomCode}`;
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error("Room cannot be found");
-      }
-      const data = await response.json();
-      if (data.roomStatus) {
-        setRoomStatus(data.roomStatus);
-      }
-    } catch (error) {
-      console.error("Error fetching getPlayers:", error);
-    }
-  };
-
+  // Update the RoomStatus list every interval
   useEffect(() => {
-    // Update the player list every interval
-    const intervalId = setInterval(() => {
-      checkRoomStatus();
+    // Define an IIFE to handle async operation
+    (async () => {
+      try {
+        const data = await checkRoomStatus({ roomCode });
+        if (data && data.roomStatus) {
+          setRoomStatus(data.roomStatus);
+        }
+      } catch (error) {
+        console.error("Error fetching getPlayers:", error);
+      }
+    })();
+
+    // Setup the interval for refreshing the data
+    const intervalId = setInterval(async () => {
+      try {
+        const data = await checkRoomStatus({ roomCode });
+        if (data && data.roomStatus) {
+          setRoomStatus(data.roomStatus);
+        }
+      } catch (error) {
+        console.error("Error fetching getPlayers on interval:", error);
+      }
     }, refreshTime);
+
+    // Navigate to Pictionary
     if (roomStatus === RoomStatus.PICTURING) {
       navigate("/PictionaryRoomPage", {
-        state: { user, isPresenter: isPresenter, admin, presenter, guests },
+        state: {
+          user,
+          isPresenter: isPresenter,
+          admin,
+          presenter,
+          guests,
+          presentRoomInfo,
+          selectedField,
+        },
       });
     }
+    // Navigate to Wordle
     if (roomStatus === RoomStatus.WORDLING) {
       navigate("/WordlePage", {
-        state: { user, admin, presenter, guests },
+        state: {
+          user,
+          admin,
+          presenter,
+          guests,
+          presentRoomInfo,
+          selectedField,
+        },
+      });
+    }
+    // Back to WaitRoom
+    if (roomStatus === RoomStatus.WAITING) {
+      navigate("/WaitRoomPage", {
+        state: { user, admin },
       });
     }
     // Clear timer and count again
@@ -159,12 +188,13 @@ const PresentPage = () => {
     gameType: GameType,
     fieldName: keyof PresentRoomInfo
   ) => {
+    setSelectedField(fieldName);
     if (gameType === GameType.REVEAL) {
       // Directly reveal the information for this field
       handleToggleReveal(fieldName);
     } else {
       // for Pictionary
-      const handlePictionaryRoom = async () => {
+      const handlePictionaryRoom = async (fieldName: keyof PresentRoomInfo) => {
         const target = presenterInfo ? presenterInfo[fieldName] : "";
         const response = await fetch(
           `${serverPort}/startDrawAndGuess?roomCode=${roomCode}&target=${target}`,
@@ -179,11 +209,8 @@ const PresentPage = () => {
         }
       };
       if (gameType === GameType.PICTIONARY) {
-        handlePictionaryRoom();
-      } else {
-        // TODO: for other games
+        handlePictionaryRoom(fieldName);
       }
-
       const handleWordle = async () => {
         const response = await fetch(
           `${serverPort}/startWordle?roomCode=${roomCode}&userID=${presenter?.userID}&field=${fieldName}`,
@@ -195,7 +222,6 @@ const PresentPage = () => {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
       };
-
       if (gameType === GameType.WORDLE) {
         handleWordle();
       } else {
@@ -236,24 +262,7 @@ const PresentPage = () => {
     }
   };
 
-  const updatePresentRoomInfo = async (newPresentRoomInfo: PresentRoomInfo) => {
-    const url = `${serverPort}/setPresentRoomInfo?roomCode=${roomCode}`;
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newPresentRoomInfo),
-      });
-      if (response) {
-        // Re-fetch the updated state after a successful update
-        checkPresentRoomInfo();
-      }
-    } catch (error) {
-      console.error("Error setting presentRoomInfo in backend: ", error);
-    }
-  };
+
 
   const handleToggleReveal = (field: keyof PresentRoomInfo) => {
     if (!isPresenter) return;
@@ -261,20 +270,15 @@ const PresentPage = () => {
       ...presentRoomInfo,
       [field]: true,
     };
-    updatePresentRoomInfo(newPresentRoomInfo);
+    updatePresentRoomInfo({roomCode, newPresentRoomInfo});
   };
 
-  const handleBack = async () => {
+  const handleBackToWaitRoom = async () => {
     const url = `${serverPort}/backToWaitRoom?roomCode=${roomCode}`;
     try {
       const response = await fetch(url, {
         method: "POST",
       });
-      if (response.ok) {
-        navigate("/WaitRoomPage", {
-          state: { user, admin },
-        });
-      }
     } catch (error) {
       console.error("Error returning to WaitRoom:", error);
     }
@@ -304,8 +308,11 @@ const PresentPage = () => {
 
       <div>
         {userID === admin.userID && (
-          <button className="admin-only-button" onClick={() => handleBack()}>
-            Back
+          <button
+            className="admin-only-button"
+            onClick={() => handleBackToWaitRoom()}
+          >
+            Back to WaitRoom
           </button>
         )}
       </div>

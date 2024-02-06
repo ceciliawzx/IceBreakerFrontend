@@ -53,6 +53,32 @@ const WaitRoomPage = () => {
     });
   };
 
+  const handleWordle = async () => {
+    // TODO: give field
+    const response = await fetch(
+      `${serverPort}/startWordle?roomCode=${roomCode}&userID=${presenter?.userID}&field=firstName`,
+      {
+        method: "POST",
+      }
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+  };
+
+  const handleHangman = async () => {
+    // TODO: give field
+    const response = await fetch(
+      `${serverPort}/startHangman?roomCode=${roomCode}&userID=${presenter?.userID}&field=firstName`,
+      {
+        method: "POST",
+      }
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+  };
+
   const handleUserInformation = () => {
     const preID = presenter?.userID;
 
@@ -265,7 +291,6 @@ const WaitRoomPage = () => {
         );
         setAllGuestsCompleted(allCompleted);
       }
-
       if (data.roomStatus) {
         setRoomStatus(data.roomStatus);
       }
@@ -290,6 +315,7 @@ const WaitRoomPage = () => {
       console.error("Error fetching player:", error);
     }
   };
+  
 
   useEffect(() => {
     // Check whether the user is admin
@@ -307,6 +333,13 @@ const WaitRoomPage = () => {
     // If the RoomStatus is PRESENTING, navigate all users to the PresentPage
     if (roomStatus === RoomStatus.PRESENTING) {
       navigate("/PresentPage", {
+        state: { user, admin, presenter, guests },
+      });
+    }
+
+    if (roomStatus === RoomStatus.HANGINGMAN) {
+      console.log("GameStatus = HANGINGMAN, ", user, admin, presenter, guests);
+      navigate("/HangmanPage", {
         state: { user, admin, presenter, guests },
       });
     }
@@ -414,6 +447,16 @@ const WaitRoomPage = () => {
       {
         <button className="common-button" onClick={handleChatRoom}>
           Chat Room
+        </button>
+      }
+      {
+        <button className="common-button" onClick={handleWordle}>
+          Start Wordle
+        </button>
+      }
+      {
+        <button className="common-button" onClick={handleHangman}>
+          Start Hangman
         </button>
       }
       {

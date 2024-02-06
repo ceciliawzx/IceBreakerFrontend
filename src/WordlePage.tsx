@@ -6,7 +6,9 @@ import { User } from "./type/User";
 import { UserProfile } from "./type/UserProfile";
 import { serverPort, websocketPort } from "./macro/MacroServer";
 import { LetterStatus, WordleLetter } from "./type/WordleLetter";
-import { connect, sendMsg } from "./utils/ChatService";
+import { connect, sendMsg } from "./utils/WebSocketService";
+import { updatePresentRoomInfo } from "./utils/RoomOperation";
+import { PresentRoomInfo } from "./type/PresentRoomInfo";
 
 interface WordleMsg {
   currentAttempt: number;
@@ -33,6 +35,8 @@ const Wordle = () => {
   const admin = location.state?.admin;
   const presenter = location.state?.presenter;
   const guests: User[] = location.state?.guests;
+  const presentRoomInfo = location.state?.presentRoomInfo;
+  const fieldName = location.state?.selectedField;
 
   /* Pop up */
   const [selectedUserProfile, setSelectedUserProfile] =
@@ -70,10 +74,12 @@ const Wordle = () => {
 
   // Initialize web socket and fetch word
   useEffect(() => {
-    // Initialize web socket
-    connect(socketUrl, websocketUrl, topic, (msg: WordleMsg | BackMsg) => {
+    const onMessageReceived = (msg: WordleMsg | BackMsg) => {
       receiveMessage(msg);
-    });
+    };
+
+    // Initialize web socket
+    connect(socketUrl, websocketUrl, topic, onMessageReceived);
 
     // fetch target word
     fetchWordLength();
@@ -128,6 +134,7 @@ const Wordle = () => {
       const wordLength = await response.json();
 
       if (wordLength > 0) {
+        console.log(wordLength);
         setTargetCharNum(wordLength);
       } else {
         console.error("Game cannot be found.");
@@ -206,6 +213,12 @@ const Wordle = () => {
 
   // Back to present page
   const handleBackMessage = async () => {
+    // Update PresentRoomInfo
+    const newPresentRoomInfo: PresentRoomInfo = {
+      ...presentRoomInfo,
+      [fieldName]: true,
+    };
+    updatePresentRoomInfo({ roomCode, newPresentRoomInfo });
     navigate("/PresentPage", {
       state: { user, admin, presenter, guests },
     });
@@ -392,6 +405,16 @@ const Wordle = () => {
             src={`${admin?.profileImage}`}
             alt="Admin's Image"
             className="avatar"
+          />
+          <p>{admin?.displayName}</p>
+        </div>
+
+        <div className="presenter">
+          <h2>Admin:</h2>
+          <img
+            src={`${admin?.profileImage}`}
+            alt="Admin's Image"
+            className="presenter-avatar"
           />
           <p>{admin?.displayName}</p>
         </div>
