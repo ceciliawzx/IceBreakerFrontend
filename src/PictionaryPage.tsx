@@ -45,7 +45,8 @@ const PictionaryPage = () => {
       console.log("data ", data);
       setTargetWord(data.toString());
     } else {
-      throw new Error(`HTTP error when getTarget! Status: ${response.status}`);
+      // throw new Error(`HTTP error when getTarget! Status: ${response.status}`);
+      console.log("data ", data);
     }
   };
 
@@ -56,13 +57,18 @@ const PictionaryPage = () => {
     onClose: any;
     targetWord: string;
   }) => (
-    <div
-      id="pictionary-modal"
-    >
-      <h2>Target Word Revealed!</h2>
-      <p>
-        The target word was: <strong>{targetWord}</strong>
-      </p>
+    <div id="pictionary-modal">
+      {targetWord === "" && (
+        <h2>Back to PresentRoom</h2>
+      )}
+      {targetWord !== "" && (
+        <>
+          <h2>Target Word Revealed!</h2>
+          <p>
+            The target word was: <strong>{targetWord}</strong>
+          </p>
+        </>
+      )}
       <button onClick={onClose}>Continue</button>
     </div>
   );
@@ -105,9 +111,6 @@ const PictionaryPage = () => {
         // Show the modal instead of navigating immediately
         setShowModal(true);
       }
-      // navigate("/PresentPage", {
-      //   state: { user, admin, presenter, guests },
-      // });
     }
     // Clear timer and count again
     return () => clearInterval(intervalId);
@@ -178,15 +181,17 @@ const PictionaryPage = () => {
             targetWord={targetWord}
           />
         )}
-        <div className="word-display">
-          {isPresenter || (admin && userID === admin.userID) ? (
-            <span>Target Word: {targetWord}</span> // Show the target word to the presenter and admin
-          ) : (
-            <span className="underscore-display">
-              {"_ ".repeat(targetWord.length).trim()}
-            </span>
-          )}
-        </div>
+        {targetWord !== "" && (
+          <div className="word-display">
+            {isPresenter || (admin && userID === admin.userID) ? (
+              <span>Target Word: {targetWord}</span> // Show the target word to the presenter and admin
+            ) : (
+              <span className="underscore-display">
+                {"_ ".repeat(targetWord.length).trim()}
+              </span>
+            )}
+          </div>
+        )}
         <div>
           {(isPresenter || userID === admin.userID) && (
             <button

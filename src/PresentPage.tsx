@@ -8,7 +8,7 @@ import { GameType } from "./type/GameType";
 import { RoomStatus } from "./type/RoomStatus";
 import { User } from "./type/User";
 import { checkRoomStatus } from "./utils/RoomOperation";
-import { updatePresentRoomInfo } from './utils/RoomOperation';
+import { updatePresentRoomInfo } from "./utils/RoomOperation";
 import "./css/PresentPage.css";
 
 const PresentPage = () => {
@@ -72,9 +72,8 @@ const PresentPage = () => {
         console.error("Error fetching getPlayers on interval:", error);
       }
     }, refreshTime);
-
-    // Navigate to Pictionary
-    if (roomStatus === RoomStatus.PICTURING) {
+    // Navigate to ShareBoard
+    if (roomStatus === RoomStatus.SHAREBOARD) {
       navigate("/PictionaryRoomPage", {
         state: {
           user,
@@ -83,12 +82,26 @@ const PresentPage = () => {
           presenter,
           guests,
           presentRoomInfo,
-          selectedField
+          selectedField,
+        },
+      });
+    }
+    // Navigate to Pictionary
+    else if (roomStatus === RoomStatus.PICTURING) {
+      navigate("/PictionaryRoomPage", {
+        state: {
+          user,
+          isPresenter: isPresenter,
+          admin,
+          presenter,
+          guests,
+          presentRoomInfo,
+          selectedField,
         },
       });
     }
     // Navigate to Wordle
-    if (roomStatus === RoomStatus.WORDLING) {
+    else if (roomStatus === RoomStatus.WORDLING) {
       navigate("/WordlePage", {
         state: {
           user,
@@ -101,7 +114,7 @@ const PresentPage = () => {
       });
     }
     // Back to WaitRoom
-    if (roomStatus === RoomStatus.WAITING) {
+    else if (roomStatus === RoomStatus.WAITING) {
       navigate("/WaitRoomPage", {
         state: { user, admin },
       });
@@ -208,6 +221,22 @@ const PresentPage = () => {
       if (gameType === GameType.PICTIONARY) {
         handlePictionaryRoom(fieldName);
       }
+      const handleShareBoard = async () => {
+        const response = await fetch(
+          `${serverPort}/startShareBoard?roomCode=${roomCode}`,
+          {
+            method: "POST",
+          }
+        );
+        if (!response.ok) {
+          throw new Error(
+            `HTTP error when startShareBoard! Status: ${response.status}`
+          );
+        }
+      };
+      if (gameType === GameType.SHAREBOARD) {
+        handleShareBoard();
+      }
       const handleWordle = async () => {
         const response = await fetch(
           `${serverPort}/startWordle?roomCode=${roomCode}&userID=${presenter?.userID}&field=${fieldName}`,
@@ -259,15 +288,13 @@ const PresentPage = () => {
     }
   };
 
-
-
   const handleToggleReveal = (field: keyof PresentRoomInfo) => {
     if (!isPresenter) return;
     const newPresentRoomInfo: PresentRoomInfo = {
       ...presentRoomInfo,
       [field]: true,
     };
-    updatePresentRoomInfo({roomCode, newPresentRoomInfo});
+    updatePresentRoomInfo({ roomCode, newPresentRoomInfo });
   };
 
   const handleBackToWaitRoom = async () => {
