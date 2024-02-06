@@ -294,7 +294,7 @@ const HangmanPage = () => {
 
   const isSameUser = (self: User, other: User) => self.userID === other.userID;
   return (
-    <div className="wordle-container">
+    <div className="row-container">
       <div className="left-column">
         <div className="presenter" style={{ marginBottom: "30%" }}>
           <h2>Presenter:</h2>
