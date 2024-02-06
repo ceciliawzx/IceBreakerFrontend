@@ -32,6 +32,7 @@ const PictionaryPage = () => {
   const [roomStatus, setRoomStatus] = useState<RoomStatus>(
     RoomStatus.PICTURING
   );
+  const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
 
   // Fetch targetWord
@@ -47,6 +48,24 @@ const PictionaryPage = () => {
       throw new Error(`HTTP error when getTarget! Status: ${response.status}`);
     }
   };
+
+  const Modal = ({
+    onClose,
+    targetWord,
+  }: {
+    onClose: any;
+    targetWord: string;
+  }) => (
+    <div
+      id="pictionary-modal"
+    >
+      <h2>Target Word Revealed!</h2>
+      <p>
+        The target word was: <strong>{targetWord}</strong>
+      </p>
+      <button onClick={onClose}>Continue</button>
+    </div>
+  );
 
   // Handle navigation
   useEffect(() => {
@@ -81,10 +100,14 @@ const PictionaryPage = () => {
       [fieldName]: true,
     };
     updatePresentRoomInfo({ roomCode, newPresentRoomInfo });
-    if (roomStatus === RoomStatus.PRESENTING) {
-      navigate("/PresentPage", {
-        state: { user, admin, presenter, guests },
-      });
+    if (roomStatus === RoomStatus.PRESENTING && !showModal) {
+      if (roomStatus === RoomStatus.PRESENTING && !showModal) {
+        // Show the modal instead of navigating immediately
+        setShowModal(true);
+      }
+      // navigate("/PresentPage", {
+      //   state: { user, admin, presenter, guests },
+      // });
     }
     // Clear timer and count again
     return () => clearInterval(intervalId);
@@ -144,6 +167,17 @@ const PictionaryPage = () => {
           onDraw={handleDraw}
           externalDrawing={externalDrawing}
         />
+        {showModal && (
+          <Modal
+            onClose={() => {
+              setShowModal(false);
+              navigate("/PresentPage", {
+                state: { user, admin, presenter, guests },
+              });
+            }}
+            targetWord={targetWord}
+          />
+        )}
         <div className="word-display">
           {isPresenter || (admin && userID === admin.userID) ? (
             <span>Target Word: {targetWord}</span> // Show the target word to the presenter and admin
