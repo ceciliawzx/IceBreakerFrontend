@@ -26,6 +26,7 @@ const GeoguesserPage: React.FC = () => {
   const [guestWaitingPopup, setGuestWaitingPopup] = useState(false);
   const [geoguesserStatus, setGeoguesserStatus] = useState<GeoguesserStatus>(GeoguesserStatus.PRE_CHOOSE);
   const [showAllSubmitPopup, setShowAllSubmitPopup] = useState(false);
+  const [streetViewImageUrl, setStreetViewImageUrl] = useState<string>("");
   const [userSubStatus, setUserSubStatus] = useState(false);
   const [streetViewPanorama, setStreetViewPanorama] = useState<google.maps.StreetViewPanorama>();
 
@@ -42,6 +43,14 @@ const GeoguesserPage: React.FC = () => {
   const admin = location.state?.admin;
   const guests = location.state?.guests;
 
+  useEffect(() => {
+    if (currentMarker) {
+      const lat = currentMarker?.getPosition()?.lat().toFixed(3);
+      const lng = currentMarker?.getPosition()?.lng().toFixed(3);
+      const position = `${lat}, ${lng}`;
+      setStreetViewImageUrl(`https://maps.googleapis.com/maps/api/streetview?size=600x400&location=${lat},${lng}&key=${GOOGLE_MAPS_API_KEY}`);
+    }
+  }, [currentMarker]);
 
   const handleApiLoaded = (map: google.maps.Map, maps: typeof google.maps) => {
     setMap(map);
@@ -255,6 +264,14 @@ const GeoguesserPage: React.FC = () => {
         </div>
       </div>
     )}
+
+    {/* Street View */}
+    {streetViewImageUrl && (
+        <div className="street-view-container">
+          <h2>Street View</h2>
+          <img src={streetViewImageUrl} alt="Street View" className="street-view-image" />
+        </div>
+      )}
 
     </div>
   );
