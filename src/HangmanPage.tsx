@@ -9,6 +9,7 @@ import hangmanStages from "./HangmanStage";
 import { LetterStatus } from "./type/WordleLetter";
 import { updatePresentRoomInfo } from "./utils/RoomOperation";
 import { PresentRoomInfo } from "./type/PresentRoomInfo";
+import "./css/WordlePage.css";
 
 interface HangmanMsg {
   guessLetter: string;
@@ -78,20 +79,20 @@ const HangmanPage = () => {
     fetchWordLength();
   }, []);
 
-    // receive and parse message from websocket
-    const receiveMessage = (msg: HangmanMsg | BackMsg) => {
-      try {
-        // If contain letters field, is WordleMsg
-        if ("guessLetter" in msg) {
-          handleHangmanMessage(msg as HangmanMsg);
-        } else {
-          console.log("Back to PresentRoom");
-          handleBackMessage();
-        }
-      } catch (error) {
-        console.error("Error parsing:", error);
+  // receive and parse message from websocket
+  const receiveMessage = (msg: HangmanMsg | BackMsg) => {
+    try {
+      // If contain letters field, is WordleMsg
+      if ("guessLetter" in msg) {
+        handleHangmanMessage(msg as HangmanMsg);
+      } else {
+        console.log("Back to PresentRoom");
+        handleBackMessage();
       }
-    };
+    } catch (error) {
+      console.error("Error parsing:", error);
+    }
+  };
 
   // receive and parse message from websocket
   const handleHangmanMessage = (msg: HangmanMsg) => {
@@ -173,8 +174,6 @@ const HangmanPage = () => {
       if (!response.ok) {
         console.log(`HTTP error! Status: ${response.status}`);
       }
-      
-
     } catch (error) {
       console.error("Error returning to PresentRoom:", error);
     }
@@ -193,41 +192,66 @@ const HangmanPage = () => {
     .map((letter) => (letter ? letter : "_"))
     .join(" ");
 
-
-
-    const handleViewProfile = async (user: User | null) => {
-      if (user) {
-        const url = `${serverPort}/getPlayer?userID=${userID}&roomCode=${roomCode}`;
-        try {
-          const response = await fetch(url);
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-  
-          const data = await response.json();
-  
-          setSelectedUserProfile(
-            new UserProfile(
-              data.userInfo.displayName,
-              data.userInfo.roomCode,
-              data.userInfo.userID,
-              data.userInfo.profileImage,
-              data.userInfo.firstName,
-              data.userInfo.lastName,
-              data.userInfo.country,
-              data.userInfo.city,
-              data.userInfo.feeling,
-              data.userInfo.favFood,
-              data.userInfo.favActivity
-            )
-          );
-  
-          setShowProfilePopup(true);
-        } catch (error) {
-          console.error("Error fetching user details:", error);
+  const handleViewProfile = async (user: User | null) => {
+    if (user) {
+      const url = `${serverPort}/getPlayer?userID=${userID}&roomCode=${roomCode}`;
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
         }
+
+        const data = await response.json();
+
+        setSelectedUserProfile(
+          new UserProfile(
+            data.userInfo.displayName,
+            data.userInfo.roomCode,
+            data.userInfo.userID,
+            data.userInfo.profileImage,
+            data.userInfo.firstName,
+            data.userInfo.lastName,
+            data.userInfo.country,
+            data.userInfo.city,
+            data.userInfo.feeling,
+            data.userInfo.favFood,
+            data.userInfo.favActivity
+          )
+        );
+
+        setShowProfilePopup(true);
+      } catch (error) {
+        console.error("Error fetching user details:", error);
       }
+    }
+  };
+
+  const getStatusStyle = (status: LetterStatus) => {
+    const baseStyle = {
+      color: "black", // Keeping font color the same
+      fontSize: "16px", // Keeping font size the same
     };
+    switch (status) {
+      case LetterStatus.GREY:
+        return {
+          ...baseStyle,
+          backgroundColor: rootStyles.getPropertyValue("--wordle-unchecked"),
+        };
+
+      case LetterStatus.GREEN:
+        return {
+          ...baseStyle,
+          backgroundColor: rootStyles.getPropertyValue("--wordle-green"),
+        };
+      default:
+        return {
+          ...baseStyle,
+          backgroundColor: "white",
+        };
+    }
+  };
+
+  const isSameUser = (self: User, other: User) => self.userID === other.userID;
   return (
     <div className="wordle-container">
       <div className="left-column">
@@ -258,42 +282,89 @@ const HangmanPage = () => {
           />
           <p>{admin?.displayName}</p>
         </div>
+      </div>
 
-        <div className="presenter">
-          <h2>Admin:</h2>
-          <img
-            src={`${admin?.profileImage}`}
-            alt="Admin's Image"
-            className="presenter-avatar"
-          />
-          <p>{admin?.displayName}</p>
+      <div className="main-column">
+        <h1>Welcome to Hangman, {user.displayName}!</h1>
+        <h2>Current guesser is: {currentGuesser?.displayName}</h2>
+        <div className="column-container">
+          <pre id="hangman-ascii">
+            <p>{`Chances: ${6 - mistakes}`}</p>
+            <p>{hangmanStages[mistakes]}</p>
+          </pre>
         </div>
-      </div>
 
-      <div id="hangman-container">
-        <pre id="hangman-ascii">
-          <p>{`Chances: ${6 - mistakes}`}</p>
-          <p>{hangmanStages[mistakes]}</p>
-        </pre>
-      </div>
+        <p>{displayWord}</p>
+        <div className="alphabet-list">
+          {Array.from(alphabet).map((letter, index) => (
+            <button
+              key={index}
+              className={`alphabet-block row-${Math.floor(index / 9) + 1}`}
+              style={getStatusStyle(allLetterStatus[index])}
+              onClick={() => sendHangmanMessage(letter)} // Assuming sendWordleMessage is your function to handle guesses
+              disabled={allLetterStatus[index] !== LetterStatus.UNCHECKED} // Disable button if the letter has been guessed
+            >
+              {letter}
+            </button>
+          ))}
+        </div>
 
-      <p>{displayWord}</p>
-      <div>
-        {alphabet.split("").map((letter) => (
-          <button
-            key={letter}
-            onClick={() => sendHangmanMessage(letter)}
-            disabled={guessedLetters.includes(letter)}
-          >
-            {letter}
-          </button>
-        ))}
-      </div>
-      {isAdmin && (
-          <button className="common-button" onClick={handleBack}>
+        {isAdmin && (
+          <button className="admin-only-button" onClick={handleBack}>
             Back
           </button>
         )}
+      </div>
+      {/* 
+        {correct && <h2> You guessed the word! </h2>}
+        {reachMaxAttempt() && !correct && (
+          <h2>The correct answer is: {targetWord}</h2>
+        )} */}
+
+      {/* <div className="alphabet-list">
+          {Array.from(alphabet).map((letter, index) => (
+            <div
+              key={index}
+              className={`alphabet-block row-${Math.floor(index / 9) + 1}`}
+              style={getStatusStyle(allLetterStatus[index])}
+            >
+            
+              {letter}
+            </div>
+          ))}
+        </div> */}
+
+      <div className="right-column">
+        <div>
+          <h2>Joined Guests:</h2>
+          <div className="column-container">
+            {guests.map((guest, index) => (
+              <div key={index} className="row-container">
+                <div className="guest">
+                  {isSameUser(guest, currentGuesser) && (
+                    <div className="arrow-indicator"></div>
+                  )}
+
+                  <img
+                    src={`${guest.profileImage}`}
+                    alt={`${guest}'s avatar`}
+                    className="avatar"
+                  />
+                  <p>{guest.displayName}</p>
+                </div>
+                {isAdmin && (
+                  <button
+                    className="admin-only-button"
+                    onClick={() => handleViewProfile(guest)}
+                  >
+                    View Profile
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
