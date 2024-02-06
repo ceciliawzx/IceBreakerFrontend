@@ -27,6 +27,8 @@ const GeoguesserPage: React.FC = () => {
   const [geoguesserStatus, setGeoguesserStatus] = useState<GeoguesserStatus>(GeoguesserStatus.PRE_CHOOSE);
   const [showAllSubmitPopup, setShowAllSubmitPopup] = useState(false);
   const [userSubStatus, setUserSubStatus] = useState(false);
+  const [streetViewPanorama, setStreetViewPanorama] = useState<google.maps.StreetViewPanorama>();
+
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -44,6 +46,26 @@ const GeoguesserPage: React.FC = () => {
   const handleApiLoaded = (map: google.maps.Map, maps: typeof google.maps) => {
     setMap(map);
     setMapsApi(maps);
+
+    // Find the element in the DOM
+    const streetViewDiv = document.getElementById('street-view');
+
+    // Check if the element exists
+    if (streetViewDiv) {
+      // Create a StreetViewPanorama instance
+      const panorama = new maps.StreetViewPanorama(
+        streetViewDiv,
+        {
+          position: { lat: 0, lng: 0 }, // default position or hide it initially
+          pov: { heading: 165, pitch: 0 },
+          visible: false, // set to false if you want to hide it initially
+        }
+      );
+
+      setStreetViewPanorama(panorama);
+    } else {
+      console.error('Street view div not found');
+    }
   };
 
   const handleSubmitAnswer = async () => {
@@ -87,6 +109,11 @@ const GeoguesserPage: React.FC = () => {
         ...prevHistoyMarkers,
         { lat, lng }
       ]);
+    }
+
+    if (streetViewPanorama && mapsApi) {
+      streetViewPanorama.setPosition({ lat, lng });
+      streetViewPanorama.setVisible(true);
     }
 
   };
@@ -173,7 +200,10 @@ const GeoguesserPage: React.FC = () => {
       </h1>
       <div className="map-container">
         <GoogleMapReact
-          bootstrapURLKeys={{ key: GOOGLE_MAPS_API_KEY }}
+          bootstrapURLKeys={{ 
+            key: GOOGLE_MAPS_API_KEY,
+            libraries: ['places', 'geometry', 'drawing', 'visualization']
+          }}
           defaultCenter={{ lat: 0, lng: 0 }}
           defaultZoom={2}
           yesIWantToUseGoogleMapApiInternals
@@ -191,6 +221,10 @@ const GeoguesserPage: React.FC = () => {
             <li key={index}>Marker {historyMarkers.length - index}: ({marker.lat}, {marker.lng})</li>
           ))}
         </ul>
+      </div>
+
+      <div className="street-view-container" id="street-view" style={{ height: '400px', width: '100%' }}>
+        {/* Street View will be rendered here */}
       </div>
     
     {/* Single Player Submitted popup */}

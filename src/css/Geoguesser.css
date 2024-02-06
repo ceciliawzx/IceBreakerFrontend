@@ -93,3 +93,8 @@
   margin-bottom: 15px; /* Spacing below the header */
   color: #333; /* Dark text for readability */
 }
+
+#street-view {
+  height: 400px; /* You can adjust the height as needed */
+  width: 100%; /* This will make the street view take full width of its container */
+}
