@@ -18,6 +18,7 @@ interface HangmanMsg {
   allLetterStat: LetterStatus[];
   isFinished: boolean;
   roomCode: string;
+  currentWrongGuesses: number;
 }
 
 interface BackMsg {
@@ -101,12 +102,8 @@ const HangmanPage = () => {
       setIsFinished(msg.isFinished);
       setCurrentPositions(msg.correctPositions);
       setAllLetterStatus(msg.allLetterStat);
-      console.log(msg);
-      console.log(mistakes);
-      if (!msg.isCorrect) {
-        setMistakes((currentMistakes) => currentMistakes + 1);
-      }
-
+      setMistakes(msg.currentWrongGuesses);
+      console.log(msg.currentWrongGuesses);
       setAllLetterStatus(msg.allLetterStat);
     } catch (error) {
       console.error("Error parsing:", error);
@@ -149,6 +146,7 @@ const HangmanPage = () => {
       allLetterStat: allLetterStatus,
       isFinished: isFinished,
       roomCode: roomCode,
+      currentWrongGuesses: mistakes,
     });
   };
 
@@ -233,12 +231,12 @@ const HangmanPage = () => {
   return (
     <div className="wordle-container">
       <div className="left-column">
-        <div className="presenter" style={{ marginBottom: "60%" }}>
+        <div className="presenter" style={{ marginBottom: "30%" }}>
           <h2>Presenter:</h2>
           <img
             src={`${presenter?.profileImage}`}
             alt="Presenter's Image"
-            className="presenter-avatar"
+            className="avatar"
           />
           <p>{presenter?.displayName}</p>
           {isAdmin && (
@@ -256,7 +254,7 @@ const HangmanPage = () => {
           <img
             src={`${admin?.profileImage}`}
             alt="Admin's Image"
-            className="presenter-avatar"
+            className="avatar"
           />
           <p>{admin?.displayName}</p>
         </div>
@@ -271,6 +269,7 @@ const HangmanPage = () => {
           <p>{admin?.displayName}</p>
         </div>
       </div>
+
       <div id="hangman-container">
         <pre id="hangman-ascii">
           <p>{`Chances: ${6 - mistakes}`}</p>

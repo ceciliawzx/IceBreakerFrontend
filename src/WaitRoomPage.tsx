@@ -49,38 +49,6 @@ const WaitRoomPage = () => {
     }
   };
 
-  const handleChatRoom = () => {
-    navigate("/ChatRoomPage", {
-      state: { user },
-    });
-  };
-
-  const handleWordle = async () => {
-    // TODO: give field
-    const response = await fetch(
-      `${serverPort}/startWordle?roomCode=${roomCode}&userID=${presenter?.userID}&field=firstName`,
-      {
-        method: "POST",
-      }
-    );
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-  };
-
-  const handleHangman = async () => {
-    // TODO: give field
-    const response = await fetch(
-      `${serverPort}/startHangman?roomCode=${roomCode}&userID=${presenter?.userID}&field=firstName`,
-      {
-        method: "POST",
-      }
-    );
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-  };
-
   const handleUserInformation = () => {
     const preID = presenter?.userID;
 
@@ -339,13 +307,6 @@ const WaitRoomPage = () => {
         state: { user, admin, presenter, guests },
       });
     }
-
-    if (roomStatus === RoomStatus.HANGINGMAN) {
-      console.log("GameStatus = HANGINGMAN, ", user, admin, presenter, guests);
-      navigate("/HangmanPage", {
-        state: { user, admin, presenter, guests },
-      });
-    }
     // Clear timer and count again
     return () => clearInterval(intervalId);
   }, [roomStatus, user, admin, presenter, guests]);
@@ -441,21 +402,6 @@ const WaitRoomPage = () => {
           Start Room
         </button>
       )}
-      {
-        <button className="common-button" onClick={handleChatRoom}>
-          Chat Room
-        </button>
-      }
-      {
-        <button className="common-button" onClick={handleWordle}>
-          Start Wordle
-        </button>
-      }
-      {
-        <button className="common-button" onClick={handleHangman}>
-          Start Hangman
-        </button>
-      }
       {
         <button className="common-button" onClick={handleUserInformation}>
           Enter your information
