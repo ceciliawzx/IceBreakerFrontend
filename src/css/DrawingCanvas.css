@@ -11,10 +11,9 @@
 }
 
 #drawing-canvas {
-  background-color: rgb(248, 223, 194);
-  border: 1px solid #ccc; /* border around the canvas */
-  border-radius: 8px; 
-
+  background-color: var(--pictionary-background);
+  border: 1px solid var(--grey-background); /* border around the canvas */
+  border-radius: 8px;
 }
 
 #color-selector {
