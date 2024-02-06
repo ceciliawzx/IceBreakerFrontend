@@ -28,12 +28,9 @@ const ChatRoom: React.FC = () => {
   const destination = `/app/room/${roomCode}/sendMessage`;
 
   useEffect(() => {
-    const subscriptionConfig = {
-      topic: topic,
-      onMessageReceived: (msg: ChatMessage) => {
-        setChatHistory((prevHistory) => [...prevHistory, msg])}
-    }
-    connect(socketUrl, websocketUrl, [subscriptionConfig]);
+    const onMessageReceived = (msg: ChatMessage) => {
+        setChatHistory((prevHistory) => [...prevHistory, msg])};
+    connect(socketUrl, websocketUrl, topic, onMessageReceived);
   }, []);
 
   const handleSendMessage = () => {

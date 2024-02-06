@@ -74,14 +74,12 @@ const Wordle = () => {
 
   // Initialize web socket and fetch word
   useEffect(() => {
-    const subscriptionConfig = {
-      topic: topic,
-      onMessageReceived: (msg: WordleMsg | BackMsg) => {
-        receiveMessage(msg);
-      }
+    const onMessageReceived = (msg: WordleMsg | BackMsg) => {
+      receiveMessage(msg);
     };
+
     // Initialize web socket
-    connect(socketUrl, websocketUrl, [subscriptionConfig]);
+    connect(socketUrl, websocketUrl, topic, onMessageReceived);
 
     // fetch target word
     fetchWordLength();
@@ -214,6 +212,12 @@ const Wordle = () => {
 
   // Back to present page
   const handleBackMessage = async () => {
+    // Update PresentRoomInfo
+    const newPresentRoomInfo: PresentRoomInfo = {
+      ...presentRoomInfo,
+      [fieldName]: true,
+    };
+    updatePresentRoomInfo({ roomCode, newPresentRoomInfo });
     navigate("/PresentPage", {
       state: { user, admin, presenter, guests },
     });
@@ -300,12 +304,6 @@ const Wordle = () => {
   };
 
   const handleBack = async () => {
-    // Update PresentRoomInfo
-    const newPresentRoomInfo: PresentRoomInfo = {
-      ...presentRoomInfo,
-      [fieldName]: true,
-    };
-    updatePresentRoomInfo({ roomCode, newPresentRoomInfo });
     // Change room status
     const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;
     try {
