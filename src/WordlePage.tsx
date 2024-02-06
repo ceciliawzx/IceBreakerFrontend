@@ -379,14 +379,14 @@ const Wordle = () => {
   };
 
   return (
-    <div className="wordle-container">
+    <div className="row-page">
       <div className="left-column">
-        <div className="presenter" style={{ marginBottom: "60%" }}>
+        <div className="presenter" style={{ marginBottom: "30%" }}>
           <h2>Presenter:</h2>
           <img
             src={`${presenter?.profileImage}`}
             alt="Presenter's Image"
-            className="presenter-avatar"
+            className="avatar"
           />
           <p>{presenter?.displayName}</p>
           {isAdmin && (
@@ -404,7 +404,7 @@ const Wordle = () => {
           <img
             src={`${admin?.profileImage}`}
             alt="Admin's Image"
-            className="presenter-avatar"
+            className="avatar"
           />
           <p>{admin?.displayName}</p>
         </div>
@@ -477,11 +477,11 @@ const Wordle = () => {
         )}
       </div>
       <div className="right-column">
-        <div className="guest-list">
+        <div>
           <h2>Joined Guests:</h2>
-          <div className="column-guest-container">
+          <div className="column-container">
             {guests.map((guest, index) => (
-              <div key={index} className="guest-row">
+              <div key={index} className="row-container">
                 <div className="guest">
                   {isSameUser(guest, currentGuesser) && (
                     <div className="arrow-indicator"></div>
@@ -490,7 +490,7 @@ const Wordle = () => {
                   <img
                     src={`${guest.profileImage}`}
                     alt={`${guest}'s avatar`}
-                    className="guest-avatar"
+                    className="avatar"
                   />
                   <p>{guest.displayName}</p>
                 </div>

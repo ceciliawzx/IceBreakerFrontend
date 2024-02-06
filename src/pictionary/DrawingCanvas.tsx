@@ -1,11 +1,11 @@
-import React, { useCallback, useRef, useEffect, useState } from 'react';
+import React, { useCallback, useRef, useEffect, useState } from "react";
 import {
   DrawingCanvasProps,
   DrawingData,
   presetColors,
   canvasBackgroundColor,
-} from '../type/DrawingCanvas';
-import '../css/DrawingCanvas.css';
+} from "../type/DrawingCanvas";
+import "../css/DrawingCanvas.css";
 
 const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   onDraw,
@@ -15,7 +15,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef<boolean>(false);
   const [isEraser, setIsEraser] = useState<boolean>(false); // New state for eraser
-  const [selectedColor, setSelectedColor] = useState<string>('black'); // Default color
+  const [selectedColor, setSelectedColor] = useState<string>("black"); // Default color
   const backgroundColor = canvasBackgroundColor; // Canvas background color
 
   // Set responsive canvas size
@@ -30,10 +30,10 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     };
 
     setCanvasSize();
-    window.addEventListener('resize', setCanvasSize);
+    window.addEventListener("resize", setCanvasSize);
 
     return () => {
-      window.removeEventListener('resize', setCanvasSize);
+      window.removeEventListener("resize", setCanvasSize);
     };
   }, []);
 
@@ -42,7 +42,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       const canvas = canvasRef.current;
       if (!canvas) return;
 
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
       const { x, y, drawing, newLine, color, strokeWidth, eraser } =
@@ -83,7 +83,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       strokeWidth: isEraser ? 20 : 2,
       eraser: isEraser,
     };
-    console.log('ondraw in mouse move', drawingData);
+    console.log("ondraw in mouse move", drawingData);
     // send msg to server
     onDraw(drawingData);
   };
@@ -113,7 +113,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
 
     // draw(drawingData);
     onDraw(drawingData);
-    console.log('ondraw in mouse down', drawingData);
+    console.log("ondraw in mouse down", drawingData);
   };
 
   const handleMouseUp = (event: MouseEvent) => {
@@ -143,7 +143,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
 
   useEffect(() => {
     if (externalDrawing) {
-      console.log('external', externalDrawing.drawingData);
+      console.log("external", externalDrawing.drawingData);
       // const { x, y, drawing, newLine } = externalDrawing.drawingData;
       draw(externalDrawing.drawingData);
     }
@@ -153,17 +153,17 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    canvas.addEventListener('mousedown', handleMouseDown);
-    canvas.addEventListener('mouseup', handleMouseUp);
-    canvas.addEventListener('mousemove', handleMouseMove);
+    canvas.addEventListener("mousedown", handleMouseDown);
+    canvas.addEventListener("mouseup", handleMouseUp);
+    canvas.addEventListener("mousemove", handleMouseMove);
 
     return () => {
-      canvas.removeEventListener('mousedown', handleMouseDown);
-      canvas.removeEventListener('mouseup', handleMouseUp);
-      canvas.removeEventListener('mousemove', handleMouseMove);
+      canvas.removeEventListener("mousedown", handleMouseDown);
+      canvas.removeEventListener("mouseup", handleMouseUp);
+      canvas.removeEventListener("mousemove", handleMouseMove);
     };
   }, [handleMouseDown, handleMouseUp, handleMouseMove]);
 
@@ -173,22 +173,22 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     if (!canvas) return;
 
     if (isEraser) {
-      canvas.classList.add('eraser-cursor');
+      canvas.classList.add("eraser-cursor");
     } else {
-      canvas.classList.remove('eraser-cursor');
+      canvas.classList.remove("eraser-cursor");
     }
   }, [isEraser]);
 
   // Placeholder for non-drawer users to maintain layout consistency
-  const Placeholder = () => <div style={{ height: '51px' }}></div>;
+  const Placeholder = () => <div style={{ height: "51px" }}></div>;
 
   return (
     <div>
       {isDrawer ? (
-        <div id='color-selector'>
+        <div id="color-selector">
           {presetColors.map((color) => (
             <button
-              className='color-selector-button'
+              className="color-selector-button"
               key={color}
               style={{ backgroundColor: color }}
               onClick={() => {
@@ -197,14 +197,18 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
               }}
             />
           ))}
-          <button id='eraser' onClick={() => setIsEraser(!isEraser)}>
-            {isEraser ? 'Use Pen' : 'Use Eraser'}
+          <button
+            className="small-common-button"
+            id="eraser"
+            onClick={() => setIsEraser(!isEraser)}
+          >
+            {isEraser ? "Use Pen" : "Use Eraser"}
           </button>
         </div>
       ) : (
         <Placeholder />
       )}
-      <canvas id='drawing-canvas' ref={canvasRef}/>
+      <canvas id="drawing-canvas" ref={canvasRef} />
     </div>
   );
 };

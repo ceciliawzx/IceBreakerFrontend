@@ -118,7 +118,7 @@ const PictionaryPage = () => {
   };
 
   return (
-    <div className="pictionary-page">
+    <div className="row-page">
       <div className="chat-room-container">
         <ChatRoom />
       </div>

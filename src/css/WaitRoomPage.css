@@ -1,20 +1,5 @@
-.wait-room-page {
-  margin-top: 50px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-
 .room-code {
   margin-top: 20px;
-}
-
-.first-row-container {
-  display: flex; /* Aligns children of container in a row */
-  justify-content: space-evenly; /* Center the items horizontally */
-  align-items: center; /* Center the items vertically */
 }
 
 .moderator,
@@ -22,35 +7,6 @@
   text-align: center;
   margin-left: 120px;
   margin-right: 120px; /* Adjust margin for spacing between containers */
-}
-
-.moderator-avatar,
-.presenter-avatar {
-  /* Set a background image and make it circular */
-  background-size: cover;
-  background-position: center;
-  width: 100px;
-  height: 100px;
-  border-radius: 50%; /* Make the image circular */
-}
-
-.guest-avatar {
-  /* Your existing styles for the moderator section */
-
-  /* Set a background image and make it circular */
-  /* background-image: url("~/public/pic.jpg"); */
-  background-size: cover;
-  background-position: center;
-  width: 100px;
-  height: 100px;
-  border-radius: 50%; /* Make the image circular */
-}
-
-.row-guest-container {
-  display: flex; /* Aligns children of guest-container in a row */
-  justify-content: center; /* Center the items horizontally */
-  align-items: center; /* Center the items vertically */
-  flex-wrap: wrap; /* Wrap items to next line if space is not enough */
 }
 
 .avatar-container {
@@ -69,14 +25,6 @@
   font-size: 15px;
 }
 
-.guest {
-  display: flex; /* Aligns children of guest vertically */
-  flex-direction: column; /* Stack items vertically */
-  align-items: center; /* Center items horizontally in the column */
-  margin: 10px; /* Add some space around each guest */
-  position: relative;
-}
-
 .river {
   height: 50px; /* Adjust the height as needed */
   background-image: url("~/public/river.png");
@@ -84,40 +32,7 @@
 }
 
 .guest-list {
-  margin-top: 20px;
-}
-
-.admin-only-button {
-  background-color: var(--admin-button);
-  color: white;
-  border: none;
-  cursor: pointer;
-  margin: 10px;
-  padding: 10px;
-  border-radius: 5px;
-}
-
-.admin-only-button:hover {
-  background-color: var(--admin-button-hover);
-}
-
-.admin-only-button:disabled {
-  background-color: var(--gray-background); /* Grey color for disabled state */
-  cursor: not-allowed; /* Change cursor to indicate the button is not clickable */
-}
-
-.common-button {
-  background-color: var(--common-button);
-  color: white;
-  border: none;
-  cursor: pointer;
-  margin: 10px;
-  padding: 10px;
-  border-radius: 5px;
-}
-
-.common-button:hover {
-  background-color: var(--common-button-hover);
+  margin-top: 2%;
 }
 
 .leave-room-button {
@@ -143,6 +58,7 @@
   top: -15px;
   right: -25px;
   background-color: transparent;
+  border: none;
   cursor: pointer;
   margin: 10px;
   padding: 20px;
@@ -159,7 +75,7 @@
 
 .change-presenter-popup {
   background-color: white;
-  border: 1px solid var(--gray-background);
+  border: 1px solid var(--grey-background);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   padding: 20px;
   text-align: center;
@@ -168,10 +84,6 @@
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 1000;
-}
-
-.change-presenter-popup h3 {
-  margin-bottom: 10px;
 }
 
 .change-presenter-popup ul {

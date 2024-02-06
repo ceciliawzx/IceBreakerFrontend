@@ -1,0 +1,163 @@
+:root {
+  --common-button: #4caf50;
+  --common-button-hover: #45a049;
+  --admin-button: #5d99e2;
+  --admin-button-hover: #4e5ed2;
+  --red-button: #e3242b;
+  --red-button-hover: #c01016;
+
+  --light-grey-background: #f0f0f0;
+  --grey-background: #cccccc;
+
+  --wordle-unchecked: #b8b8b8;
+  --wordle-yellow: #ffe479;
+  --wordle-green: #7ed78c;
+
+  --chat-self: rgb(21, 159, 21);
+  --chat-other: #da7414;
+  --pictionary-background: rgb(248, 223, 194);
+}
+
+.page {
+  margin-top: 2%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.row-page {
+  display: flex;
+  flex-direction: row;
+  justify-items: center;
+  height: 100vh;
+}
+
+.center-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 100vh;
+}
+
+.row-container {
+  display: flex; /* Aligns children of container in a row */
+  justify-content: space-evenly; /* Center the items horizontally */
+  align-items: center; /* Center the items vertically */
+  flex-wrap: wrap; /* Wrap items to next line if space is not enough */
+  margin-bottom: 2%;
+}
+
+.column-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.left-column {
+  flex: 0.1;
+}
+
+.main-column {
+  flex: 0.6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.right-column {
+  flex: 0.3;
+}
+
+.avatar {
+  background-size: cover;
+  background-position: center;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%; /* Make the image circular */
+}
+
+.guest {
+  display: flex; /* Aligns children of guest vertically */
+  flex-direction: column; /* Stack items vertically */
+  align-items: center; /* Center items horizontally in the column */
+  margin: 10px; /* Add some space around each guest */
+  position: relative;
+}
+
+.admin-only-button {
+  background-color: var(--admin-button);
+  color: white;
+  border: none;
+  cursor: pointer;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.admin-only-button:hover {
+  background-color: var(--admin-button-hover);
+}
+
+.admin-only-button:disabled {
+  background-color: var(--grey-background); /* Grey color for disabled state */
+  cursor: not-allowed; /* Change cursor to indicate the button is not clickable */
+}
+
+.common-button {
+  background-color: var(--common-button);
+  color: white;
+  cursor: pointer;
+  border: none;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.common-button:hover {
+  background-color: var(--common-button-hover);
+}
+
+.small-common-button {
+  background-color: var(--common-button);
+  color: white;
+  cursor: pointer;
+  border: none;
+  margin: 5px;
+  padding: 5px;
+  border-radius: 5px;
+}
+
+.small-common-button:hover {
+  background-color: var(--common-button-hover);
+}
+
+.popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 20px;
+  background-color: white;
+  border: 1px solid var(--grey-background);
+  box-shadow: 0 0 10px var(--grey-background);
+  z-index: 999;
+  text-align: center;
+}
+
+.arrow-indicator {
+  position: absolute;
+  top: 50%;
+  left: -20px; /* Adjust the distance from the left */
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 10px 0 10px 15px; /* Adjust the size and direction of the arrow */
+  border-color: transparent transparent transparent var(--admin-button); /* Adjust the arrow color */
+}
