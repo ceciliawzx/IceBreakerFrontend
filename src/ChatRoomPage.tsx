@@ -97,7 +97,9 @@ const ChatRoom: React.FC = () => {
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Type a message..."
           />
-          <button onClick={handleSendMessage}>Send</button>
+          <button className="common-button" onClick={handleSendMessage}>
+            Send
+          </button>
         </div>
       </div>
     </div>

@@ -12,6 +12,9 @@
   --wordle-unchecked: #b8b8b8;
   --wordle-yellow: #ffe479;
   --wordle-green: #7ed78c;
+
+  --chat-self: rgb(21, 159, 21);
+  --chat-other: #da7414;
 }
 
 .page {
