@@ -24,11 +24,11 @@ const GeoguesserPage: React.FC = () => {
   const [showSubmitPopup, setShowSubmitPopup] = useState(false);
   const [isMapInteractive, setIsMapInteractive] = useState(true);
   const [guestWaitingPopup, setGuestWaitingPopup] = useState(false);
-  const [geoguesserStatus, setGeoguesserStatus] = useState<GeoguesserStatus>(GeoguesserStatus.PRE_CHOOSE);
+  const [geoguesserStatus, setGeoguesserStatus] = useState<GeoguesserStatus>();
   const [showAllSubmitPopup, setShowAllSubmitPopup] = useState(false);
-  const [streetViewImageUrl, setStreetViewImageUrl] = useState<string>("");
   const [userSubStatus, setUserSubStatus] = useState(false);
   const [streetViewPanorama, setStreetViewPanorama] = useState<google.maps.StreetViewPanorama>();
+  const [winner, setWinner] = useState<string>();
 
 
   const location = useLocation();
@@ -40,17 +40,6 @@ const GeoguesserPage: React.FC = () => {
   const presenter = location.state?.presenter;
   const pretID = presenter ? presenter.userID : null;
   const isPret = (pretID === userID);
-  const admin = location.state?.admin;
-  const guests = location.state?.guests;
-
-  useEffect(() => {
-    if (currentMarker) {
-      const lat = currentMarker?.getPosition()?.lat().toFixed(3);
-      const lng = currentMarker?.getPosition()?.lng().toFixed(3);
-      const position = `${lat}, ${lng}`;
-      setStreetViewImageUrl(`https://maps.googleapis.com/maps/api/streetview?size=600x400&location=${lat},${lng}&key=${GOOGLE_MAPS_API_KEY}`);
-    }
-  }, [currentMarker]);
 
   const handleApiLoaded = (map: google.maps.Map, maps: typeof google.maps) => {
     setMap(map);
@@ -101,7 +90,7 @@ const GeoguesserPage: React.FC = () => {
 
   const handleMapClick = (event: { lat: any; lng: any; }) => {
     const { lat, lng } = event;
-    if (isMapInteractive && map && mapsApi) {
+    if (isMapInteractive && map && mapsApi && streetViewPanorama) {
 
       if (currentMarker) {
         currentMarker.setMap(null);
@@ -118,13 +107,19 @@ const GeoguesserPage: React.FC = () => {
         ...prevHistoyMarkers,
         { lat, lng }
       ]);
-    }
 
-    if (streetViewPanorama && mapsApi) {
-      streetViewPanorama.setPosition({ lat, lng });
-      streetViewPanorama.setVisible(true);
+      // Check for Street View availability at the clicked location
+      new mapsApi.StreetViewService().getPanorama({ location: { lat, lng }, radius: 50 }, (data, status) => {
+        if (status === mapsApi.StreetViewStatus.OK) {
+          streetViewPanorama.setPosition({ lat, lng });
+          streetViewPanorama.setVisible(true);
+        } else {
+          // No Street View available, so show satellite image
+          map.setMapTypeId(mapsApi.MapTypeId.SATELLITE);
+          // Optionally, you might want to inform the user that no Street View is available
+        }
+      });
     }
-
   };
 
   const checkRoomStatus = async () => {
@@ -160,15 +155,28 @@ const GeoguesserPage: React.FC = () => {
 
       const data = await response.json();
       setUserSubStatus(data);
-      console.log("sub status set:", data, "user set:", userSubStatus);
-
-      if (userSubStatus) {
-        setShowSubmitPopup(true);
-        setIsMapInteractive(false); 
-      }
 
     } catch (error) {
       console.error("Failed to fetch user submit status:", error);
+    }
+  }
+
+  const checkWinner = async () => {
+    try {
+      const response = await fetch(
+        `${serverPort}/geoGuesserWinner?roomCode=${roomCode}`,
+        { method: "GET" }
+      );
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setWinner(data[0].displayName);
+
+    } catch (error) {
+      console.error("Failed to get winner:", error);
     }
   }
 
@@ -176,11 +184,17 @@ const GeoguesserPage: React.FC = () => {
   useEffect(() => {
     checkRoomStatus();
     checkUserSubmit();
+    checkWinner();
+    if (userSubStatus) {
+      setShowSubmitPopup(true);
+      setIsMapInteractive(false); 
+    }
     if ((geoguesserStatus === GeoguesserStatus.PRE_CHOOSE) && !isPret) {
       setGuestWaitingPopup(true);
     } else if (geoguesserStatus === GeoguesserStatus.PLAYER_CHOOSE) {
       setGuestWaitingPopup(false);
     } else if (geoguesserStatus === GeoguesserStatus.SUBMITTED) {
+
       setShowSubmitPopup(false);
       setShowAllSubmitPopup(true);
     }
@@ -188,6 +202,11 @@ const GeoguesserPage: React.FC = () => {
     const interval = setInterval(() => {
       checkRoomStatus();
       checkUserSubmit();
+      checkWinner();
+      if (userSubStatus) {
+        setShowSubmitPopup(true);
+        setIsMapInteractive(false); 
+      }
       if ((geoguesserStatus === GeoguesserStatus.PRE_CHOOSE) && !isPret) {
         setGuestWaitingPopup(true);
       } else if (geoguesserStatus === GeoguesserStatus.PLAYER_CHOOSE) {
@@ -199,7 +218,7 @@ const GeoguesserPage: React.FC = () => {
     }, refreshTime); // Assuming 'refreshTime' is a predefined interval time
 
     return () => clearInterval(interval);
-  }, [geoguesserStatus]);
+  }, [geoguesserStatus, userSubStatus, winner]);
   
 
   return (
@@ -223,25 +242,17 @@ const GeoguesserPage: React.FC = () => {
       <button className="common-button" onClick={handleSubmitAnswer}>
           Submit Answer
         </button>
-      <div className="marker-list">
-        <h2>Marker History:</h2>
-        <ul>
-          {historyMarkers.slice().reverse().map((marker, index) => (
-            <li key={index}>Marker {historyMarkers.length - index}: ({marker.lat}, {marker.lng})</li>
-          ))}
-        </ul>
-      </div>
 
       <div className="street-view-container" id="street-view" style={{ height: '400px', width: '100%' }}>
         {/* Street View will be rendered here */}
       </div>
     
     {/* Single Player Submitted popup */}
-    {showSubmitPopup && currentMarker &&(
-      <div className="submit-popup">
-      <div className="submit-popup-inner">
+    {showSubmitPopup  &&(
+      <div className="waiting-popup">
+      <div className="waiting-popup-inner">
         <h3>You have submitted your answer!</h3>
-        <p>Location: ({currentMarker?.getPosition()?.lat().toFixed(3)}, {currentMarker?.getPosition()?.lng().toFixed(3)})</p>
+        {/* <p>Location: ({currentMarker?.getPosition()?.lat().toFixed(3)}, {currentMarker?.getPosition()?.lng().toFixed(3)})</p> */}
         <p>Now please wait for others!</p>
       </div>
     </div>
@@ -252,6 +263,7 @@ const GeoguesserPage: React.FC = () => {
       <div className="waiting-popup">
       <div className="waiting-popup-inner">
         <h3>All finished!</h3>
+        <h3>The winner is: {winner}</h3>
       </div>
     </div>
     )}
@@ -264,14 +276,6 @@ const GeoguesserPage: React.FC = () => {
         </div>
       </div>
     )}
-
-    {/* Street View */}
-    {streetViewImageUrl && (
-        <div className="street-view-container">
-          <h2>Street View</h2>
-          <img src={streetViewImageUrl} alt="Street View" className="street-view-image" />
-        </div>
-      )}
 
     </div>
   );
