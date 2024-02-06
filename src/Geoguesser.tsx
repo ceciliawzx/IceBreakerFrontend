@@ -30,6 +30,7 @@ const GeoguesserPage: React.FC = () => {
   const [streetViewPanorama, setStreetViewPanorama] = useState<google.maps.StreetViewPanorama>();
   const [winner, setWinner] = useState<UserProfile[]>([]);
   const [winnerDistance, setWinnerDistance] = useState<number[]>([]);
+  const [satelliteImageUrl, setSatelliteImageUrl] = useState<string | null>(null);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -54,9 +55,8 @@ const GeoguesserPage: React.FC = () => {
       const panorama = new maps.StreetViewPanorama(
         streetViewDiv,
         {
-          position: { lat: 0, lng: 0 }, // default position or hide it initially
           pov: { heading: 165, pitch: 0 },
-          visible: false, // set to false if you want to hide it initially
+          visible: false,
         }
       );
 
@@ -113,10 +113,16 @@ const GeoguesserPage: React.FC = () => {
         if (status === mapsApi.StreetViewStatus.OK) {
           streetViewPanorama.setPosition({ lat, lng });
           streetViewPanorama.setVisible(true);
+          setSatelliteImageUrl(null);
         } else {
-          // No Street View available, so show satellite image
-          map.setMapTypeId(mapsApi.MapTypeId.SATELLITE);
-          // Optionally, you might want to inform the user that no Street View is available
+          streetViewPanorama.setVisible(false);
+
+          const zoom = 15;
+          const imageWidth = window.innerWidth;
+          const imageHeight = Math.floor(window.innerHeight / 2);
+          const imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=${zoom}&size=5000x3000&maptype=satellite&key=${GOOGLE_MAPS_API_KEY}`;
+          setSatelliteImageUrl(imageUrl);
+          console.log("url is", imageUrl);
         }
       });
     }
@@ -135,7 +141,7 @@ const GeoguesserPage: React.FC = () => {
 
       const data = await response.json();
       setGeoguesserStatus(data.status);
-      console.log("status set:", geoguesserStatus);
+      // console.log("status set:", geoguesserStatus);
       
     } catch (error) {
       console.error("Failed to fetch room status:", error);
@@ -175,7 +181,6 @@ const GeoguesserPage: React.FC = () => {
       const data = await response.json();
       setWinner(data.rankPerson);
       setWinnerDistance(data.rankDistance);
-      console.log("dataget:", data, "winner set:", winner, "winner distance set:", winnerDistance);
 
     } catch (error) {
       console.error("Failed to get winner:", error);
@@ -245,8 +250,10 @@ const GeoguesserPage: React.FC = () => {
           Submit Answer
         </button>
 
-      <div className="street-view-container" id="street-view" style={{ height: '400px', width: '100%' }}>
-        {/* Street View will be rendered here */}
+      <div className="street-view-container" id="street-view">
+        {satelliteImageUrl ? (
+          <img src={satelliteImageUrl} alt="Satellite Image" />
+        ) : null}
       </div>
     
     {/* Single Player Submitted popup */}
@@ -254,7 +261,6 @@ const GeoguesserPage: React.FC = () => {
       <div className="waiting-popup">
       <div className="waiting-popup-inner">
         <h3>You have submitted your answer!</h3>
-        {/* <p>Location: ({currentMarker?.getPosition()?.lat().toFixed(3)}, {currentMarker?.getPosition()?.lng().toFixed(3)})</p> */}
         <p>Now please wait for others!</p>
       </div>
     </div>
@@ -268,10 +274,10 @@ const GeoguesserPage: React.FC = () => {
         <h3>The winners are:</h3>
           <ul>
             {winner.map((winnerProfile, index) => {
-                const distance = winnerDistance[index];
+                const distance = winnerDistance[index].toFixed(2);
                 return (
                     <li key={index}>
-                        {winnerProfile.displayName}
+                        {winnerProfile.displayName} : {distance}km away
                     </li>
                 );
             })}
