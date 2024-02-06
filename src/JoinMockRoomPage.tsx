@@ -38,31 +38,39 @@ const JoinMockRoomPage = () => {
 
       if (userInfoData) {
         const responseIsAdmin = await fetch(
-            `${serverPort}/isAdmin?userID=${userID}&roomCode=${roomCode}`,
-            { method: "GET" }
+          `${serverPort}/isAdmin?userID=${userID}&roomCode=${roomCode}`,
+          { method: "GET" }
         );
-    
+
         if (!responseIsAdmin.ok) {
-            throw new Error(`HTTP error! Status: ${responseIsAdmin.status}`); // Error message
+          throw new Error(`HTTP error! Status: ${responseIsAdmin.status}`); // Error message
         }
-    
+
         const userIsAdminData = await responseIsAdmin.json();
-        const isAdmin = userIsAdminData === true
+        const isAdmin = userIsAdminData === true;
 
         const responseIsPresenter = await fetch(
-            `${serverPort}/isPresenter?userID=${userID}&roomCode=${roomCode}`,
-            { method: "GET" }
+          `${serverPort}/isPresenter?userID=${userID}&roomCode=${roomCode}`,
+          { method: "GET" }
         );
-    
+
         if (!responseIsPresenter.ok) {
-            throw new Error(`HTTP error! Status: ${responseIsPresenter.status}`); // Error message
+          throw new Error(`HTTP error! Status: ${responseIsPresenter.status}`); // Error message
         }
-    
+
         const userIsPresenterData = await responseIsPresenter.json();
-        const isPresenter = userIsPresenterData === true
+        const isPresenter = userIsPresenterData === true;
 
         // Joining room cannot be admin
-        const user = new User(roomCode, userID, userInfoData.userInfo.displayName, isAdmin, isPresenter, "", true)
+        const user = new User(
+          roomCode,
+          userID,
+          userInfoData.userInfo.displayName,
+          isAdmin,
+          isPresenter,
+          "",
+          true
+        );
         // const user = new User(roomCode, userID, userID, false, false, "", false);
 
         navigate("/WaitRoomPage", {
@@ -77,24 +85,23 @@ const JoinMockRoomPage = () => {
   };
 
   const handleResetMockServer = async () => {
-    const responseResetRoom = await fetch(
-      `${serverPort}/restartMockRoom`,
-      { method: "POST" }
-    );
+    const responseResetRoom = await fetch(`${serverPort}/restartMockRoom`, {
+      method: "POST",
+    });
 
     if (!responseResetRoom.ok) {
       throw new Error(`HTTP error! Status: ${responseResetRoom.status}`); // Error message
     }
-    console.log("Success")
+    console.log("Success");
 
     const userIsAdminData = await responseResetRoom.json();
   };
 
   return (
-    <div className="join-room-page">
+    <div className="center-page">
       <h1>Join a New Room</h1>
-      <div className="form-container">
-        <form onSubmit={handleSubmit} className="form">
+      <div>
+        <form onSubmit={handleSubmit} className="column-container">
           <input
             type="text"
             className="form-input"
@@ -103,23 +110,19 @@ const JoinMockRoomPage = () => {
             placeholder="User ID"
           />
           Use id = 1 to log as admin
-          <button type="submit" className="submit-button">
+          <button type="submit" className="common-button">
             Join Room
           </button>
           {message && <p className="message">{message}</p>}
         </form>
-        <button
-          className='admin-only-button'
-          onClick={handleResetMockServer}
-        >
+        <button className="admin-only-button" onClick={handleResetMockServer}>
           Reset mock room
         </button>
-        
       </div>
-   
+
       {showPopup && (
         <div className="popup">
-          <p>Please enter a displayname.</p>
+          <p>Please enter userID.</p>
           <button onClick={() => setShowPopup(false)}>OK</button>
         </div>
       )}

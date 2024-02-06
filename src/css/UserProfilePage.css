@@ -1,52 +1,12 @@
-.user-profile-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
-
-.form-title {
-    margin-bottom: 20px;
-    color: #333; 
-    font-size: 1.5em;
-}
-
-form {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-}
-
-.form-row {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
 label {
-    margin-right: 10px;
-    width: 100px; /* Adjust the width as needed */
-    text-align: right;
+  margin-right: 10px;
+  width: 100px;
+  text-align: right;
 }
 
-input[type="text"], input[type="file"] {
-    padding: 8px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-}
-
-.submit-button {
-    padding: 15px 30px; /* Increase padding for a larger button */
-    font-size: 1.2em; /* Increase font size for larger text */
-    border-radius: 8px; /* Optional: Increase border-radius for a more rounded look */
-    border: none;
-    cursor: pointer;
-    background-color: #4caf50; /* Example background color */
-    color: white; /* Example text color */
-    margin-top: 10px;
-}
-
-.submit-button:hover {
-    background-color: #45a049;
+input[type="text"],
+input[type="file"] {
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
 }
