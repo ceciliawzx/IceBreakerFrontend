@@ -271,7 +271,7 @@ const WaitRoomPage = () => {
         setAllGuestsCompleted(allCompleted);
       }
 
-      console.log("Game status", data.roomStatus);
+      console.log('Game status', data.roomStatus);
 
       if (data.roomStatus) {
         console.log("RoomStatus", data.roomStatus);
@@ -298,6 +298,7 @@ const WaitRoomPage = () => {
       console.error("Error fetching player:", error);
     }
   };
+  
 
   useEffect(() => {
     // Check whether the user is admin
