@@ -17,7 +17,7 @@ const PresentPage = () => {
   const user: UserProfile = location.state?.user;
   const userID: string = user.userID;
   const roomCode: string = user.roomCode;
-  const presenter: UserProfile = location.state?.presenter;
+  const presenter: User = location.state?.presenter;
   const admin: User = location.state?.admin;
   const guests: UserProfile[] = location.state?.guests;
   const [presenterInfo, setPresenterInfo] = useState<UserProfile | null>(null);
@@ -83,7 +83,7 @@ const PresentPage = () => {
           presenter,
           guests,
           presentRoomInfo,
-          selectedField,
+          selectedField
         },
       });
     }

@@ -43,20 +43,12 @@ export const Timer = ({
     const seconds = inputValue.trim() === "" ? defaultTime : Number(inputValue);
     const destination = `/app/room/${roomCode}/startTimer`;
     const timerMessage: TimerMessage = {
-      roomCode: roomCode,
-      roomStatus: roomStatus,
-      seconds: seconds,
+      roomCode,
+      roomStatus,
+      seconds,
     };
     sendMsg(destination, timerMessage);
   }, [roomCode, roomStatus, inputValue, defaultTime]);
-
-//   useEffect(() => {
-//     // Once connected, attempt to start the timer after a brief delay
-//     if (isConnected) {
-//       const delay = 2000; // Delay in milliseconds
-//       setTimeout(() => startTimer(defaultTime), delay);
-//     }
-//   }, [isConnected]);
 
   // Function to send a message to modify the timer
   const modifyTimer = (seconds: number) => {
