@@ -49,12 +49,6 @@ const WaitRoomPage = () => {
     }
   };
 
-  const handleChatRoom = () => {
-    navigate("/ChatRoomPage", {
-      state: { user },
-    });
-  };
-
   const handleUserInformation = () => {
     const preID = presenter?.userID;
 
@@ -408,11 +402,6 @@ const WaitRoomPage = () => {
           Start Room
         </button>
       )}
-      {
-        <button className="common-button" onClick={handleChatRoom}>
-          Chat Room
-        </button>
-      }
       {
         <button className="common-button" onClick={handleUserInformation}>
           Enter your information
