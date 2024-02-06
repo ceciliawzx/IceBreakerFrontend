@@ -11,6 +11,7 @@ import { checkRoomStatus, updatePresentRoomInfo } from "./utils/RoomOperation";
 import { RoomStatus } from "./type/RoomStatus";
 import { refreshTime } from "./macro/MacroConst";
 import { PresentRoomInfo } from "./type/PresentRoomInfo";
+import { Timer } from "./timer/Timer";
 
 const PictionaryPage = () => {
   const location = useLocation();
@@ -60,6 +61,12 @@ const PictionaryPage = () => {
     }, refreshTime);
 
     // Navigate to PresentPage
+    // Assume info has been revealed when navigating back to present room, update presentRoomInfo
+    const newPresentRoomInfo: PresentRoomInfo = {
+      ...presentRoomInfo,
+      [fieldName]: true,
+    };
+    updatePresentRoomInfo({ roomCode, newPresentRoomInfo });
     if (roomStatus === RoomStatus.PRESENTING) {
       navigate("/PresentPage", {
         state: { user, admin, presenter, guests },
@@ -79,11 +86,7 @@ const PictionaryPage = () => {
     const socketUrl = `${serverPort}/chat?userId=${userID}`;
     const websocketUrl = `${websocketPort}/chat?userId=${userID}`;
     const topic = `/topic/room/${roomCode}/drawing`;
-    const subsciptionConfig = {
-      topic: topic,
-      onMessageReceived: handleReceivedDrawing
-    };
-    connect(socketUrl, websocketUrl, [subsciptionConfig]);
+    connect(socketUrl, websocketUrl, topic, handleReceivedDrawing);
   }, []);
 
   // Send DrawingMessage to server
@@ -104,12 +107,6 @@ const PictionaryPage = () => {
 
   // navigate back to presentRoom
   const handleBackToPresentRoom = async () => {
-    // Assume info has been revealed when navigating back to present room, update presentRoomInfo
-    const newPresentRoomInfo: PresentRoomInfo = {
-      ...presentRoomInfo,
-      [fieldName]: true,
-    };
-    updatePresentRoomInfo({ roomCode, newPresentRoomInfo });
     const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;
     try {
       const response = await fetch(url, {
@@ -140,6 +137,14 @@ const PictionaryPage = () => {
               Back to PresentRoom
             </button>
           )}
+        </div>
+        <div>
+          <Timer
+            user={user}
+            roomCode={roomCode}
+            roomStatus={RoomStatus.PRESENTING}
+            defaultTime={40}
+          />
         </div>
       </div>
     </div>

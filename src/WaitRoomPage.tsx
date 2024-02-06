@@ -220,7 +220,6 @@ const WaitRoomPage = () => {
       });
 
       if (data.admin) {
-        console.log("setting admin ", data.admin);
         setAdmin(
           new User(
             roomCode,
@@ -235,7 +234,6 @@ const WaitRoomPage = () => {
         );
       }
       if (data.presenter) {
-        console.log("setting presenter ", data.presenter);
         setPresenter(
           new User(
             roomCode,
@@ -249,7 +247,6 @@ const WaitRoomPage = () => {
         );
       }
       if (data.otherPlayers) {
-        console.log("setting others ", data.otherPlayers);
         const updatedGuests = data.otherPlayers.map(
           (guest: User) =>
             new User(
@@ -270,11 +267,7 @@ const WaitRoomPage = () => {
         );
         setAllGuestsCompleted(allCompleted);
       }
-
-      console.log('Game status', data.roomStatus);
-
       if (data.roomStatus) {
-        console.log("RoomStatus", data.roomStatus);
         setRoomStatus(data.roomStatus);
       }
     } catch (error) {
