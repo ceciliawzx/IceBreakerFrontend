@@ -26,7 +26,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     const setCanvasSize = () => {
       // set some margin
       canvas.width = window.innerWidth * 0.75;
-      canvas.height = window.innerHeight * 0.9;
+      canvas.height = window.innerHeight * 0.91;
     };
 
     setCanvasSize();
