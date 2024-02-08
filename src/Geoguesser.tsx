@@ -88,9 +88,30 @@ const GeoguesserPage: React.FC = () => {
     }
   }
 
+  const updateStreetViewAndSatelliteImage: any = (lat : any, lng: any) => {
+    if (isMapInteractive && map && mapsApi && streetViewPanorama) {
+      new mapsApi.StreetViewService().getPanorama({ location: { lat, lng }, radius: 50 }, (data, status) => {
+        if (status === mapsApi.StreetViewStatus.OK) {
+          streetViewPanorama.setPosition({ lat, lng });
+          streetViewPanorama.setVisible(true);
+          setSatelliteImageUrl(null);
+        } else {
+          streetViewPanorama.setVisible(false);
+  
+          const zoom = 15;
+          const imageWidth = window.innerWidth;
+          const imageHeight = Math.floor(window.innerHeight / 2);
+          const imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=${zoom}&size=5000x3000&maptype=satellite&key=${GOOGLE_MAPS_API_KEY}`;
+          setSatelliteImageUrl(imageUrl);
+          console.log("url is", imageUrl);
+        }
+      });
+    }
+  }
+
   const handleMapClick = (event: { lat: any; lng: any; }) => {
     const { lat, lng } = event;
-    if (isMapInteractive && map && mapsApi && streetViewPanorama) {
+    if (isMapInteractive && map && mapsApi) {
 
       if (currentMarker) {
         currentMarker.setMap(null);
@@ -108,23 +129,10 @@ const GeoguesserPage: React.FC = () => {
         { lat, lng }
       ]);
 
-      // Check for Street View availability at the clicked location
-      new mapsApi.StreetViewService().getPanorama({ location: { lat, lng }, radius: 50 }, (data, status) => {
-        if (status === mapsApi.StreetViewStatus.OK) {
-          streetViewPanorama.setPosition({ lat, lng });
-          streetViewPanorama.setVisible(true);
-          setSatelliteImageUrl(null);
-        } else {
-          streetViewPanorama.setVisible(false);
-
-          const zoom = 15;
-          const imageWidth = window.innerWidth;
-          const imageHeight = Math.floor(window.innerHeight / 2);
-          const imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=${zoom}&size=5000x3000&maptype=satellite&key=${GOOGLE_MAPS_API_KEY}`;
-          setSatelliteImageUrl(imageUrl);
-          console.log("url is", imageUrl);
-        }
-      });
+      if (isPret) {
+        updateStreetViewAndSatelliteImage(lat, lng);
+      }
+      
     }
   };
 
@@ -187,6 +195,23 @@ const GeoguesserPage: React.FC = () => {
     }
   }
 
+  const fetchPresenterLocation = async () => {
+    if (!isPret) {
+      try {
+        const response = await fetch(`${serverPort}/presenterLocation?roomCode=${roomCode}`, { method: "GET" });
+        if (response.ok) {
+          const { lat, lng } = await response.json();
+          updateStreetViewAndSatelliteImage(lat, lng);
+        } else {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+      } catch (error) {
+        console.error("Failed to fetch presenter's location:", error);
+      }
+    }
+  };
+  
+
   // Periodically check room status
   useEffect(() => {
     checkRoomStatus();
@@ -200,6 +225,7 @@ const GeoguesserPage: React.FC = () => {
       setGuestWaitingPopup(true);
     } else if (geoguesserStatus === GeoguesserStatus.PLAYER_CHOOSE) {
       setGuestWaitingPopup(false);
+      fetchPresenterLocation();
     } else if (geoguesserStatus === GeoguesserStatus.SUBMITTED) {
 
       setShowSubmitPopup(false);
@@ -225,7 +251,7 @@ const GeoguesserPage: React.FC = () => {
     }, refreshTime); // Assuming 'refreshTime' is a predefined interval time
 
     return () => clearInterval(interval);
-  }, [geoguesserStatus, userSubStatus, winner]);
+  }, [geoguesserStatus, userSubStatus, winner, isPret]);
   
 
   return (
