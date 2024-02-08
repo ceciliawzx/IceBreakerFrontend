@@ -13,6 +13,7 @@ import { PresentRoomInfo } from "./type/PresentRoomInfo";
 import { Timer } from "./timer/Timer";
 import { BackMessage } from "./type/BackMessage";
 import { ModalMessage } from "./type/ModalMessage";
+import { Modal } from './utils/Modal';
 
 const PictionaryPage = () => {
   const location = useLocation();
@@ -26,7 +27,6 @@ const PictionaryPage = () => {
   const presenter: User = location.state?.presenter;
   const guests = location.state?.guests;
   const isPresenter = location.state?.isPresenter;
-  const presentRoomInfo = location.state?.presentRoomInfo;
   const fieldName = location.state?.selectedField;
   const [targetWord, setTargetWord] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -49,27 +49,6 @@ const PictionaryPage = () => {
 
   // Only when the timer stops naturally can the field be revealed, if navigated by the button, field should not be revealed
 
-  // Only the admin can click continue, other users will be navigated automatically
-  const Modal = ({
-    onClose,
-    targetWord,
-  }: {
-    onClose: any;
-    targetWord: string;
-  }) => (
-    <div id="pictionary-modal">
-      {targetWord === "" && <h2>Back to PresentRoom</h2>}
-      {targetWord !== "" && (
-        <>
-          <h2>Target Word Revealed!</h2>
-          <p>
-            The target word was: <strong>{targetWord}</strong>
-          </p>
-        </>
-      )}
-      {userID === admin.userID && <button onClick={onClose}>Continue</button>}
-    </div>
-  );
 
   // Back to present page directly without revealing the field
   const handleBackMessage = async () => {
@@ -79,13 +58,7 @@ const PictionaryPage = () => {
   };
 
   const handleModalMessage = () => {
-    // // Update PresentRoomInfo in server side
-    // const newPresentRoomInfo: PresentRoomInfo = {
-    //   ...presentRoomInfo,
-    //   [fieldName]: true,
-    // };
-    // console.log("updatePresentRoomInfo in pictionary", newPresentRoomInfo);
-
+    // Update PresentRoomInfo
     updatePresentRoomInfo({ roomCode, field: fieldName });
     // Show the modal
     setShowModal(true);
@@ -168,6 +141,8 @@ const PictionaryPage = () => {
               handleBackToPresentRoom();
             }}
             targetWord={targetWord}
+            userID={userID}
+            adminID={admin.userID}
           />
         )}
         {targetWord !== "" && (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { serverPort, websocketPort } from "./macro/MacroServer";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
@@ -11,6 +11,10 @@ import { updatePresentRoomInfo } from "./utils/RoomOperation";
 import { PresentRoomInfo } from "./type/PresentRoomInfo";
 import "./css/HangmanPage.css";
 import { BackMessage } from "./type/BackMessage";
+import { Modal } from "./utils/Modal";
+import { Timer } from "./timer/Timer";
+import { RoomStatus } from "./type/RoomStatus";
+import { ModalMessage } from "./type/ModalMessage";
 
 interface HangmanMsg {
   guessLetter: string;
@@ -41,6 +45,9 @@ const HangmanPage = () => {
     useState<UserProfile | null>(null);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
 
+  /* Modal */
+  const [showModal, setShowModal] = useState(false);
+
   /* Web socket url */
   const socketUrl = `${serverPort}/chat`;
   const websocketUrl = `${websocketPort}/chat`;
@@ -67,7 +74,7 @@ const HangmanPage = () => {
   // Initialize web socket and fetch word
   useEffect(() => {
     // Initialize web socket
-    const onMessageReceived = (msg: HangmanMsg | BackMessage) => {
+    const onMessageReceived = (msg: HangmanMsg | BackMessage | ModalMessage) => {
       receiveMessage(msg);
     };
 
@@ -86,20 +93,32 @@ const HangmanPage = () => {
     setCurrentGuesser(nextGuesser);
   }, [currentGuesserId]);
 
-  // receive and parse message from websocket
-  const receiveMessage = (msg: HangmanMsg | BackMessage) => {
-    try {
-      // If contain letters field, is WordleMsg
-      if ("guessLetter" in msg) {
-        handleHangmanMessage(msg as HangmanMsg);
-      } else {
-        console.log("Back to PresentRoom");
-        handleBackMessage();
-      }
-    } catch (error) {
-      console.error("Error parsing:", error);
-    }
+  // show modal
+  const handleModalMessage = () => {
+    // Update PresentRoomInfo
+    updatePresentRoomInfo({ roomCode, field: fieldName });
+    // Show the modal
+    setShowModal(true);
   };
+
+  const receiveMessage = useCallback(
+    (msg: HangmanMsg | BackMessage | ModalMessage) => {
+      try {
+        // If contain letters field, it's WordleMsg
+        if ("guessLetter" in msg) {
+          handleHangmanMessage(msg as HangmanMsg);
+        } else if ("show" in msg) {
+          // show modal and update PresentRoomInfo
+          handleModalMessage();
+        } else {
+          handleBackMessage();
+        }
+      } catch (error) {
+        console.error("Error parsing:", error);
+      }
+    },
+    []
+  );
 
   // receive and parse message from websocket
   const handleHangmanMessage = (msg: HangmanMsg) => {
@@ -194,14 +213,6 @@ const HangmanPage = () => {
   };
 
   const handleBackButton = async () => {
-    // Update PresentRoomInfo
-    const newPresentRoomInfo: PresentRoomInfo = {
-      ...presentRoomInfo,
-      [fieldName]: true,
-    };
-    console.log("updatePresentRoomInfo in hangman", newPresentRoomInfo);
-    updatePresentRoomInfo({ roomCode, field: fieldName });
-
     // Change room status
     const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;
     try {
@@ -390,6 +401,27 @@ const HangmanPage = () => {
             ))}
           </div>
         </div>
+      </div>
+      {/* Modal */}
+      {showModal && (
+        <Modal
+          onClose={() => {
+            setShowModal(false);
+            handleBackButton();
+          }}
+          targetWord={targetWord}
+          userID={userID}
+          adminID={admin.userID}
+        />
+      )}
+      {/* Timer */}
+      <div>
+        <Timer
+          user={user}
+          roomCode={roomCode}
+          roomStatus={RoomStatus.PRESENTING}
+          defaultTime={40}
+        />
       </div>
     </div>
   );

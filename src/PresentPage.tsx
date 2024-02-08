@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { UserProfile } from "./type/UserProfile";
 import { serverPort } from "./macro/MacroServer";
@@ -10,7 +10,6 @@ import { User } from "./type/User";
 import { checkRoomStatus } from "./utils/RoomOperation";
 import { updatePresentRoomInfo } from "./utils/RoomOperation";
 import "./css/PresentPage.css";
-import HangmanPage from './HangmanPage';
 
 const PresentPage = () => {
   const location = useLocation();
@@ -321,11 +320,7 @@ const PresentPage = () => {
 
   const handleToggleReveal = (field: keyof PresentRoomInfo) => {
     if (!isPresenter) return;
-    // const newPresentRoomInfo: PresentRoomInfo = {
-    //   ...presentRoomInfo,
-    //   [field]: true,
-    // };
-    // console.log("updatePresentRoomInfo in toggle, ", newPresentRoomInfo);
+    // Reveal the field directly
     updatePresentRoomInfo({ roomCode, field });
   };
 
