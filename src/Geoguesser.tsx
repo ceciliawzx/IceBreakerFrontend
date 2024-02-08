@@ -31,6 +31,8 @@ const GeoguesserPage: React.FC = () => {
   const [winner, setWinner] = useState<UserProfile[]>([]);
   const [winnerDistance, setWinnerDistance] = useState<number[]>([]);
   const [satelliteImageUrl, setSatelliteImageUrl] = useState<string | null>(null);
+  const [answerMarker, setAnswerMarker] = useState<google.maps.Marker | null>(null);
+  const [answerLocation, setAnswerLocation] = useState<{ lat: number, lng: number } | null>(null);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -201,26 +203,45 @@ const GeoguesserPage: React.FC = () => {
   }
 
   const fetchPresenterLocation = async () => {
-    if (!isPret) {
-      try {
-        const response = await fetch(
-          `${serverPort}/presenterLocation?roomCode=${roomCode}`,
-          { method: "GET" }
-        );
+    try {
+      const response = await fetch(
+        `${serverPort}/presenterLocation?roomCode=${roomCode}`,
+        { method: "GET" }
+      );
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.text();
-        const [lat, lng] = parseCoordinates(data);
-        updateStreetViewAndSatelliteImage(lat, lng);
-
-      } catch (error) {
-        console.error("Failed to fetch presenter's location:", error);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
       }
+
+      const data = await response.text();
+      const [lat, lng] = parseCoordinates(data);
+      setAnswerLocation({lat, lng});
+      updateStreetViewAndSatelliteImage(lat, lng);
+
+    } catch (error) {
+      console.error("Failed to fetch presenter's location:", error);
     }
   };
+
+  const showAnswerLocation : any = () => {
+
+    if (answerLocation && map && mapsApi) {
+      if (answerMarker) {
+        answerMarker.setMap(null);
+      }
+
+      const newMarker = new mapsApi.Marker({
+        position: answerLocation,
+        map: map,
+        icon: {
+          url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+          scaledSize: new google.maps.Size(40, 40),
+        },
+      });
+      setAnswerMarker(newMarker);
+    }
+
+  }
   
 
   // Periodically check room status
@@ -241,6 +262,7 @@ const GeoguesserPage: React.FC = () => {
 
       setShowSubmitPopup(false);
       setShowAllSubmitPopup(true);
+      showAnswerLocation();
     }
 
     const interval = setInterval(() => {
@@ -258,11 +280,12 @@ const GeoguesserPage: React.FC = () => {
       } else if (geoguesserStatus === GeoguesserStatus.SUBMITTED) {
         setShowSubmitPopup(false);
         setShowAllSubmitPopup(true);
+        showAnswerLocation();
       }
-    }, refreshTime); // Assuming 'refreshTime' is a predefined interval time
+    }, refreshTime);
 
     return () => clearInterval(interval);
-  }, [geoguesserStatus, userSubStatus, winner, isPret]);
+  }, [geoguesserStatus, userSubStatus, winner, isPret, answerLocation]);
   
 
   return (
@@ -304,8 +327,8 @@ const GeoguesserPage: React.FC = () => {
 
     {/* AllPlayers Submitted popup */}
     {showAllSubmitPopup &&(
-      <div className="waiting-popup">
-      <div className="waiting-popup-inner">
+      <div className="winner-popup">
+      <div className="winner-popup-inner">
         <h3>All finished!</h3>
         <h3>The winners are:</h3>
           <ul>

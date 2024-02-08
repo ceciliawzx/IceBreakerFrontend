@@ -98,3 +98,24 @@
   height: 400px; /* You can adjust the height as needed */
   width: 100%; /* This will make the street view take full width of its container */
 }
+
+.winner-popup {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  padding: 10px;
+  border-top: 2px solid #000;
+  /* Add additional styling as needed */
+}
+
+/* Update the waiting-popup class if needed */
+.waiting-popup {
+  /* Remove blur or any other styles that affect background */
+}
+
+/* Add styles for the winner-popup-inner if needed */
+.winner-popup-inner {
+  /* Styles here */
+}
