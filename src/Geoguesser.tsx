@@ -57,6 +57,7 @@ const GeoguesserPage: React.FC = () => {
         {
           pov: { heading: 165, pitch: 0 },
           visible: false,
+          addressControl: false,
         }
       );
 
