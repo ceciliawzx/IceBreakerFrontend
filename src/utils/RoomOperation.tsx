@@ -22,19 +22,15 @@ export const checkRoomStatus = async ({ roomCode }: { roomCode: string }) => {
 // To reveal information in PresentPage when returning from a game
 export const updatePresentRoomInfo = async ({
   roomCode,
-  newPresentRoomInfo,
+  field,
 }: {
   roomCode: string;
-  newPresentRoomInfo: PresentRoomInfo;
+  field: keyof PresentRoomInfo;
 }) => {
-  const url = `${serverPort}/setPresentRoomInfo?roomCode=${roomCode}`;
+  const url = `${serverPort}/setPresentRoomInfo?roomCode=${roomCode}&field=${field}`;
   try {
     const response = await fetch(url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(newPresentRoomInfo),
     });
   } catch (error) {
     console.error("Error setting presentRoomInfo in backend: ", error);

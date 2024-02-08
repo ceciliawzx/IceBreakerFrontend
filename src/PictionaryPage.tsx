@@ -7,12 +7,12 @@ import { connect, sendMsg } from "./utils/WebSocketService";
 import { serverPort, websocketPort } from "./macro/MacroServer";
 import "./css/PictionaryPage.css";
 import { User } from "./type/User";
-import { checkRoomStatus, updatePresentRoomInfo } from "./utils/RoomOperation";
+import { updatePresentRoomInfo } from "./utils/RoomOperation";
 import { RoomStatus } from "./type/RoomStatus";
-import { refreshTime } from "./macro/MacroConst";
 import { PresentRoomInfo } from "./type/PresentRoomInfo";
 import { Timer } from "./timer/Timer";
-import { BackMsg } from './type/BackMsg';
+import { BackMessage } from "./type/BackMessage";
+import { ModalMessage } from "./type/ModalMessage";
 
 const PictionaryPage = () => {
   const location = useLocation();
@@ -21,7 +21,6 @@ const PictionaryPage = () => {
   const userID = user?.userID;
   // const isDrawer = user?.isPresenter;
   const isDrawer = location.state?.isPresenter;
-  const displayName = user?.displayName;
   const roomCode = user?.roomCode;
   const admin = location.state?.admin;
   const presenter: User = location.state?.presenter;
@@ -30,9 +29,6 @@ const PictionaryPage = () => {
   const presentRoomInfo = location.state?.presentRoomInfo;
   const fieldName = location.state?.selectedField;
   const [targetWord, setTargetWord] = useState("");
-  const [roomStatus, setRoomStatus] = useState<RoomStatus>(
-    RoomStatus.PICTURING
-  );
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
 
@@ -50,6 +46,8 @@ const PictionaryPage = () => {
       console.log("data ", data);
     }
   };
+
+  // Only when the timer stops naturally can the field be revealed, if navigated by the button, field should not be revealed
 
   // Only the admin can click continue, other users will be navigated automatically
   const Modal = ({
@@ -73,53 +71,45 @@ const PictionaryPage = () => {
     </div>
   );
 
-  // Handle navigation
-  useEffect(() => {
-    // Define an IIFE to handle async operation
-    (async () => {
+  // Back to present page directly without revealing the field
+  const handleBackMessage = async () => {
+    navigate("/PresentPage", {
+      state: { user, admin, presenter, guests },
+    });
+  };
+
+  const handleModalMessage = () => {
+    // // Update PresentRoomInfo in server side
+    // const newPresentRoomInfo: PresentRoomInfo = {
+    //   ...presentRoomInfo,
+    //   [fieldName]: true,
+    // };
+    // console.log("updatePresentRoomInfo in pictionary", newPresentRoomInfo);
+
+    updatePresentRoomInfo({ roomCode, field: fieldName });
+    // Show the modal
+    setShowModal(true);
+  };
+
+  const handleReceivedDrawing = useCallback(
+    (msg: DrawingMessage | BackMessage | ModalMessage) => {
+      console.log("Pictionary receives message ", msg);
       try {
-        const data = await checkRoomStatus({ roomCode });
-        if (data && data.roomStatus) {
-          setRoomStatus(data.roomStatus);
+        // If contain drawer field, is DrawingMessage
+        if ("drawer" in msg) {
+          setExternalDrawing(msg as DrawingMessage);
+        } else if ("show" in msg) {
+          // show modal and update PresentRoomInfo
+          handleModalMessage();
+        } else {
+          handleBackMessage();
         }
       } catch (error) {
-        console.error("Error fetching getPlayers:", error);
+        console.error("Error parsing:", error);
       }
-    })();
-
-    // Setup the interval for refreshing the data
-    const intervalId = setInterval(async () => {
-      try {
-        const data = await checkRoomStatus({ roomCode });
-        if (data && data.roomStatus) {
-          setRoomStatus(data.roomStatus);
-        }
-      } catch (error) {
-        console.error("Error fetching getPlayers on interval:", error);
-      }
-    }, refreshTime);
-
-    // Navigate to PresentPage
-    // Assume info has been revealed when navigating back to present room, update presentRoomInfo
-    const newPresentRoomInfo: PresentRoomInfo = {
-      ...presentRoomInfo,
-      [fieldName]: true,
-    };
-    updatePresentRoomInfo({ roomCode, newPresentRoomInfo });
-    if (roomStatus === RoomStatus.PRESENTING && !showModal) {
-      if (roomStatus === RoomStatus.PRESENTING && !showModal) {
-        // Show the modal instead of navigating immediately
-        setShowModal(true);
-      }
-    }
-    // Clear timer and count again
-    return () => clearInterval(intervalId);
-    // Add other navigation conditions if needed
-  }, [roomStatus, user]);
-
-  const handleReceivedDrawing = useCallback((data: DrawingMessage) => {
-    setExternalDrawing(data);
-  }, []);
+    },
+    []
+  );
 
   useEffect(() => {
     // set target word
@@ -149,6 +139,7 @@ const PictionaryPage = () => {
 
   // navigate back to presentRoom
   const handleBackToPresentRoom = async () => {
+    console.log("pictionary sending backToPresentRoom");
     const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;
     try {
       const response = await fetch(url, {
@@ -174,9 +165,7 @@ const PictionaryPage = () => {
           <Modal
             onClose={() => {
               setShowModal(false);
-              navigate("/PresentPage", {
-                state: { user, admin, presenter, guests },
-              });
+              handleBackToPresentRoom();
             }}
             targetWord={targetWord}
           />

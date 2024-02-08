@@ -321,11 +321,12 @@ const PresentPage = () => {
 
   const handleToggleReveal = (field: keyof PresentRoomInfo) => {
     if (!isPresenter) return;
-    const newPresentRoomInfo: PresentRoomInfo = {
-      ...presentRoomInfo,
-      [field]: true,
-    };
-    updatePresentRoomInfo({ roomCode, newPresentRoomInfo });
+    // const newPresentRoomInfo: PresentRoomInfo = {
+    //   ...presentRoomInfo,
+    //   [field]: true,
+    // };
+    // console.log("updatePresentRoomInfo in toggle, ", newPresentRoomInfo);
+    updatePresentRoomInfo({ roomCode, field });
   };
 
   const handleBackToWaitRoom = async () => {

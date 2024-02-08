@@ -9,7 +9,7 @@ import { LetterStatus, WordleLetter } from "./type/WordleLetter";
 import { connect, sendMsg } from "./utils/WebSocketService";
 import { updatePresentRoomInfo } from "./utils/RoomOperation";
 import { PresentRoomInfo } from "./type/PresentRoomInfo";
-import { BackMsg } from './type/BackMsg';
+import { BackMessage } from "./type/BackMessage";
 
 interface WordleMsg {
   currentAttempt: number;
@@ -71,7 +71,7 @@ const Wordle = () => {
 
   // Initialize web socket and fetch word
   useEffect(() => {
-    const onMessageReceived = (msg: WordleMsg | BackMsg) => {
+    const onMessageReceived = (msg: WordleMsg | BackMessage) => {
       receiveMessage(msg);
     };
 
@@ -183,7 +183,7 @@ const Wordle = () => {
   };
 
   // receive and parse message from websocket
-  const receiveMessage = (msg: WordleMsg | BackMsg) => {
+  const receiveMessage = (msg: WordleMsg | BackMessage) => {
     try {
       // If contain letters field, is WordleMsg
       if ("letters" in msg) {
@@ -210,12 +210,12 @@ const Wordle = () => {
 
   // Back to present page
   const handleBackMessage = async () => {
-    // Update PresentRoomInfo
-    const newPresentRoomInfo: PresentRoomInfo = {
-      ...presentRoomInfo,
-      [fieldName]: true,
-    };
-    updatePresentRoomInfo({ roomCode, newPresentRoomInfo });
+    // // Update PresentRoomInfo
+    // const newPresentRoomInfo: PresentRoomInfo = {
+    //   ...presentRoomInfo,
+    //   [fieldName]: true,
+    // };
+    // updatePresentRoomInfo({ roomCode, newPresentRoomInfo });
     navigate("/PresentPage", {
       state: { user, admin, presenter, guests },
     });
@@ -302,12 +302,7 @@ const Wordle = () => {
   };
 
   const handleBackButton = async () => {
-    // Update PresentRoomInfo
-    const newPresentRoomInfo: PresentRoomInfo = {
-      ...presentRoomInfo,
-      [fieldName]: true,
-    };
-    updatePresentRoomInfo({ roomCode, newPresentRoomInfo });
+
 
     // Change room status
     const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;

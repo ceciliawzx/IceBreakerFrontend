@@ -10,7 +10,7 @@ import { LetterStatus } from "./type/WordleLetter";
 import { updatePresentRoomInfo } from "./utils/RoomOperation";
 import { PresentRoomInfo } from "./type/PresentRoomInfo";
 import "./css/HangmanPage.css";
-import { BackMsg } from './type/BackMsg';
+import { BackMessage } from "./type/BackMessage";
 
 interface HangmanMsg {
   guessLetter: string;
@@ -67,7 +67,7 @@ const HangmanPage = () => {
   // Initialize web socket and fetch word
   useEffect(() => {
     // Initialize web socket
-    const onMessageReceived = (msg: HangmanMsg | BackMsg) => {
+    const onMessageReceived = (msg: HangmanMsg | BackMessage) => {
       receiveMessage(msg);
     };
 
@@ -87,7 +87,7 @@ const HangmanPage = () => {
   }, [currentGuesserId]);
 
   // receive and parse message from websocket
-  const receiveMessage = (msg: HangmanMsg | BackMsg) => {
+  const receiveMessage = (msg: HangmanMsg | BackMessage) => {
     try {
       // If contain letters field, is WordleMsg
       if ("guessLetter" in msg) {
@@ -199,7 +199,8 @@ const HangmanPage = () => {
       ...presentRoomInfo,
       [fieldName]: true,
     };
-    updatePresentRoomInfo({ roomCode, newPresentRoomInfo });
+    console.log("updatePresentRoomInfo in hangman", newPresentRoomInfo);
+    updatePresentRoomInfo({ roomCode, field: fieldName });
 
     // Change room status
     const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;
