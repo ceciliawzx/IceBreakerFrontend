@@ -1,0 +1,121 @@
+.header-title {
+  color: black; /* Text color */
+  padding: 10px; /* Padding around the text */
+  margin-bottom: 20px; /* Spacing below the header */
+  border-radius: 5px; /* Rounded corners */
+}
+
+
+.map-container {
+  height: 500px;
+  width: 100%;
+  margin-top: 20px; /* Consistent with other top margins */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Adding subtle shadow for depth, similar to popup */
+  border-radius: 5px; /* Rounded corners like buttons */
+}
+
+.marker-list {
+  margin-top: 20px;
+  text-align: left; /* Align text to the left for better readability */
+  padding: 10px; /* Padding for spacing */
+  background-color: #fff; /* Background color for visibility */
+  border-radius: 5px; /* Consistency in design */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  width: 95%; /* Slightly less than 100% for better aesthetics */
+  margin-left: auto; /* Center align the marker list */
+  margin-right: auto; /* Center align the marker list */
+}
+
+.marker-list h2 {
+  margin-bottom: 10px; /* Spacing between title and list items */
+}
+
+.marker-list ul {
+  list-style-type: none; /* Remove default bullet points */
+  padding-left: 0; /* Align list items with the title */
+}
+
+.marker-list li {
+  padding: 5px 0; /* Spacing between list items */
+  border-bottom: 1px solid #eee; /* Subtle separator for each item */
+}
+
+.marker-list li:last-child {
+  border-bottom: none; /* Remove border for the last item */
+}
+
+.common-button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.submit-popup {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  text-align: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+}
+
+.waiting-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.75); /* Semi-transparent black background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Ensure it's above other content */
+}
+
+.waiting-popup-inner {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px; /* Slightly more rounded than the submit popup */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  text-align: center;
+  max-width: 400px; /* Maximum width for the inner content */
+}
+
+.waiting-popup h3 {
+  margin-bottom: 15px; /* Spacing below the header */
+  color: #333; /* Dark text for readability */
+}
+
+#street-view {
+  height: 400px; /* You can adjust the height as needed */
+  width: 100%; /* This will make the street view take full width of its container */
+}
+
+.winner-popup {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  padding: 10px;
+  border-top: 2px solid #000;
+  /* Add additional styling as needed */
+}
+
+/* Update the waiting-popup class if needed */
+.waiting-popup {
+  /* Remove blur or any other styles that affect background */
+}
+
+/* Add styles for the winner-popup-inner if needed */
+.winner-popup-inner {
+  /* Styles here */
+}

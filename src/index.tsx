@@ -8,6 +8,7 @@ import WaitRoomPage from "./WaitRoomPage";
 import UserProfilePage from "./UserProfilePage";
 import reportWebVitals from "./service/reportWebVitals";
 import CreateRoomPage from "./CreateRoomPage";
+import GeoguesserPage from "./Geoguesser";
 import PresentPage from "./PresentPage";
 import PictionaryPage from "./PictionaryPage";
 import JoinMockRoomPage from "./JoinMockRoomPage";
@@ -30,6 +31,7 @@ root.render(
       <Route path="/WordlePage" element={<WordlePage />} />
       <Route path="/PictionaryRoomPage" element={<PictionaryPage />} />
       <Route path="/JoinMockRoompage" element={<JoinMockRoomPage />} />
+      <Route path="/GeoguesserPage" element={<GeoguesserPage />} />
       <Route path="/HangmanPage" element={<HangmanPage />} />
     </Routes>
   </Router>
