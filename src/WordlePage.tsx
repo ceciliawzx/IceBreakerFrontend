@@ -77,7 +77,7 @@ const Wordle = () => {
 
   // Initialize web socket and fetch word
   useEffect(() => {
-    const onMessageReceived = (msg: WordleMsg | BackMessage) => {
+    const onMessageReceived = (msg: WordleMsg | BackMessage | ModalMessage) => {
       receiveMessage(msg);
     };
 
@@ -190,7 +190,6 @@ const Wordle = () => {
 
   const receiveMessage = useCallback(
     (msg: WordleMsg | BackMessage | ModalMessage) => {
-      console.log("Pictionary receives message ", msg);
       try {
         // If contain letters field, it's WordleMsg
         if ("letters" in msg) {
@@ -220,7 +219,7 @@ const Wordle = () => {
     setAllLetterStatus(msg.allLetterStat);
   };
 
-  // show 
+  // show modal
   const handleModalMessage = () => {
     // Update PresentRoomInfo
     updatePresentRoomInfo({ roomCode, field: fieldName });
