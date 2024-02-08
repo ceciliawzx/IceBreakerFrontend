@@ -149,7 +149,6 @@ const GeoguesserPage: React.FC = () => {
 
       const data = await response.json();
       setGeoguesserStatus(data.status);
-      // console.log("status set:", geoguesserStatus);
       
     } catch (error) {
       console.error("Failed to fetch room status:", error);
@@ -195,16 +194,27 @@ const GeoguesserPage: React.FC = () => {
     }
   }
 
+  function parseCoordinates(coordString: string) {
+    const parts = coordString.split(',').map(part => part.trim());
+    return parts.map(num => parseFloat(num));
+  }
+
   const fetchPresenterLocation = async () => {
     if (!isPret) {
       try {
-        const response = await fetch(`${serverPort}/presenterLocation?roomCode=${roomCode}`, { method: "GET" });
-        if (response.ok) {
-          const { lat, lng } = await response.json();
-          updateStreetViewAndSatelliteImage(lat, lng);
-        } else {
+        const response = await fetch(
+          `${serverPort}/presenterLocation?roomCode=${roomCode}`,
+          { method: "GET" }
+        );
+
+        if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
+
+        const data = await response.text();
+        const [lat, lng] = parseCoordinates(data);
+        updateStreetViewAndSatelliteImage(lat, lng);
+
       } catch (error) {
         console.error("Failed to fetch presenter's location:", error);
       }
@@ -259,6 +269,11 @@ const GeoguesserPage: React.FC = () => {
       <h1 className="header-title">
         Welcome to Geoguesser, {displayName}!
       </h1>
+      <div className="street-view-container" id="street-view">
+        {satelliteImageUrl ? (
+          <img src={satelliteImageUrl} alt="Satellite Image" />
+        ) : null}
+      </div>
       <div className="map-container">
         <GoogleMapReact
           bootstrapURLKeys={{ 
@@ -276,12 +291,6 @@ const GeoguesserPage: React.FC = () => {
           Submit Answer
         </button>
 
-      <div className="street-view-container" id="street-view">
-        {satelliteImageUrl ? (
-          <img src={satelliteImageUrl} alt="Satellite Image" />
-        ) : null}
-      </div>
-    
     {/* Single Player Submitted popup */}
     {showSubmitPopup  &&(
       <div className="waiting-popup">
