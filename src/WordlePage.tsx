@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import "./css/WordlePage.css";
@@ -10,6 +10,10 @@ import { connect, sendMsg } from "./utils/WebSocketService";
 import { updatePresentRoomInfo } from "./utils/RoomOperation";
 import { PresentRoomInfo } from "./type/PresentRoomInfo";
 import { BackMessage } from "./type/BackMessage";
+import { Modal } from './utils/Modal';
+import { Timer } from './timer/Timer';
+import { RoomStatus } from './type/RoomStatus';
+import { ModalMessage } from './type/ModalMessage';
 
 interface WordleMsg {
   currentAttempt: number;
@@ -32,13 +36,15 @@ const Wordle = () => {
   const admin = location.state?.admin;
   const presenter = location.state?.presenter;
   const guests: User[] = location.state?.guests;
-  const presentRoomInfo = location.state?.presentRoomInfo;
   const fieldName = location.state?.selectedField;
 
   /* Pop up */
   const [selectedUserProfile, setSelectedUserProfile] =
     useState<UserProfile | null>(null);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
+  
+  /* Modal */
+  const [showModal, setShowModal] = useState(false);
 
   /* Web socket url */
   const socketUrl = `${serverPort}/chat`;
@@ -182,19 +188,25 @@ const Wordle = () => {
     });
   };
 
-  // receive and parse message from websocket
-  const receiveMessage = (msg: WordleMsg | BackMessage) => {
-    try {
-      // If contain letters field, is WordleMsg
-      if ("letters" in msg) {
-        handleWordleMessage(msg as WordleMsg);
-      } else {
-        handleBackMessage();
+  const receiveMessage = useCallback(
+    (msg: WordleMsg | BackMessage | ModalMessage) => {
+      console.log("Pictionary receives message ", msg);
+      try {
+        // If contain letters field, it's WordleMsg
+        if ("letters" in msg) {
+          handleWordleMessage(msg as WordleMsg);
+        } else if ("show" in msg) {
+          // show modal and update PresentRoomInfo
+          handleModalMessage();
+        } else {
+          handleBackMessage();
+        }
+      } catch (error) {
+        console.error("Error parsing:", error);
       }
-    } catch (error) {
-      console.error("Error parsing:", error);
-    }
-  };
+    },
+    []
+  );
 
   // Update wordle page
   const handleWordleMessage = (msg: WordleMsg) => {
@@ -208,14 +220,16 @@ const Wordle = () => {
     setAllLetterStatus(msg.allLetterStat);
   };
 
+  // show 
+  const handleModalMessage = () => {
+    // Update PresentRoomInfo
+    updatePresentRoomInfo({ roomCode, field: fieldName });
+    // Show the modal
+    setShowModal(true);
+  };
+
   // Back to present page
   const handleBackMessage = async () => {
-    // // Update PresentRoomInfo
-    // const newPresentRoomInfo: PresentRoomInfo = {
-    //   ...presentRoomInfo,
-    //   [fieldName]: true,
-    // };
-    // updatePresentRoomInfo({ roomCode, newPresentRoomInfo });
     navigate("/PresentPage", {
       state: { user, admin, presenter, guests },
     });
@@ -302,8 +316,6 @@ const Wordle = () => {
   };
 
   const handleBackButton = async () => {
-
-
     // Change room status
     const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;
     try {
@@ -510,6 +522,27 @@ const Wordle = () => {
           <button onClick={() => setShowProfilePopup(false)}>Close</button>
         </div>
       )}
+      {/* Modal */}
+      {showModal && (
+        <Modal
+          onClose={() => {
+            setShowModal(false);
+            handleBackButton();
+          }}
+          targetWord={targetWord}
+          userID={userID}
+          adminID={admin.userID}
+        />
+      )}
+      {/* Timer */}
+      <div>
+          <Timer
+            user={user}
+            roomCode={roomCode}
+            roomStatus={RoomStatus.PRESENTING}
+            defaultTime={40}
+          />
+        </div>
     </div>
   );
 };

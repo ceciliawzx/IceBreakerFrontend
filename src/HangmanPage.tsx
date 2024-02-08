@@ -11,6 +11,7 @@ import { updatePresentRoomInfo } from "./utils/RoomOperation";
 import { PresentRoomInfo } from "./type/PresentRoomInfo";
 import "./css/HangmanPage.css";
 import { BackMessage } from "./type/BackMessage";
+import { Modal } from './utils/Modal';
 
 interface HangmanMsg {
   guessLetter: string;
