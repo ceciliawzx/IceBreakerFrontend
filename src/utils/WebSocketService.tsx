@@ -7,7 +7,7 @@ const connect = (
   socketUrl: string,
   webSocketUrl: string,
   topic: string,
-  onMessageReceived: (msg: any) => void
+  onMessageReceived: (msg: any) => void,
 ) => {
   const socket = new SockJS(socketUrl);
   client = new Client({
@@ -19,7 +19,7 @@ const connect = (
         if (client && client.connected) {
           console.log(`Subscribing to topic ${topic}`);
           client.subscribe(topic, (message) => {
-            // console.log("receiving message ", message.body);
+            console.log("receiving message ", message.body);
             onMessageReceived(JSON.parse(message.body));
           });
         } else {
@@ -29,16 +29,15 @@ const connect = (
     },
     onStompError: (frame) => {
       console.error("Broker reported error: " + frame.headers["message"]);
-      console.error("Additional details: " + frame.body);
-    },
+    }
   });
-
   client.activate();
+  return client;
 };
+
 
 const sendMsg = (destination: string, msg: any) => {
   if (client && client.connected) {
-    // client.publish({ destination: `/app/room/${msg.roomCode}/sendMessage`, body: JSON.stringify(msg) });
     client.publish({ destination: destination, body: JSON.stringify(msg) });
   }
 };

@@ -1,0 +1,16 @@
+/* Timer.css */
+.timerContainer {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  right: 0;
+  margin: 10px;
+  z-index: 1000; /* Ensure it stays on top */
+  background-color: white; /* For better visibility */
+  padding: 10px;
+  border-radius: 5px; /* Styled corners */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Shadow for depth */
+  width: auto;
+  max-width: 120px; /* Adjust based on content size */
+}

@@ -1,13 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { UserProfile } from './type/UserProfile';
-import { serverPort } from './macro/MacroServer';
-import { PresentRoomInfo } from './type/PresentRoomInfo';
-import { refreshTime } from './macro/MacroConst';
-import { GameType } from './type/GameType';
-import { RoomStatus } from './type/RoomStatus';
-import { User } from './type/User';
-import './css/PresentPage.css';
+import React, { useState, useEffect, useRef } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { UserProfile } from "./type/UserProfile";
+import { serverPort } from "./macro/MacroServer";
+import { PresentRoomInfo } from "./type/PresentRoomInfo";
+import { refreshTime } from "./macro/MacroConst";
+import { GameType } from "./type/GameType";
+import { RoomStatus } from "./type/RoomStatus";
+import { User } from "./type/User";
+import { checkRoomStatus } from "./utils/RoomOperation";
+import { updatePresentRoomInfo } from "./utils/RoomOperation";
+import "./css/PresentPage.css";
+import HangmanPage from './HangmanPage';
 
 const PresentPage = () => {
   const location = useLocation();
@@ -15,8 +18,9 @@ const PresentPage = () => {
   const user: UserProfile = location.state?.user;
   const userID: string = user.userID;
   const roomCode: string = user.roomCode;
-  const presenter: UserProfile = location.state?.presenter;
+  const presenter: User = location.state?.presenter;
   const admin: User = location.state?.admin;
+  const guests: UserProfile[] = location.state?.guests;
   const [presenterInfo, setPresenterInfo] = useState<UserProfile | null>(null);
   const [presentRoomInfo, setPresentRoomInfo] = useState<PresentRoomInfo>({
     firstName: false,
@@ -42,34 +46,91 @@ const PresentPage = () => {
   const [roomStatus, setRoomStatus] = useState<RoomStatus>(
     RoomStatus.PRESENTING
   );
-  const [target, setTarget] = useState<string>('');
+  const [selectedField, setSelectedField] = useState<keyof PresentRoomInfo>();
 
-  // Fetch RoomStatus for navigation
-  const checkRoomStatus = async () => {
-    const url = `${serverPort}/getPlayers?roomCode=${roomCode}`;
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error('Room cannot be found');
-      }
-      const data = await response.json();
-      if (data.roomStatus) {
-        console.log('RoomStatus', data.roomStatus);
-        setRoomStatus(data.roomStatus);
-      }
-    } catch (error) {
-      console.error('Error fetching getPlayers:', error);
-    }
-  };
-
+  // Update the RoomStatus list every interval
   useEffect(() => {
-    // Update the player list every interval
-    const intervalId = setInterval(() => {
-      checkRoomStatus();
+    // Define an IIFE to handle async operation
+    (async () => {
+      try {
+        const data = await checkRoomStatus({ roomCode });
+        if (data && data.roomStatus) {
+          setRoomStatus(data.roomStatus);
+        }
+      } catch (error) {
+        console.error("Error fetching getPlayers:", error);
+      }
+    })();
+
+    // Setup the interval for refreshing the data
+    const intervalId = setInterval(async () => {
+      try {
+        const data = await checkRoomStatus({ roomCode });
+        if (data && data.roomStatus) {
+          setRoomStatus(data.roomStatus);
+        }
+      } catch (error) {
+        console.error("Error fetching getPlayers on interval:", error);
+      }
     }, refreshTime);
-    if (roomStatus === RoomStatus.PICTURING) {
-      navigate('/PictionaryRoomPage', {
-        state: { user, isPresenter: isPresenter },
+    // Navigate to ShareBoard
+    if (roomStatus === RoomStatus.SHAREBOARD) {
+      navigate("/PictionaryRoomPage", {
+        state: {
+          user,
+          isPresenter: isPresenter,
+          admin,
+          presenter,
+          guests,
+          presentRoomInfo,
+          selectedField,
+        },
+      });
+    }
+    // Navigate to Pictionary
+    else if (roomStatus === RoomStatus.PICTURING) {
+      navigate("/PictionaryRoomPage", {
+        state: {
+          user,
+          isPresenter: isPresenter,
+          admin,
+          presenter,
+          guests,
+          presentRoomInfo,
+          selectedField
+        },
+      });
+    }
+    // Navigate to Wordle
+    else if (roomStatus === RoomStatus.WORDLING) {
+      navigate("/WordlePage", {
+        state: {
+          user,
+          admin,
+          presenter,
+          guests,
+          presentRoomInfo,
+          selectedField,
+        },
+      });
+    }
+    // Navigate to Hangman
+    if (roomStatus === RoomStatus.HANGMAN) {
+      navigate("/HangmanPage", {
+        state: {
+          user,
+          admin,
+          presenter,
+          guests,
+          presentRoomInfo,
+          selectedField,
+        },
+      });
+    }
+    // Back to WaitRoom
+    else if (roomStatus === RoomStatus.WAITING) {
+      navigate("/WaitRoomPage", {
+        state: { user, admin },
       });
     }
     // Clear timer and count again
@@ -105,13 +166,17 @@ const PresentPage = () => {
             info
           ) : (
             <>
-              <button onClick={() => toggleGameSelector(fieldName)}>
+              <button
+                className="small-common-button"
+                onClick={() => toggleGameSelector(fieldName)}
+              >
                 Select a Game
               </button>
               {activeGameSelector === fieldName && (
                 <div id="game-selector">
                   {games.map((gameType) => (
                     <button
+                      className="small-common-button"
                       key={gameType}
                       onClick={() => handleGameSelection(gameType, fieldName)}
                     >
@@ -125,7 +190,7 @@ const PresentPage = () => {
         </>
       );
     } else {
-      return isRevealed ? info : '********';
+      return isRevealed ? info : "********";
     }
   };
 
@@ -134,10 +199,9 @@ const PresentPage = () => {
     try {
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error('Failed to fetch available games');
+        throw new Error("Failed to fetch available games");
       }
       const availableGames = await response.json();
-      console.log(fieldName, availableGames); // Log to see the fetched data
       setAvailableGamesForField((prevGames) => ({
         ...prevGames,
         [fieldName]: availableGames,
@@ -151,17 +215,18 @@ const PresentPage = () => {
     gameType: GameType,
     fieldName: keyof PresentRoomInfo
   ) => {
+    setSelectedField(fieldName);
     if (gameType === GameType.REVEAL) {
       // Directly reveal the information for this field
       handleToggleReveal(fieldName);
     } else {
       // for Pictionary
-      const handlePictionaryRoom = async () => {
-        const target = presenterInfo ? presenterInfo[fieldName] : '';
+      const handlePictionaryRoom = async (fieldName: keyof PresentRoomInfo) => {
+        const target = presenterInfo ? presenterInfo[fieldName] : "";
         const response = await fetch(
           `${serverPort}/startDrawAndGuess?roomCode=${roomCode}&target=${target}`,
           {
-            method: 'POST',
+            method: "POST",
           }
         );
         if (!response.ok) {
@@ -171,9 +236,53 @@ const PresentPage = () => {
         }
       };
       if (gameType === GameType.PICTIONARY) {
-        handlePictionaryRoom();
+        handlePictionaryRoom(fieldName);
+      }
+      const handleShareBoard = async () => {
+        const response = await fetch(
+          `${serverPort}/startShareBoard?roomCode=${roomCode}`,
+          {
+            method: "POST",
+          }
+        );
+        if (!response.ok) {
+          throw new Error(
+            `HTTP error when startShareBoard! Status: ${response.status}`
+          );
+        }
+      };
+      if (gameType === GameType.SHAREBOARD) {
+        handleShareBoard();
+      }
+      const handleWordle = async () => {
+        const response = await fetch(
+          `${serverPort}/startWordle?roomCode=${roomCode}&userID=${presenter?.userID}&field=${fieldName}`,
+          {
+            method: "POST",
+          }
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+      };
+      if (gameType === GameType.WORDLE) {
+        handleWordle();
       } else {
         // TODO: for other games
+      }
+      const handleHangman = async () => {
+        const response = await fetch(
+          `${serverPort}/startHangman?roomCode=${roomCode}&userID=${presenter?.userID}&field=${fieldName}`,
+          {
+            method: "POST",
+          }
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+      };
+      if (gameType === GameType.HANGMAN) {
+        handleHangman();
       }
     }
     setActiveGameSelector(null);
@@ -210,76 +319,56 @@ const PresentPage = () => {
     }
   };
 
-  const updatePresentRoomInfo = async (newPresentRoomInfo: PresentRoomInfo) => {
-    const url = `${serverPort}/setPresentRoomInfo?roomCode=${roomCode}`;
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newPresentRoomInfo),
-      });
-      if (response) {
-        // Re-fetch the updated state after a successful update
-        checkPresentRoomInfo();
-      }
-    } catch (error) {
-      console.error("Error setting presentRoomInfo in backend: ", error);
-    }
-  };
-
   const handleToggleReveal = (field: keyof PresentRoomInfo) => {
     if (!isPresenter) return;
-    const newPresentRoomInfo: PresentRoomInfo = {
-      ...presentRoomInfo,
-      [field]: true,
-    };
-    updatePresentRoomInfo(newPresentRoomInfo);
+    // const newPresentRoomInfo: PresentRoomInfo = {
+    //   ...presentRoomInfo,
+    //   [field]: true,
+    // };
+    // console.log("updatePresentRoomInfo in toggle, ", newPresentRoomInfo);
+    updatePresentRoomInfo({ roomCode, field });
   };
 
-  const handleBack = async () => {
+  const handleBackToWaitRoom = async () => {
     const url = `${serverPort}/backToWaitRoom?roomCode=${roomCode}`;
     try {
       const response = await fetch(url, {
-        method: "POST"
+        method: "POST",
       });
-      if (response.ok) {
-        navigate("/WaitRoomPage", {
-          state: { user, admin },
-        });
-      }
     } catch (error) {
       console.error("Error returning to WaitRoom:", error);
     }
-  }
+  };
 
   return (
-    <div className="present-page-container">
-      <div className="presenter-container">
+    <div className="page">
+      <div className="separate-bar">
         <img
           src={presenter?.profileImage}
           alt={presenter?.displayName}
-          className="presenter-avatar"
+          className="avatar"
         />
         <h2>{presenter?.displayName}</h2>
       </div>
       <div className="presenter-info">
-        <p>First Name: {renderInfoOrGameSelector('firstName')}</p>
-        <p>Last Name: {renderInfoOrGameSelector('lastName')}</p>
-        <p>City: {renderInfoOrGameSelector('city')}</p>
-        <p>Country: {renderInfoOrGameSelector('country')}</p>
-        <p>Feeling: {renderInfoOrGameSelector('feeling')}</p>
-        <p>Favourite Food: {renderInfoOrGameSelector('favFood')}</p>
-        <p>Favorite Activity: {renderInfoOrGameSelector('favActivity')}</p>
+        <div>
+          <p>First Name: {renderInfoOrGameSelector("firstName")}</p>
+          <p>Last Name: {renderInfoOrGameSelector("lastName")}</p>
+          <p>City: {renderInfoOrGameSelector("city")}</p>
+          <p>Country: {renderInfoOrGameSelector("country")}</p>
+          <p>Feeling: {renderInfoOrGameSelector("feeling")}</p>
+          <p>Favourite Food: {renderInfoOrGameSelector("favFood")}</p>
+          <p>Favorite Activity: {renderInfoOrGameSelector("favActivity")}</p>
+        </div>
       </div>
+
       <div>
         {userID === admin.userID && (
           <button
             className="admin-only-button"
-            onClick={() => handleBack()}
+            onClick={() => handleBackToWaitRoom()}
           >
-            Back
+            Back to WaitRoom
           </button>
         )}
       </div>

@@ -42,33 +42,6 @@ const WaitRoomPage = () => {
         method: "POST",
       }
     );
-    console.log("start room");
-    console.log(response);
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-  };
-
-  const handleChatRoom = () => {
-    navigate("/ChatRoomPage", {
-      state: { user },
-    });
-  };
-
-  const handleGeoguesser = () => {
-    navigate("/GeoguesserPage", {
-      state: { user, presenter, admin, guests },
-    });
-  };
-
-  const handleWordle = async () => {
-    // TODO: give field
-    const response = await fetch(
-      `${serverPort}/startWordle?roomCode=${roomCode}&userID=${presenter?.userID}&field=firstName`,
-      {
-        method: "POST",
-      }
-    );
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
@@ -239,7 +212,6 @@ const WaitRoomPage = () => {
       });
 
       if (data.admin) {
-        console.log("setting admin ", data.admin);
         setAdmin(
           new User(
             roomCode,
@@ -254,7 +226,6 @@ const WaitRoomPage = () => {
         );
       }
       if (data.presenter) {
-        console.log("setting presenter ", data.presenter);
         setPresenter(
           new User(
             roomCode,
@@ -268,7 +239,6 @@ const WaitRoomPage = () => {
         );
       }
       if (data.otherPlayers) {
-        console.log("setting others ", data.otherPlayers);
         const updatedGuests = data.otherPlayers.map(
           (guest: User) =>
             new User(
@@ -289,11 +259,7 @@ const WaitRoomPage = () => {
         );
         setAllGuestsCompleted(allCompleted);
       }
-
-      console.log('Game status', data.roomStatus);
-
       if (data.roomStatus) {
-        console.log("RoomStatus", data.roomStatus);
         setRoomStatus(data.roomStatus);
       }
     } catch (error) {
@@ -332,23 +298,8 @@ const WaitRoomPage = () => {
       checkKickOut();
     }, refreshTime);
 
-    // Start wordle
-    if (roomStatus === RoomStatus.WORDLING) {
-      navigate("/WordlePage", {
-        state: { user, admin, presenter, guests },
-      });
-    }
-
-    // Start wordle
-    if (roomStatus === RoomStatus.WORDLING) {
-      navigate("/WordlePage", {
-        state: { user, admin, presenter, guests },
-      });
-    }
-
     // If the RoomStatus is PRESENTING, navigate all users to the PresentPage
     if (roomStatus === RoomStatus.PRESENTING) {
-      console.log("GameStatus = PRESENTING, ", user, admin, presenter, guests);
       navigate("/PresentPage", {
         state: { user, admin, presenter, guests },
       });
@@ -359,18 +310,18 @@ const WaitRoomPage = () => {
 
   // main render
   return (
-    <div className="wait-room-page">
+    <div className="page">
       <h1>
         Welcome to Wait Room {roomCode}, {displayName}!
       </h1>
-      <div className="first-row-container">
+      <div className="row-container">
         {/* Moderator */}
         <div className="moderator">
           <h2>Moderator:</h2>
           <img
             src={`${admin?.profileImage}`} // {admin.profileImage}
             alt="Moderator's Image"
-            className="moderator-avatar"
+            className="avatar"
           />
           <p>{admin?.displayName}</p>
         </div>
@@ -378,11 +329,17 @@ const WaitRoomPage = () => {
         {/* Presenter */}
         <div className="presenter">
           <h2>Presenter:</h2>
-          <img
-            src={`${presenter?.profileImage}`} // {presenter.profileImage}
-            alt="Presenter 's Image"
-            className="presenter-avatar"
-          />
+
+          <div className="avatar-container">
+            <img
+              src={`${presenter?.profileImage}`}
+              alt={`${presenter}'s avatar`}
+              className="avatar"
+            />
+            {presenter?.completed && (
+              <div className="input-status-indicator">✓</div>
+            )}
+          </div>
           <p>{presenter?.displayName}</p>
           {isAdmin && (
             <div className="button-container">
@@ -406,14 +363,14 @@ const WaitRoomPage = () => {
 
       <div className="guest-list">
         <h2>Joined Guests:</h2>
-        <div className="row-guest-container">
+        <div className="row-container">
           {guests.map((guest, index) => (
             <div key={index} className="guest">
               <div className="avatar-container">
                 <img
                   src={`${guest.profileImage}`}
                   alt={`${guest}'s avatar`}
-                  className="guest-avatar"
+                  className="avatar"
                 />
                 {guest.completed && (
                   <div className="input-status-indicator">✓</div>
@@ -448,22 +405,6 @@ const WaitRoomPage = () => {
           Start Room
         </button>
       )}
-      {
-        <button className="common-button" onClick={handleChatRoom}>
-          Chat Room
-        </button>
-      }
-      {
-        <button className="common-button" onClick={handleWordle}>
-          Start Wordle
-        </button>
-      }
-      {
-        <button className="common-button" onClick={handleGeoguesser}>
-          Enter Geoguesser
-        </button>
-      }
-
       {
         <button className="common-button" onClick={handleUserInformation}>
           Enter your information
@@ -529,9 +470,17 @@ const WaitRoomPage = () => {
           <p>Feeling: {selectedUserProfile.feeling}</p>
           <p>Favourite food: {selectedUserProfile.favFood}</p>
           <p>Favourite activity: {selectedUserProfile.favActivity}</p>
-          <button onClick={() => setShowProfilePopup(false)}>Close</button>
+          <button
+            className="common-button"
+            onClick={() => setShowProfilePopup(false)}
+          >
+            Close
+          </button>
           <div>
-            <button onClick={() => exportUserProfileAsPDF(selectedUserProfile)}>
+            <button
+              className="common-button"
+              onClick={() => exportUserProfileAsPDF(selectedUserProfile)}
+            >
               Export as PDF
             </button>
           </div>

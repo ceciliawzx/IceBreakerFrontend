@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import "./css/UserProfilePage.css";
 import { UserProfile } from "./type/UserProfile";
 import { serverPort } from "./macro/MacroServer";
+import "./css/UserProfilePage.css";
 
 const UserProfilePage = () => {
   const location = useLocation();
@@ -113,10 +113,10 @@ const UserProfilePage = () => {
   };
 
   return (
-    <div className="user-profile-container">
-      <h2 className="form-title">Hi {displayName},please enter your details</h2>
-      <form className="form">
-        <div className="form-row">
+    <div className="center-page">
+      <h2>Hi {displayName},please enter your details</h2>
+      <form className="column-container">
+        <div className="row-container">
           <label>First Name:</label>
           <input
             type="text"
@@ -124,7 +124,7 @@ const UserProfilePage = () => {
             onChange={(e) => setFirstName(e.target.value)}
           />
         </div>
-        <div className="form-row">
+        <div className="row-container">
           <label>Last Name:</label>
           <input
             type="text"
@@ -132,7 +132,7 @@ const UserProfilePage = () => {
             onChange={(e) => setLastName(e.target.value)}
           />
         </div>
-        <div className="form-row">
+        <div className="row-container">
           <label>City:</label>
           <input
             type="text"
@@ -140,7 +140,7 @@ const UserProfilePage = () => {
             onChange={(e) => setCity(e.target.value)}
           />
         </div>
-        <div className="form-row">
+        <div className="row-container">
           <label>Country:</label>
           <input
             type="text"
@@ -148,7 +148,7 @@ const UserProfilePage = () => {
             onChange={(e) => setCountry(e.target.value)}
           />
         </div>
-        <div className="form-row">
+        <div className="row-container">
           <label>Current Feeling:</label>
           <input
             type="text"
@@ -156,7 +156,7 @@ const UserProfilePage = () => {
             onChange={(e) => setFeeling(e.target.value)}
           />
         </div>
-        <div className="form-row">
+        <div className="row-container">
           <label>Favourite food:</label>
           <input
             type="text"
@@ -164,7 +164,7 @@ const UserProfilePage = () => {
             onChange={(e) => setFavFood(e.target.value)}
           />
         </div>
-        <div className="form-row">
+        <div className="row-container">
           <label>Favourite activity:</label>
           <input
             type="text"
@@ -172,12 +172,12 @@ const UserProfilePage = () => {
             onChange={(e) => setfavActivity(e.target.value)}
           />
         </div>
-        <div className="form-row">
+        <div className="row-container">
           <label>Selfie:</label>
           <input type="file" onChange={handleSelfieChange} accept="image/*" />
         </div>
       </form>
-      <button type="submit" className="submit-button" onClick={handleSubmit}>
+      <button type="submit" className="common-button" onClick={handleSubmit}>
         Submit
       </button>
       {message && <p className="message">{message}</p>}

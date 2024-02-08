@@ -8,12 +8,13 @@ import WaitRoomPage from "./WaitRoomPage";
 import UserProfilePage from "./UserProfilePage";
 import reportWebVitals from "./service/reportWebVitals";
 import CreateRoomPage from "./CreateRoomPage";
-import ChatRoomPage from "./ChatRoomPage";
 import GeoguesserPage from "./Geoguesser";
 import PresentPage from "./PresentPage";
 import PictionaryPage from "./PictionaryPage";
 import JoinMockRoomPage from "./JoinMockRoomPage";
 import WordlePage from "./WordlePage";
+import "./css/CommonStyle.css";
+import HangmanPage from "./HangmanPage";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -31,6 +32,7 @@ root.render(
       <Route path="/PictionaryRoomPage" element={<PictionaryPage />} />
       <Route path="/JoinMockRoompage" element={<JoinMockRoomPage />} />
       <Route path="/GeoguesserPage" element={<GeoguesserPage />} />
+      <Route path="/HangmanPage" element={<HangmanPage />} />
     </Routes>
   </Router>
 );
