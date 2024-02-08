@@ -213,12 +213,6 @@ const Wordle = () => {
 
   // Back to present page
   const handleBackMessage = async () => {
-    // Update PresentRoomInfo
-    const newPresentRoomInfo: PresentRoomInfo = {
-      ...presentRoomInfo,
-      [fieldName]: true,
-    };
-    updatePresentRoomInfo({ roomCode, newPresentRoomInfo });
     navigate("/PresentPage", {
       state: { user, admin, presenter, guests },
     });
@@ -304,7 +298,14 @@ const Wordle = () => {
     sendWordleMessage(true, currentGuess);
   };
 
-  const handleBack = async () => {
+  const handleBackButton = async () => {
+    // Update PresentRoomInfo
+    const newPresentRoomInfo: PresentRoomInfo = {
+      ...presentRoomInfo,
+      [fieldName]: true,
+    };
+    updatePresentRoomInfo({ roomCode, newPresentRoomInfo });
+
     // Change room status
     const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;
     try {
@@ -408,8 +409,6 @@ const Wordle = () => {
           />
           <p>{admin?.displayName}</p>
         </div>
-
-       
       </div>
       <div className="main-column" onKeyDown={handleKeyPress}>
         <h1>Welcome to Wordle, {user.displayName}!</h1>
@@ -463,7 +462,7 @@ const Wordle = () => {
           Guess
         </button>
         {isAdmin && (
-          <button className="common-button" onClick={handleBack}>
+          <button className="common-button" onClick={handleBackButton}>
             Back
           </button>
         )}

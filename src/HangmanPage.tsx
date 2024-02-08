@@ -192,18 +192,19 @@ const HangmanPage = () => {
 
   // Back to present page
   const handleBackMessage = async () => {
+    navigate("/PresentPage", {
+      state: { user, admin, presenter, guests },
+    });
+  };
+
+  const handleBackButton = async () => {
     // Update PresentRoomInfo
     const newPresentRoomInfo: PresentRoomInfo = {
       ...presentRoomInfo,
       [fieldName]: true,
     };
     updatePresentRoomInfo({ roomCode, newPresentRoomInfo });
-    navigate("/PresentPage", {
-      state: { user, admin, presenter, guests },
-    });
-  };
 
-  const handleBack = async () => {
     // Change room status
     const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;
     try {
@@ -217,15 +218,6 @@ const HangmanPage = () => {
       console.error("Error returning to PresentRoom:", error);
     }
   };
-
-  // const guessLetter = (letter: string) => {
-  //   if (!guessedLetters.includes(letter)) {
-  //     setGuessedLetters([...guessedLetters, letter]);
-  //     if (!word.includes(letter)) {
-  //       setMistakes(mistakes + 1);
-  //     }
-  //   }
-  // };
 
   const displayWord = currentStages
     .map((letter) => (letter ? letter : "_"))
@@ -350,7 +342,9 @@ const HangmanPage = () => {
               onClick={() => sendHangmanMessage(letter)} // Assuming sendWordleMessage is your function to handle guesses
               // 114514
               // disabled={!isSameUser(user, currentGuesser) || allLetterStatus[index] !== LetterStatus.UNCHECKED || isFinished}
-              disabled={allLetterStatus[index] !== LetterStatus.UNCHECKED || isFinished}
+              disabled={
+                allLetterStatus[index] !== LetterStatus.UNCHECKED || isFinished
+              }
             >
               {letter}
             </button>
@@ -363,7 +357,7 @@ const HangmanPage = () => {
         )}
 
         {isAdmin && (
-          <button className="admin-only-button" onClick={handleBack}>
+          <button className="admin-only-button" onClick={handleBackButton}>
             Back
           </button>
         )}
