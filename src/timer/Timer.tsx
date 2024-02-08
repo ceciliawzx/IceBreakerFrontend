@@ -37,6 +37,7 @@ export const Timer = ({
     connect(socketUrl, websocketUrl, topic, onTimerMessageReceived);
     setInputValue(defaultTime.toString());
   }, []);
+  
 
   const startTimer = useCallback(() => {
     const seconds = inputValue.trim() === "" ? defaultTime : Number(inputValue);

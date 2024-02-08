@@ -16,31 +16,31 @@ const Homepage: React.FC = () => {
     navigate("/JoinRoomPage");
   };
 
-  const handleJoinMockRoom = ()  => {
+  const handleJoinMockRoom = () => {
     setLog("Join Mock Room clicked");
     navigate("/JoinMockRoomPage");
   };
 
   return (
-    <div className="home-page">
+    <div className="center-page">
       <h1>Welcome to the Room Page</h1>
-      <div className="button-container">
+      <div className="column-container">
         <button
-          className="button"
+          className="home-button"
           onClick={handleCreateRoom}
           data-testid="create-room-button"
         >
           Create Room
         </button>
         <button
-          className="button"
+          className="home-button"
           onClick={handleJoinRoom}
           data-testid="join-room-button"
         >
           Join Room
         </button>
         <button
-          className="button"
+          className="home-button"
           onClick={handleJoinMockRoom}
           data-testid="join-mockroom-button"
         >

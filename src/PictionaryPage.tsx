@@ -12,6 +12,7 @@ import { RoomStatus } from "./type/RoomStatus";
 import { refreshTime } from "./macro/MacroConst";
 import { PresentRoomInfo } from "./type/PresentRoomInfo";
 import { Timer } from "./timer/Timer";
+import { BackMsg } from './type/BackMsg';
 
 const PictionaryPage = () => {
   const location = useLocation();
@@ -50,6 +51,7 @@ const PictionaryPage = () => {
     }
   };
 
+  // Only the admin can click continue, other users will be navigated automatically
   const Modal = ({
     onClose,
     targetWord,
@@ -58,9 +60,7 @@ const PictionaryPage = () => {
     targetWord: string;
   }) => (
     <div id="pictionary-modal">
-      {targetWord === "" && (
-        <h2>Back to PresentRoom</h2>
-      )}
+      {targetWord === "" && <h2>Back to PresentRoom</h2>}
       {targetWord !== "" && (
         <>
           <h2>Target Word Revealed!</h2>
@@ -69,7 +69,7 @@ const PictionaryPage = () => {
           </p>
         </>
       )}
-      <button onClick={onClose}>Continue</button>
+      {userID === admin.userID && <button onClick={onClose}>Continue</button>}
     </div>
   );
 
@@ -160,7 +160,7 @@ const PictionaryPage = () => {
   };
 
   return (
-    <div className="pictionary-page">
+    <div className="row-page">
       <div className="chat-room-container">
         <ChatRoom />
       </div>

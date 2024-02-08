@@ -10,6 +10,7 @@ import { User } from "./type/User";
 import { checkRoomStatus } from "./utils/RoomOperation";
 import { updatePresentRoomInfo } from "./utils/RoomOperation";
 import "./css/PresentPage.css";
+import HangmanPage from './HangmanPage';
 
 const PresentPage = () => {
   const location = useLocation();
@@ -96,13 +97,26 @@ const PresentPage = () => {
           presenter,
           guests,
           presentRoomInfo,
-          selectedField,
+          selectedField
         },
       });
     }
     // Navigate to Wordle
     else if (roomStatus === RoomStatus.WORDLING) {
       navigate("/WordlePage", {
+        state: {
+          user,
+          admin,
+          presenter,
+          guests,
+          presentRoomInfo,
+          selectedField,
+        },
+      });
+    }
+    // Navigate to Hangman
+    if (roomStatus === RoomStatus.HANGMAN) {
+      navigate("/HangmanPage", {
         state: {
           user,
           admin,
@@ -152,13 +166,17 @@ const PresentPage = () => {
             info
           ) : (
             <>
-              <button onClick={() => toggleGameSelector(fieldName)}>
+              <button
+                className="small-common-button"
+                onClick={() => toggleGameSelector(fieldName)}
+              >
                 Select a Game
               </button>
               {activeGameSelector === fieldName && (
                 <div id="game-selector">
                   {games.map((gameType) => (
                     <button
+                      className="small-common-button"
                       key={gameType}
                       onClick={() => handleGameSelection(gameType, fieldName)}
                     >
@@ -184,7 +202,6 @@ const PresentPage = () => {
         throw new Error("Failed to fetch available games");
       }
       const availableGames = await response.json();
-      console.log(fieldName, availableGames); // Log to see the fetched data
       setAvailableGamesForField((prevGames) => ({
         ...prevGames,
         [fieldName]: availableGames,
@@ -253,6 +270,20 @@ const PresentPage = () => {
       } else {
         // TODO: for other games
       }
+      const handleHangman = async () => {
+        const response = await fetch(
+          `${serverPort}/startHangman?roomCode=${roomCode}&userID=${presenter?.userID}&field=${fieldName}`,
+          {
+            method: "POST",
+          }
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+      };
+      if (gameType === GameType.HANGMAN) {
+        handleHangman();
+      }
     }
     setActiveGameSelector(null);
   };
@@ -309,24 +340,27 @@ const PresentPage = () => {
   };
 
   return (
-    <div className="present-page-container">
-      <div className="presenter-container">
+    <div className="page">
+      <div className="separate-bar">
         <img
           src={presenter?.profileImage}
           alt={presenter?.displayName}
-          className="presenter-avatar"
+          className="avatar"
         />
         <h2>{presenter?.displayName}</h2>
       </div>
       <div className="presenter-info">
-        <p>First Name: {renderInfoOrGameSelector("firstName")}</p>
-        <p>Last Name: {renderInfoOrGameSelector("lastName")}</p>
-        <p>City: {renderInfoOrGameSelector("city")}</p>
-        <p>Country: {renderInfoOrGameSelector("country")}</p>
-        <p>Feeling: {renderInfoOrGameSelector("feeling")}</p>
-        <p>Favourite Food: {renderInfoOrGameSelector("favFood")}</p>
-        <p>Favorite Activity: {renderInfoOrGameSelector("favActivity")}</p>
+        <div>
+          <p>First Name: {renderInfoOrGameSelector("firstName")}</p>
+          <p>Last Name: {renderInfoOrGameSelector("lastName")}</p>
+          <p>City: {renderInfoOrGameSelector("city")}</p>
+          <p>Country: {renderInfoOrGameSelector("country")}</p>
+          <p>Feeling: {renderInfoOrGameSelector("feeling")}</p>
+          <p>Favourite Food: {renderInfoOrGameSelector("favFood")}</p>
+          <p>Favorite Activity: {renderInfoOrGameSelector("favActivity")}</p>
+        </div>
       </div>
+
       <div>
         {userID === admin.userID && (
           <button

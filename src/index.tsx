@@ -12,7 +12,8 @@ import PresentPage from "./PresentPage";
 import PictionaryPage from "./PictionaryPage";
 import JoinMockRoomPage from "./JoinMockRoomPage";
 import WordlePage from "./WordlePage";
-import "./css/CommonColour.css";
+import "./css/CommonStyle.css";
+import HangmanPage from "./HangmanPage";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -29,6 +30,7 @@ root.render(
       <Route path="/WordlePage" element={<WordlePage />} />
       <Route path="/PictionaryRoomPage" element={<PictionaryPage />} />
       <Route path="/JoinMockRoompage" element={<JoinMockRoomPage />} />
+      <Route path="/HangmanPage" element={<HangmanPage />} />
     </Routes>
   </Router>
 );
