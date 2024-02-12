@@ -72,6 +72,7 @@ const WaitRoomPage = () => {
   const handleLeaveRoom = async () => {
     // If admin leaves, send http request to delete room and all user should be kicked out
     if (isAdmin) {
+      console.log("Moderator destroy room");
       // Destroy room
       const response = await fetch(
         `${serverPort}/destroyRoom?roomCode=${roomCode}`,
@@ -200,12 +201,11 @@ const WaitRoomPage = () => {
 
       const data = await response.json();
 
+      console.log(data);
+
       // Check if room dismissed
       Object.values(data).some((value) => {
-        if (
-          typeof value === "string" &&
-          value.includes("Room cannot be found")
-        ) {
+        if (typeof value === "string" && value.includes("Room not found")) {
           setShowDismissPopup(true);
           return;
         }
@@ -283,7 +283,6 @@ const WaitRoomPage = () => {
       console.error("Error fetching player:", error);
     }
   };
-  
 
   useEffect(() => {
     // Check whether the user is admin
