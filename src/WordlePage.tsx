@@ -14,6 +14,12 @@ import { Modal } from './utils/Modal';
 import { Timer } from './timer/Timer';
 import { RoomStatus } from './type/RoomStatus';
 import { ModalMessage } from './type/ModalMessage';
+import Instructions from './Instructions';
+import Inst1 from './1.jpg'
+
+const wordleInstructions = [
+  { img: Inst1, text: 'Wordle Instruction 11111' }
+];
 
 interface WordleMsg {
   currentAttempt: number;
@@ -535,13 +541,18 @@ const Wordle = () => {
       )}
       {/* Timer */}
       <div>
-          <Timer
-            user={user}
-            roomCode={roomCode}
-            roomStatus={RoomStatus.PRESENTING}
-            defaultTime={40}
-          />
-        </div>
+        <Timer
+          user={user}
+          roomCode={roomCode}
+          roomStatus={RoomStatus.PRESENTING}
+          defaultTime={40}
+        />
+      </div>
+      
+      {/* Instructions*/}
+      <Instructions instructionPics={wordleInstructions} />
+
+      
     </div>
   );
 };

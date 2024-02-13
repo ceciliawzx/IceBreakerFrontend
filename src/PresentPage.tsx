@@ -86,6 +86,20 @@ const PresentPage = () => {
         },
       });
     }
+    // Navigate to Geoguesser
+    if (roomStatus === RoomStatus.GEO_GUESSING) {
+      navigate("/GeoguesserPage", {
+        state: {
+          user,
+          isPresenter: isPresenter,
+          admin,
+          presenter,
+          guests,
+          presentRoomInfo,
+          selectedField,
+        },
+      });
+    }
     // Navigate to Pictionary
     else if (roomStatus === RoomStatus.PICTURING) {
       navigate("/PictionaryRoomPage", {
