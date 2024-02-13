@@ -38,6 +38,9 @@
   padding: 20px;
   border-radius: 10px;
   text-align: center;
+  max-width: 80vw; /* Maximum width to 80% of the viewport width */
+  max-height: 80vh; /* Maximum height to 80% of the viewport height */
+  overflow: auto; /* Enable scrolling if content is larger than max dimensions */
 }
 
 .instruction-navigation button {
@@ -61,4 +64,17 @@
   cursor: pointer;
   padding: 0;
   line-height: 1;
+  z-index: 3000;
+}
+
+.instruction-content img {
+  max-width: 100%; /* Ensure the image is not wider than the container */
+  height: auto; /* Maintain the aspect ratio */
+  margin-bottom: 20px; /* Space below the image */
+  border: 1px solid black; /* Black line border around the image */
+}
+
+.instruction-content p {
+  font-size: 25px; 
+  margin-bottom: 20px;
 }

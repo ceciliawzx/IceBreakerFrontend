@@ -23,9 +23,6 @@ const Instructions: React.FC<InstructionsProps> = ({ instructionPics }) => {
      setCurrentInstructionPage(prev => prev < instructionPics.length - 1 ? prev + 1 : prev);
    };
    
- 
- 
-
   return (
     <div>
       {/* Instruction Button */}

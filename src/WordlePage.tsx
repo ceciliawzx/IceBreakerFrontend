@@ -15,10 +15,10 @@ import { Timer } from './timer/Timer';
 import { RoomStatus } from './type/RoomStatus';
 import { ModalMessage } from './type/ModalMessage';
 import Instructions from './Instructions';
-import Inst1 from './1.jpg'
+import Inst1 from './instructions/wordle/1.png'
 
 const wordleInstructions = [
-  { img: Inst1, text: 'Wordle Instruction 11111' }
+  { img: Inst1, text: 'In this game you will take turns to guess the word, cooporate with your teamates and find the answer!' }
 ];
 
 interface WordleMsg {
