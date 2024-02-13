@@ -227,11 +227,16 @@ const Wordle = () => {
     setAllLetterStatus(msg.allLetterStat);
   };
 
+  useEffect(() => {
+    if (correct) {
+      handleModalMessage();
+    }
+  }, [correct]);
+
   // show modal
   const handleModalMessage = () => {
     // Update PresentRoomInfo
     updatePresentRoomInfo({ roomCode, field: fieldName });
-
     // Show the modal
     setShowModal(true);
   };

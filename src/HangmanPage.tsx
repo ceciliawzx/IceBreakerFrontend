@@ -111,6 +111,14 @@ const HangmanPage = () => {
     setCurrentGuesser(nextGuesser);
   }, [currentGuesserId]);
 
+
+  // show modal when guessed correct
+  useEffect(() => {
+    if (correct) {
+      handleModalMessage();
+    }
+  }, [correct]);
+
   // show modal
   const handleModalMessage = () => {
     // Update PresentRoomInfo
