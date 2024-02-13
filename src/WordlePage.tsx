@@ -36,6 +36,7 @@ const Wordle = () => {
   const admin = location.state?.admin;
   const presenter = location.state?.presenter;
   const guests: User[] = location.state?.guests;
+  const fieldName = location.state?.selectedField;
 
   /* Pop up */
   const [selectedUserProfile, setSelectedUserProfile] =
@@ -58,7 +59,7 @@ const Wordle = () => {
   const [currentAttempt, setCurrentAttempt] = useState<number>(0);
   const [targetCharNum, setTargetCharNum] = useState<number>(0);
   const [targetWord, setTargetWord] = useState<string>("");
-  const [fieldName, setFieldName] = useState<keyof PresentRoomInfo>();
+  const [selectedField, setSelectedField] = useState<keyof PresentRoomInfo>();
   const [correct, setCorrect] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
@@ -163,7 +164,7 @@ const Wordle = () => {
       const data = await response.json();
 
       if (data != "Error") {
-        setFieldName(data.target.fieldName);
+        setSelectedField(data.target.fieldName);
         setTargetWord(data.target.targetWord);
       } else {
         console.error("Game cannot be found.");
@@ -223,9 +224,8 @@ const Wordle = () => {
   // show modal
   const handleModalMessage = () => {
     // Update PresentRoomInfo
-    if (fieldName) {
-      updatePresentRoomInfo({ roomCode, field: fieldName });
-    }
+    updatePresentRoomInfo({ roomCode, field: fieldName });
+
     // Show the modal
     setShowModal(true);
   };
@@ -425,7 +425,7 @@ const Wordle = () => {
       <div className="main-column" onKeyDown={handleKeyPress}>
         <h1>Welcome to Wordle, {user.displayName}!</h1>
         <h1>
-          We are guessing: {presenter.displayName}'s {fieldName}!
+          We are guessing: {presenter.displayName}'s {selectedField}!
         </h1>
         <h2>Current guesser is: {currentGuesser?.displayName}</h2>
         <div className="wordle-input">
