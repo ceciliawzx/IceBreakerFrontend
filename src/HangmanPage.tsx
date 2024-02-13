@@ -55,6 +55,7 @@ const HangmanPage = () => {
   const guests: User[] = location.state?.guests;
   const presentRoomInfo = location.state?.presentRoomInfo;
   const fieldName = location.state?.selectedField;
+  const [selectedField, setSelectedField] = useState<keyof PresentRoomInfo>();
 
   const [selectedUserProfile, setSelectedUserProfile] =
     useState<UserProfile | null>(null);
@@ -89,7 +90,9 @@ const HangmanPage = () => {
   // Initialize web socket and fetch word
   useEffect(() => {
     // Initialize web socket
-    const onMessageReceived = (msg: HangmanMsg | BackMessage | ModalMessage) => {
+    const onMessageReceived = (
+      msg: HangmanMsg | BackMessage | ModalMessage
+    ) => {
       receiveMessage(msg);
     };
 
@@ -193,16 +196,16 @@ const HangmanPage = () => {
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
+      const data = await response.json();
 
-      const targetWord = await response.text();
-
-      if (targetWord != "ERROR") {
-        setTargetWord(targetWord);
+      if (data != "Error") {
+        setSelectedField(data.target.fieldName);
+        setTargetWord(data.target.targetWord);
       } else {
         console.error("Game cannot be found.");
       }
     } catch (error) {
-      console.error("Error fetching wordle answer:", error);
+      console.error("Error fetching hangman answer:", error);
     }
   };
 
@@ -342,6 +345,9 @@ const HangmanPage = () => {
 
       <div className="main-column">
         <h1>Welcome to Hangman, {user.displayName}!</h1>
+        <h1>
+          We are guessing: {presenter.displayName}'s {selectedField}!
+        </h1>
         <h2>Current guesser is: {currentGuesser?.displayName}</h2>
         <div className="column-container">
           <pre id="hangman-ascii">
@@ -349,11 +355,9 @@ const HangmanPage = () => {
             <p>{hangmanStages[mistakes]}</p>
           </pre>
         </div>
-
         <div className="hangman-input">
           <p>{displayWord}</p>
         </div>
-
         <div className="alphabet-list">
           {Array.from(alphabet).map((letter, index) => (
             <button
@@ -373,12 +377,10 @@ const HangmanPage = () => {
             </button>
           ))}
         </div>
-
         {correct && <h2> You guessed the word! </h2>}
         {isFinished && !correct && (
           <h2>The correct answer is: {targetWord} </h2>
         )}
-
         {isAdmin && (
           <button className="admin-only-button" onClick={handleBackButton}>
             Back

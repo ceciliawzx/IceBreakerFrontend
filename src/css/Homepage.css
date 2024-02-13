@@ -1,3 +1,17 @@
+.title-image {
+  width: 40%; /* Adjust this value as needed */
+  height: auto; /* Keeps the aspect ratio intact */
+  margin-bottom: 2%;
+}
+
+.ice-house-image {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 25%; /* Adjust based on desired size, maintaining aspect ratio */
+  height: auto;
+}
+
 .home-button {
   margin-bottom: 10px;
   padding: 0;

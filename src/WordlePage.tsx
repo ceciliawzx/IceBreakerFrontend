@@ -10,12 +10,12 @@ import { connect, sendMsg } from "./utils/WebSocketService";
 import { updatePresentRoomInfo } from "./utils/RoomOperation";
 import { PresentRoomInfo } from "./type/PresentRoomInfo";
 import { BackMessage } from "./type/BackMessage";
-import { Modal } from './utils/Modal';
-import { Timer } from './timer/Timer';
-import { RoomStatus } from './type/RoomStatus';
-import { ModalMessage } from './type/ModalMessage';
-import Instructions from './Instructions';
-import Inst1 from './instructions/wordle/1.png'
+import { Modal } from "./utils/Modal";
+import { Timer } from "./timer/Timer";
+import { RoomStatus } from "./type/RoomStatus";
+import { ModalMessage } from "./type/ModalMessage";
+import Instructions from "./Instructions";
+import Inst1 from "./instructions/wordle/1.png";
 
 const wordleInstructions = [
   { img: Inst1, text: 'In this game you will take turns to guess the word, cooporate with your teamates and find the answer!' }
@@ -48,7 +48,7 @@ const Wordle = () => {
   const [selectedUserProfile, setSelectedUserProfile] =
     useState<UserProfile | null>(null);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
-  
+
   /* Modal */
   const [showModal, setShowModal] = useState(false);
 
@@ -65,6 +65,7 @@ const Wordle = () => {
   const [currentAttempt, setCurrentAttempt] = useState<number>(0);
   const [targetCharNum, setTargetCharNum] = useState<number>(0);
   const [targetWord, setTargetWord] = useState<string>("");
+  const [selectedField, setSelectedField] = useState<keyof PresentRoomInfo>();
   const [correct, setCorrect] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
@@ -166,10 +167,11 @@ const Wordle = () => {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
-      const targetWord = await response.text();
+      const data = await response.json();
 
-      if (targetWord != "ERROR") {
-        setTargetWord(targetWord);
+      if (data != "Error") {
+        setSelectedField(data.target.fieldName);
+        setTargetWord(data.target.targetWord);
       } else {
         console.error("Game cannot be found.");
       }
@@ -229,6 +231,7 @@ const Wordle = () => {
   const handleModalMessage = () => {
     // Update PresentRoomInfo
     updatePresentRoomInfo({ roomCode, field: fieldName });
+
     // Show the modal
     setShowModal(true);
   };
@@ -427,6 +430,9 @@ const Wordle = () => {
       </div>
       <div className="main-column" onKeyDown={handleKeyPress}>
         <h1>Welcome to Wordle, {user.displayName}!</h1>
+        <h1>
+          We are guessing: {presenter.displayName}'s {selectedField}!
+        </h1>
         <h2>Current guesser is: {currentGuesser?.displayName}</h2>
         <div className="wordle-input">
           {currentGuess.map((_, rowIndex) => (

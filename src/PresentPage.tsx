@@ -237,7 +237,7 @@ const PresentPage = () => {
       const handlePictionaryRoom = async (fieldName: keyof PresentRoomInfo) => {
         const target = presenterInfo ? presenterInfo[fieldName] : "";
         const response = await fetch(
-          `${serverPort}/startDrawAndGuess?roomCode=${roomCode}&target=${target}`,
+          `${serverPort}/startDrawAndGuess?roomCode=${roomCode}&fieldName=${fieldName}&targetWord=${target}`,
           {
             method: "POST",
           }
@@ -251,9 +251,10 @@ const PresentPage = () => {
       if (gameType === GameType.PICTIONARY) {
         handlePictionaryRoom(fieldName);
       }
-      const handleShareBoard = async () => {
+      const handleShareBoard = async (fieldName: keyof PresentRoomInfo) => {
+        const target = presenterInfo ? presenterInfo[fieldName] : "";
         const response = await fetch(
-          `${serverPort}/startShareBoard?roomCode=${roomCode}`,
+          `${serverPort}/startShareBoard?roomCode=${roomCode}&fieldName=${fieldName}`,
           {
             method: "POST",
           }
@@ -265,7 +266,7 @@ const PresentPage = () => {
         }
       };
       if (gameType === GameType.SHAREBOARD) {
-        handleShareBoard();
+        handleShareBoard(fieldName);
       }
       const handleWordle = async () => {
         const response = await fetch(

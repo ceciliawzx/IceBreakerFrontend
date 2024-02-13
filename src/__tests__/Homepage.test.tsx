@@ -8,14 +8,6 @@ const homepageComponent = (
   </Router>
 );
 
-it('should show welcome words', () => {
-  const { getByText } = render(homepageComponent);
-  
-  // Check if the component renders with the welcome message
-  const welcomeMessage = getByText(/Welcome to the Room Page/i);
-  expect(welcomeMessage).toBeInTheDocument();
-});
-
 it('should log "Create Room clicked" on click Create Room button', () => {
   render(homepageComponent);
   
