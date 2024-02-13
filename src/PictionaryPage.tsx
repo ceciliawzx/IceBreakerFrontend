@@ -14,6 +14,12 @@ import { BackMessage } from "./type/BackMessage";
 import { ModalMessage } from "./type/ModalMessage";
 import { Modal } from "./utils/Modal";
 import { PresentRoomInfo } from "./type/PresentRoomInfo";
+import Instructions from './Instructions';
+import Inst1 from './instructions/draw&guess/1.png'
+
+const pictionaryInstructions = [
+  { img: Inst1, text: 'In this game the presenter will draw their answer for you, and you can compete to guess the correct word. Have fun!' }
+];
 
 const PictionaryPage = () => {
   const location = useLocation();
@@ -186,6 +192,8 @@ const PictionaryPage = () => {
           />
         </div>
       </div>
+      {/* Instructions*/}
+      <Instructions instructionPics={pictionaryInstructions} />
     </div>
   );
 };
