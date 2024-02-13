@@ -552,7 +552,6 @@ const Wordle = () => {
       {/* Instructions*/}
       <Instructions instructionPics={wordleInstructions} />
 
-      
     </div>
   );
 };

@@ -15,6 +15,21 @@ import { Modal } from "./utils/Modal";
 import { Timer } from "./timer/Timer";
 import { RoomStatus } from "./type/RoomStatus";
 import { ModalMessage } from "./type/ModalMessage";
+import Instructions from './Instructions';
+import Inst1 from './instructions/hangman/1.png'
+import Inst2 from './instructions/hangman/2.png'
+import Inst3 from './instructions/hangman/3.png'
+import Inst4 from './instructions/hangman/4.png'
+import Inst5 from './instructions/hangman/5.png'
+
+
+const hangmanInstructions = [
+  { img: Inst1, text: 'In this game, you will try to guess the letters in the answer word.' },
+  { img: Inst2, text: 'If you guess the correct letter, it will be shown in green.' },
+  { img: Inst3, text: 'If you guess a wrong letter, you will lose one chance, and it will be marked grey.' },
+  { img: Inst4, text: 'If you use all your chances, you will be hanged!' },
+  { img: Inst5, text: 'If you guess the correct word, you will be set free! Good luck, have fun!' },
+];
 
 interface HangmanMsg {
   guessLetter: string;
@@ -423,6 +438,8 @@ const HangmanPage = () => {
           defaultTime={40}
         />
       </div>
+      {/* Instructions*/}
+      <Instructions instructionPics={hangmanInstructions} />
     </div>
   );
 };
