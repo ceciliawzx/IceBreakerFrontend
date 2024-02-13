@@ -7,7 +7,7 @@ const connect = (
   socketUrl: string,
   webSocketUrl: string,
   topic: string,
-  onMessageReceived: (msg: any) => void,
+  onMessageReceived: (msg: any) => void
 ) => {
   const socket = new SockJS(socketUrl);
   client = new Client({
@@ -29,12 +29,11 @@ const connect = (
     },
     onStompError: (frame) => {
       console.error("Broker reported error: " + frame.headers["message"]);
-    }
+    },
   });
   client.activate();
   return client;
 };
-
 
 const sendMsg = (destination: string, msg: any) => {
   if (client && client.connected) {

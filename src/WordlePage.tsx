@@ -18,7 +18,10 @@ import Instructions from "./Instructions";
 import Inst1 from "./instructions/wordle/1.png";
 
 const wordleInstructions = [
-  { img: Inst1, text: 'In this game you will take turns to guess the word, cooporate with your teamates and find the answer!' }
+  {
+    img: Inst1,
+    text: "In this game you will take turns to guess the word, cooporate with your teamates and find the answer!",
+  },
 ];
 
 interface WordleMsg {
@@ -66,7 +69,9 @@ const Wordle = () => {
   const [targetCharNum, setTargetCharNum] = useState<number>(0);
   const [targetWord, setTargetWord] = useState<string>("");
   const [selectedField, setSelectedField] = useState<keyof PresentRoomInfo>();
+
   const [correct, setCorrect] = useState(false);
+  const [isFinished, setIsFinished] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
   // totalAttempts: rowNum; targeteCharNum: coluNum
@@ -82,7 +87,7 @@ const Wordle = () => {
       Ensure input after web socket connected
   */
 
-  // Initialize web socket and fetch word
+  // When launch
   useEffect(() => {
     const onMessageReceived = (msg: WordleMsg | BackMessage | ModalMessage) => {
       receiveMessage(msg);
@@ -96,7 +101,7 @@ const Wordle = () => {
     fetchTargetWord();
   }, []);
 
-  // Initialize grid
+  // When got target word, initialize grid
   useEffect(() => {
     if (targetCharNum > 0) {
       // Initialize currentGuess
@@ -108,14 +113,14 @@ const Wordle = () => {
     }
   }, [targetCharNum]);
 
-  // When grid initialized
+  // When grid initialized, focus cursor
   useEffect(() => {
     if (isSameUser(user, currentGuesser)) {
       document.getElementById("input-0-0")?.focus();
     }
   }, [initialized]);
 
-  // When submit
+  // When submit guess
   useEffect(() => {
     const nextGuesser = guests[currentAttempt % guests.length];
 
@@ -126,6 +131,9 @@ const Wordle = () => {
     if (isSameUser(user, nextGuesser)) {
       document.getElementById(`input-${currentAttempt}-0`)?.focus();
     }
+
+    // Set is finished
+    setIsFinished(currentAttempt >= totalAttempts || correct);
   }, [currentAttempt]);
 
   // Fetch target word length
@@ -144,7 +152,6 @@ const Wordle = () => {
       const wordLength = await response.json();
 
       if (wordLength > 0) {
-        console.log(wordLength);
         setTargetCharNum(wordLength);
       } else {
         console.error("Game cannot be found.");
@@ -180,7 +187,7 @@ const Wordle = () => {
     }
   };
 
-  // send message via websocket
+  // Send message via websocket
   const sendWordleMessage = (
     icCheck: boolean,
     updatedGuess: WordleLetter[][]
@@ -196,6 +203,7 @@ const Wordle = () => {
     });
   };
 
+  // Receive message from websocket
   const receiveMessage = useCallback(
     (msg: WordleMsg | BackMessage | ModalMessage) => {
       try {
@@ -227,13 +235,14 @@ const Wordle = () => {
     setAllLetterStatus(msg.allLetterStat);
   };
 
+  // When isFinished update
   useEffect(() => {
-    if (correct) {
+    if (isFinished) {
       handleModalMessage();
     }
-  }, [correct]);
+  }, [isFinished]);
 
-  // show modal
+  // Show modal
   const handleModalMessage = () => {
     // Update PresentRoomInfo
     updatePresentRoomInfo({ roomCode, field: fieldName });
@@ -248,6 +257,7 @@ const Wordle = () => {
     });
   };
 
+  // When enter letter
   const handleInputChange = (row: number, col: number, value: string) => {
     /* Disable input when:
        1. User is not current guesser
@@ -280,6 +290,7 @@ const Wordle = () => {
     sendWordleMessage(false, updatedGuess);
   };
 
+  // When delete letter
   const handleBackspace = (row: number, col: number) => {
     // If empty first column, cannot delete
     if (col <= 0 && currentGuess[row][col].letter === "") {
@@ -306,15 +317,16 @@ const Wordle = () => {
     sendWordleMessage(false, updatedGuess);
   };
 
-  // Press "Enter" = Press gues
+  // Press "Enter" = Press guess
   const handleKeyPress = (e: any) => {
     if (e.key === "Enter") {
       handleGuess();
     }
   };
 
+  // When click submit guess
   const handleGuess = () => {
-    if (reachMaxAttempt()) {
+    if (isFinished) {
       console.log("Reach max attempt");
       return;
     }
@@ -328,6 +340,7 @@ const Wordle = () => {
     sendWordleMessage(true, currentGuess);
   };
 
+  // When click back to presenet room button
   const handleBackButton = async () => {
     // Change room status
     const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;
@@ -343,6 +356,7 @@ const Wordle = () => {
     }
   };
 
+  // When click view profile button
   const handleViewProfile = async (user: User | null) => {
     if (user) {
       const url = `${serverPort}/getPlayer?userID=${userID}&roomCode=${roomCode}`;
@@ -377,10 +391,9 @@ const Wordle = () => {
     }
   };
 
-  const reachMaxAttempt = () => currentAttempt >= totalAttempts;
-
   const isSameUser = (self: User, other: User) => self.userID === other.userID;
 
+  // Auto set color of grid
   const getStatusStyle = (status: LetterStatus) => {
     switch (status) {
       case LetterStatus.GREY:
@@ -468,10 +481,6 @@ const Wordle = () => {
           ))}
         </div>
 
-        {correct && <h2> You guessed the word! </h2>}
-        {reachMaxAttempt() && !correct && (
-          <h2>The correct answer is: {targetWord}</h2>
-        )}
         <div className="alphabet-list">
           {Array.from(alphabet).map((letter, index) => (
             <div
@@ -559,10 +568,9 @@ const Wordle = () => {
           defaultTime={40}
         />
       </div>
-      
+
       {/* Instructions*/}
       <Instructions instructionPics={wordleInstructions} />
-
     </div>
   );
 };
