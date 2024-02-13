@@ -327,6 +327,7 @@ const HangmanPage = () => {
 
       <div className="main-column">
         <h1>Welcome to Hangman, {user.displayName}!</h1>
+        <h1>We are guessing: {presenter.displayName}'s {fieldName}!</h1>
         <h2>Current guesser is: {currentGuesser?.displayName}</h2>
         <div className="column-container">
           <pre id="hangman-ascii">

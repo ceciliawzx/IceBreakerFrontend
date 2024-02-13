@@ -9,11 +9,11 @@ import "./css/PictionaryPage.css";
 import { User } from "./type/User";
 import { updatePresentRoomInfo } from "./utils/RoomOperation";
 import { RoomStatus } from "./type/RoomStatus";
-import { PresentRoomInfo } from "./type/PresentRoomInfo";
 import { Timer } from "./timer/Timer";
 import { BackMessage } from "./type/BackMessage";
 import { ModalMessage } from "./type/ModalMessage";
-import { Modal } from './utils/Modal';
+import { Modal } from "./utils/Modal";
+import { PresentRoomInfo } from "./type/PresentRoomInfo";
 
 const PictionaryPage = () => {
   const location = useLocation();
@@ -28,6 +28,7 @@ const PictionaryPage = () => {
   const guests = location.state?.guests;
   const isPresenter = location.state?.isPresenter;
   const fieldName = location.state?.selectedField;
+  const [seletedField, setSelectedField] = useState<keyof PresentRoomInfo | null>(null);
   const [targetWord, setTargetWord] = useState("");
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
@@ -37,10 +38,12 @@ const PictionaryPage = () => {
     const response = await fetch(
       `${serverPort}/getTarget?roomCode=${roomCode}`
     );
-    const data = await response.text();
+    const data = await response.json();
     if (data) {
-      console.log("data ", data);
-      setTargetWord(data.toString());
+      console.log("target received ", data);
+      // setTargetWord(data.toString());
+      setSelectedField(data.target.fieldName);
+      setTargetWord(data.target.targetWord);
     } else {
       // throw new Error(`HTTP error when getTarget! Status: ${response.status}`);
       console.log("data ", data);
@@ -48,7 +51,6 @@ const PictionaryPage = () => {
   };
 
   // Only when the timer stops naturally can the field be revealed, if navigated by the button, field should not be revealed
-
 
   // Back to present page directly without revealing the field
   const handleBackMessage = async () => {
@@ -59,14 +61,18 @@ const PictionaryPage = () => {
 
   const handleModalMessage = () => {
     // Update PresentRoomInfo
-    updatePresentRoomInfo({ roomCode, field: fieldName });
+    console.log("updating presentRoomInfo 1 ", { roomCode, field: fieldName, target: targetWord });
+    if (fieldName) {
+      updatePresentRoomInfo({ roomCode, field: fieldName });
+    }
     // Show the modal
     setShowModal(true);
-  };
+  }; // Add fieldName and any other relevant state to the dependency array
+  
 
   const handleReceivedDrawing = useCallback(
     (msg: DrawingMessage | BackMessage | ModalMessage) => {
-      console.log("Pictionary receives message ", msg);
+      console.log("Pictionary receives message ", msg, " filedName ", fieldName);
       try {
         // If contain drawer field, is DrawingMessage
         if ("drawer" in msg) {
@@ -112,7 +118,6 @@ const PictionaryPage = () => {
 
   // navigate back to presentRoom
   const handleBackToPresentRoom = async () => {
-    console.log("pictionary sending backToPresentRoom");
     const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;
     try {
       const response = await fetch(url, {
@@ -150,9 +155,14 @@ const PictionaryPage = () => {
             {isPresenter || (admin && userID === admin.userID) ? (
               <span>Target Word: {targetWord}</span> // Show the target word to the presenter and admin
             ) : (
-              <span className="underscore-display">
-                {"_ ".repeat(targetWord.length).trim()}
-              </span>
+              <div>
+                <div>
+                  We are guessing {presenter.userID}'s {seletedField}: {"  "}
+                </div>
+                <span className="underscore-display">
+                  {"_ ".repeat(targetWord.length).trim()}
+                </span>
+              </div>
             )}
           </div>
         )}
