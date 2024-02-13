@@ -250,10 +250,10 @@ const WaitRoomPage = () => {
         );
         setGuests(updatedGuests);
 
-        // Check if all guests have completed
-        const allCompleted = updatedGuests.every(
-          (guest: User) => guest.completed
-        );
+        // Check if all guests and presenter have completed
+        const allCompleted =
+          updatedGuests.every((guest: User) => guest.completed) &&
+          presenter?.completed;
         setAllGuestsCompleted(allCompleted);
       }
       if (data.roomStatus) {
