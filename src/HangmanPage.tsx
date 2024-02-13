@@ -84,6 +84,8 @@ const HangmanPage = () => {
   // Hangman game states
   const [mistakes, setMistakes] = useState(0);
   const [correct, setCorrect] = useState(false);
+  const [isFinished, setIsFinished] = useState(false);
+
   const [currentGuesserId, setCurrentGuesserId] = useState(0);
   const [currentGuesser, setCurrentGuesser] = useState<User>(guests[0]);
   const [targetCharNum, setTargetCharNum] = useState<number>(0);
@@ -91,16 +93,14 @@ const HangmanPage = () => {
 
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const [currentPositions, setCurrentPositions] = useState<number[]>([]);
-  const [isFinished, setIsFinished] = useState(false);
 
   const [currentStages, setCurrentStages] = useState<string[]>([]);
   const [allLetterStatus, setAllLetterStatus] = useState<LetterStatus[]>(
     Array.from(alphabet).map((_) => LetterStatus.UNCHECKED)
   );
 
-  // Initialize web socket and fetch word
+  // When launch
   useEffect(() => {
-    // Initialize web socket
     const onMessageReceived = (
       msg: HangmanMsg | BackMessage | ModalMessage
     ) => {
@@ -115,6 +115,7 @@ const HangmanPage = () => {
     fetchTargetWord();
   }, []);
 
+  // When submit, change player
   useEffect(() => {
     const nextGuesser = guests[currentGuesserId % guests.length];
 
@@ -122,14 +123,14 @@ const HangmanPage = () => {
     setCurrentGuesser(nextGuesser);
   }, [currentGuesserId]);
 
-  // show modal when guessed correct
+  // Show modal when guessed correct
   useEffect(() => {
-    if (correct) {
+    if (isFinished) {
       handleModalMessage();
     }
-  }, [correct]);
+  }, [isFinished]);
 
-  // show modal
+  // Show modal
   const handleModalMessage = () => {
     // Update PresentRoomInfo
     updatePresentRoomInfo({ roomCode, field: fieldName });
@@ -137,6 +138,7 @@ const HangmanPage = () => {
     setShowModal(true);
   };
 
+  // When receive message from web socket
   const receiveMessage = useCallback(
     (msg: HangmanMsg | BackMessage | ModalMessage) => {
       try {
@@ -156,7 +158,7 @@ const HangmanPage = () => {
     []
   );
 
-  // receive and parse message from websocket
+  // Receive and parse message from websocket
   const handleHangmanMessage = (msg: HangmanMsg) => {
     try {
       // Update guess
@@ -168,9 +170,6 @@ const HangmanPage = () => {
       setMistakes(msg.currentWrongGuesses);
 
       setCurrentGuesserId((currentGuesserId) => currentGuesserId + 1);
-
-      console.log("correct: " + msg.isCorrect);
-      console.log("finish: " + msg.isFinished);
     } catch (error) {
       console.error("Error parsing:", error);
     }
@@ -227,6 +226,7 @@ const HangmanPage = () => {
     }
   };
 
+  // Send message via web socket
   const sendHangmanMessage = (letter: string) => {
     console.log(letter);
     sendMsg(destination, {
@@ -248,6 +248,7 @@ const HangmanPage = () => {
     });
   };
 
+  // When click back to presenta page button
   const handleBackButton = async () => {
     // Change room status
     const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;
@@ -263,10 +264,12 @@ const HangmanPage = () => {
     }
   };
 
+  // Display current guess
   const displayWord = currentStages
     .map((letter) => (letter ? letter : "_"))
     .join(" ");
 
+  // When click view profile button
   const handleViewProfile = async (user: User | null) => {
     if (user) {
       const url = `${serverPort}/getPlayer?userID=${userID}&roomCode=${roomCode}`;
@@ -301,6 +304,7 @@ const HangmanPage = () => {
     }
   };
 
+  // Auto set grid color
   const getStatusStyle = (status: LetterStatus) => {
     const baseStyle = {
       color: "black", // Keeping font color the same
@@ -329,6 +333,7 @@ const HangmanPage = () => {
   };
 
   const isSameUser = (self: User, other: User) => self.userID === other.userID;
+
   return (
     <div className="row-container">
       <div className="left-column">
@@ -395,10 +400,6 @@ const HangmanPage = () => {
             </button>
           ))}
         </div>
-        {correct && <h2> You guessed the word! </h2>}
-        {isFinished && !correct && (
-          <h2>The correct answer is: {targetWord} </h2>
-        )}
         {isAdmin && (
           <button className="admin-only-button" onClick={handleBackButton}>
             Back
