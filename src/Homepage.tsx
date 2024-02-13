@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./css/Homepage.css";
+import titleImage from "./assets/title.png";
+import iceHouse from "./assets/iceHouse.png";
 
 const Homepage: React.FC = () => {
   const navigate = useNavigate();
@@ -22,8 +24,9 @@ const Homepage: React.FC = () => {
   };
 
   return (
-    <div className="center-page">
-      <h1>Welcome to the Room Page</h1>
+    <div className="page">
+      <img src={titleImage} className="title-image" />
+      
       <div className="column-container">
         <button
           className="home-button"
@@ -48,6 +51,7 @@ const Homepage: React.FC = () => {
         </button>
       </div>
       {log && <p data-testid="log-message">{log}</p>}
+      <img src={iceHouse} alt="ice house" className="ice-house-image" />
     </div>
   );
 };

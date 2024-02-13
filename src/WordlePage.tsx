@@ -232,6 +232,14 @@ const Wordle = () => {
 
   // Back to present page
   const handleBackMessage = async () => {
+      console.log("Back to present room");
+
+    // Update PresentRoomInfo
+    const newPresentRoomInfo: PresentRoomInfo = {
+      ...presentRoomInfo,
+      [fieldName]: true,
+    };
+    updatePresentRoomInfo({ roomCode, newPresentRoomInfo });
     navigate("/PresentPage", {
       state: { user, admin, presenter, guests },
     });
@@ -317,7 +325,9 @@ const Wordle = () => {
     sendWordleMessage(true, currentGuess);
   };
 
-  const handleBackButton = async () => {
+  const handleBack = async () => {
+    console.log("Click back button");
+
     // Change room status
     const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;
     try {
