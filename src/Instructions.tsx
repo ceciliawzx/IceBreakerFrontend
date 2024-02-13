@@ -34,8 +34,10 @@ const Instructions: React.FC<InstructionsProps> = ({ instructionPics }) => {
       {showInstructions && (
         <div className="instruction-modal">
           <div className="instruction-content">
-            <img src={instructionPics[currentInstructionPage].img} alt={`Instruction ${currentInstructionPage + 1}`} />
-            <p>{instructionPics[currentInstructionPage].text}</p>
+            <div className="scrollable-content">
+              <img src={instructionPics[currentInstructionPage].img} alt={`Instruction ${currentInstructionPage + 1}`} />
+              <p>{instructionPics[currentInstructionPage].text}</p>
+            </div>
             <div className="instruction-navigation">
               <button onClick={showPrevInstruction} disabled={currentInstructionPage === 0}>
                 Prev
