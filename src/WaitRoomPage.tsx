@@ -249,12 +249,6 @@ const WaitRoomPage = () => {
             )
         );
         setGuests(updatedGuests);
-
-        // Check if all guests and presenter have completed
-        const allCompleted =
-          updatedGuests.every((guest: User) => guest.completed) &&
-          presenter?.completed;
-        setAllGuestsCompleted(allCompleted);
       }
       if (data.roomStatus) {
         setRoomStatus(data.roomStatus);
@@ -269,7 +263,6 @@ const WaitRoomPage = () => {
     try {
       const response = await fetch(url);
       const data = await response.json();
-      console.log("checkKickOut", data);
       if (!response.ok) {
         throw new Error("Room cannot be found");
       }
@@ -287,13 +280,20 @@ const WaitRoomPage = () => {
     // Check whether the user is presenter
     checkPresenterStatus();
 
+    // Check if all guests and presenter have completed
+    const allCompleted =
+      (guests.every((guest: User) => guest?.completed) &&
+        presenter?.completed) ||
+      false;
+    setAllGuestsCompleted(allCompleted);
+
     // If the RoomStatus is PRESENTING, navigate all users to the PresentPage
     if (roomStatus === RoomStatus.PRESENTING) {
       navigate("/PresentPage", {
         state: { user, admin, presenter, guests },
       });
     }
-  }, [roomStatus, user, admin, presenter, guests, allGuestsCompleted]);
+  }, [roomStatus, user, admin, presenter, guests]);
 
   // Every refreshtime
   useEffect(() => {
@@ -306,7 +306,6 @@ const WaitRoomPage = () => {
     // Clear timer and count again
     return () => clearInterval(intervalId);
   }, []);
-
 
   // main render
   return (
