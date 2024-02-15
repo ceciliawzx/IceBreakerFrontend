@@ -396,7 +396,7 @@ const WaitRoomPage = () => {
         <button
           className="admin-only-button"
           onClick={handleStartRoom}
-          disabled={!allGuestsCompleted}
+          disabled={!allGuestsCompleted || guests.length == 0}
         >
           Start Room
         </button>
