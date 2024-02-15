@@ -416,7 +416,7 @@ const Wordle = () => {
   // When click view profile button
   const handleViewProfile = async (user: User | null) => {
     if (user) {
-      const url = `${serverPort}/getPlayer?userID=${userID}&roomCode=${roomCode}`;
+      const url = `${serverPort}/getPlayer?userID=${user.userID}&roomCode=${roomCode}`;
       try {
         const response = await fetch(url);
         if (!response.ok) {
