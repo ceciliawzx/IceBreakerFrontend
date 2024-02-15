@@ -10,3 +10,29 @@ input[type="file"] {
   border-radius: 4px;
   border: 1px solid #ccc;
 }
+
+.camera-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.selfie-preview-container {
+  width: 100px; /* or any size you'd like */
+  height: 100px; /* make sure this is the same as width to maintain aspect ratio */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden; /* to handle images that are not square */
+}
+
+.selfie-preview {
+  max-width: 100%;
+  max-height: 100%;
+}
