@@ -30,3 +30,18 @@
   cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewport="0 0 24 24" style="fill:white;font-size:24px;"><circle cx="12" cy="12" r="9" style="fill:white;"/></svg>'),
     auto;
 }
+
+.word-display {
+  position: absolute;
+  top: 5%;
+  width: 100%;
+  text-align: center;
+  font-size: 24px; /* Adjust size as needed */
+  font-weight: bold; /* Optional: makes the word/underscores bold */
+  color: brown;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none; /* Ensures clicks pass through to canvas */
+}

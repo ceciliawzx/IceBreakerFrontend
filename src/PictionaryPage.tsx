@@ -34,7 +34,9 @@ const PictionaryPage = () => {
   const guests = location.state?.guests;
   const isPresenter = location.state?.isPresenter;
   const fieldName = location.state?.selectedField;
-  const [seletedField, setSelectedField] = useState<keyof PresentRoomInfo | null>(null);
+  const [seletedField, setSelectedField] = useState<
+    keyof PresentRoomInfo | null
+  >(null);
   const [targetWord, setTargetWord] = useState("");
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
@@ -67,18 +69,26 @@ const PictionaryPage = () => {
 
   const handleModalMessage = () => {
     // Update PresentRoomInfo
-    console.log("updating presentRoomInfo 1 ", { roomCode, field: fieldName, target: targetWord });
+    console.log("updating presentRoomInfo 1 ", {
+      roomCode,
+      field: fieldName,
+      target: targetWord,
+    });
     if (fieldName) {
       updatePresentRoomInfo({ roomCode, field: fieldName });
     }
     // Show the modal
     setShowModal(true);
   }; // Add fieldName and any other relevant state to the dependency array
-  
 
   const handleReceivedDrawing = useCallback(
     (msg: DrawingMessage | BackMessage | ModalMessage) => {
-      console.log("Pictionary receives message ", msg, " filedName ", fieldName);
+      console.log(
+        "Pictionary receives message ",
+        msg,
+        " filedName ",
+        fieldName
+      );
       try {
         // If contain drawer field, is DrawingMessage
         if ("drawer" in msg) {
@@ -134,6 +144,24 @@ const PictionaryPage = () => {
     }
   };
 
+  const target: JSX.Element | null = targetWord !== "" ? (
+    <div className="word-display">
+      {isPresenter || (admin && userID === admin.userID) ? (
+        <span>Target Word: {targetWord}</span> // Show the target word to the presenter and admin
+      ) : (
+        <div>
+          <div>
+            We are guessing {presenter.displayName}'s {seletedField}: {"  "}
+          </div>
+          <span className="underscore-display">
+            {"_ ".repeat(targetWord.length).trim()}
+          </span>
+        </div>
+      )}
+    </div>
+  ) : null;
+  
+
   return (
     <div className="row-page">
       <div className="chat-room-container">
@@ -144,6 +172,7 @@ const PictionaryPage = () => {
           isDrawer={isDrawer}
           onDraw={handleDraw}
           externalDrawing={externalDrawing}
+          target={target}
         />
         {showModal && (
           <Modal
@@ -155,22 +184,6 @@ const PictionaryPage = () => {
             userID={userID}
             adminID={admin.userID}
           />
-        )}
-        {targetWord !== "" && (
-          <div className="word-display">
-            {isPresenter || (admin && userID === admin.userID) ? (
-              <span>Target Word: {targetWord}</span> // Show the target word to the presenter and admin
-            ) : (
-              <div>
-                <div>
-                  We are guessing {presenter.displayName}'s {seletedField}: {"  "}
-                </div>
-                <span className="underscore-display">
-                  {"_ ".repeat(targetWord.length).trim()}
-                </span>
-              </div>
-            )}
-          </div>
         )}
         <div>
           {(isPresenter || userID === admin.userID) && (

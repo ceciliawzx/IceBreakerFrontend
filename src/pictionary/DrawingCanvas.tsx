@@ -11,6 +11,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   onDraw,
   externalDrawing,
   isDrawer,
+  target,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef<boolean>(false);
@@ -183,7 +184,13 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   const Placeholder = () => <div style={{ height: "51px" }}></div>;
 
   return (
-    <div>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignContent: "center",
+      }}
+    >
       {isDrawer ? (
         <div id="color-selector">
           {presetColors.map((color) => (
@@ -208,7 +215,14 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       ) : (
         <Placeholder />
       )}
-      <canvas id="drawing-canvas" ref={canvasRef} />
+      <div style={{ position: "relative" }}>
+        <div className="word-display">{target}</div>
+        <canvas
+          id="drawing-canvas"
+          ref={canvasRef}
+          style={{ width: "100%", height: "auto" }}
+        />
+      </div>
     </div>
   );
 };
