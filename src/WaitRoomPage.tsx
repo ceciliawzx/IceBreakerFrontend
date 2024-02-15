@@ -268,12 +268,12 @@ const WaitRoomPage = () => {
     const url = `${serverPort}/getPlayer?userID=${userID}&roomCode=${roomCode}`;
     try {
       const response = await fetch(url);
+      const data = await response.json();
+      console.log("checkKickOut", data);
       if (!response.ok) {
         throw new Error("Room cannot be found");
       }
-
-      const data = await response.text();
-      if (data.includes("Person Not Found")) {
+      if (data.error === "Person Not Found") {
         setShowKickPopup(true);
       }
     } catch (error) {
@@ -286,13 +286,6 @@ const WaitRoomPage = () => {
     checkAdminStatus();
     // Check whether the user is presenter
     checkPresenterStatus();
-    checkPlayers();
-
-    // Update the player list every interval
-    const intervalId = setInterval(() => {
-      checkPlayers();
-      checkKickOut();
-    }, refreshTime);
 
     // If the RoomStatus is PRESENTING, navigate all users to the PresentPage
     if (roomStatus === RoomStatus.PRESENTING) {
@@ -300,9 +293,20 @@ const WaitRoomPage = () => {
         state: { user, admin, presenter, guests },
       });
     }
+  }, [roomStatus, user, admin, presenter, guests, allGuestsCompleted]);
+
+  // Every refreshtime
+  useEffect(() => {
+    // Update the player list every interval
+    const intervalId = setInterval(() => {
+      checkPlayers();
+      checkKickOut();
+    }, refreshTime);
+
     // Clear timer and count again
     return () => clearInterval(intervalId);
-  }, [roomStatus, user, admin, presenter, guests]);
+  }, []);
+
 
   // main render
   return (
