@@ -77,6 +77,7 @@ const Wordle = () => {
   const [currentGuess, setCurrentGuess] = useState<WordleLetter[][]>([]);
 
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const alphabetRows = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
   const [allLetterStatus, setAllLetterStatus] = useState<LetterStatus[]>(
     Array.from(alphabet).map((_) => LetterStatus.UNCHECKED)
   );
@@ -256,6 +257,44 @@ const Wordle = () => {
     });
   };
 
+  const handleInputChangeByButton = (value: string) => {
+    /* Disable button when:
+     1. User is not the current guesser
+     2. Has got the correct answer
+  */
+    if (
+      // !isSameUser(user, currentGuesser) ||
+      isFinished
+    ) {
+      return;
+    }
+
+    // Find the first empty cell in the current attempt
+    const emptyCell = currentGuess[currentAttempt].findIndex(
+      (letter) => letter.letter === ""
+    );
+
+    if (emptyCell !== -1) {
+      // make a deep copy
+      const updatedGuess = currentGuess.map((row) =>
+        row.map((letter) => new WordleLetter(letter.letter, letter.state))
+      );
+
+      // set value in the first empty cell
+      updatedGuess[currentAttempt][emptyCell].setLetter(value.toUpperCase());
+
+      // Move the cursor to the next empty cell
+      if (emptyCell < updatedGuess[currentAttempt].length - 1) {
+        document
+          .getElementById(`input-${currentAttempt}-${emptyCell + 1}`)
+          ?.focus();
+      }
+
+      // sendMessage
+      sendWordleMessage(false, updatedGuess);
+    }
+  };
+
   // When enter letter
   const handleInputChange = (row: number, col: number, value: string) => {
     /* Disable input when:
@@ -266,7 +305,7 @@ const Wordle = () => {
     if (
       // !isSameUser(user, currentGuesser) ||
       !/^[a-zA-Z]$/.test(value) ||
-      correct
+      isFinished
     ) {
       return;
     }
@@ -304,6 +343,7 @@ const Wordle = () => {
     // if delete already occupied grid
     if (currentGuess[row][col].letter != "") {
       updatedGuess[row][col].setLetter("");
+      document.getElementById(`input-${row}-${col}`)?.focus();
     } else {
       // Move the cursor back
       document.getElementById(`input-${row}-${col - 1}`)?.focus();
@@ -314,6 +354,24 @@ const Wordle = () => {
 
     // sendMessage
     sendWordleMessage(false, updatedGuess);
+  };
+
+  const handleBackspaceButton = () => {
+    const currentRow = currentGuess[currentAttempt];
+
+    // Find the index of the last non-empty cell in the current attempt
+    let lastNonEmptyCol = -1;
+    for (let i = currentRow.length - 1; i >= 0; i--) {
+      if (currentRow[i].letter !== "") {
+        lastNonEmptyCol = i;
+        break;
+      }
+    }
+
+    // If there's a non-empty cell, call handleBackspace for that cell
+    if (lastNonEmptyCol !== -1) {
+      handleBackspace(currentAttempt, lastNonEmptyCol);
+    }
   };
 
   // Press "Enter" = Press guess
@@ -409,7 +467,9 @@ const Wordle = () => {
         };
       default:
         return {
-          backgroundColor: "transparent",
+          backgroundColor: rootStyles.getPropertyValue(
+            "--light-grey-background"
+          ),
         };
     }
   };
@@ -481,20 +541,34 @@ const Wordle = () => {
         </div>
 
         <div className="alphabet-list">
-          {Array.from(alphabet).map((letter, index) => (
-            <div
-              key={index}
-              className={`alphabet-block row-${Math.floor(index / 9) + 1}`}
-              style={getStatusStyle(allLetterStatus[index])}
-            >
-              {/* You can customize the styling or add other elements as needed */}
-              {letter}
+          {alphabetRows.map((row, rowIndex) => (
+            <div key={rowIndex}>
+              {row.split("").map((letter, columnIndex) => {
+                const letterIndex = alphabet.indexOf(letter);
+                return (
+                  <button
+                    key={columnIndex}
+                    className={`alphabet-block`}
+                    style={getStatusStyle(allLetterStatus[letterIndex])}
+                    onClick={() => handleInputChangeByButton(letter)} // Assuming sendWordleMessage is your function to handle guesses
+                  >
+                    {alphabet[letterIndex]}
+                  </button>
+                );
+              })}
             </div>
           ))}
         </div>
-        <button className="common-button" onClick={handleGuess}>
-          Guess
-        </button>
+
+        <div className="row-container">
+          <button className="common-button" onClick={handleGuess}>
+            Guess
+          </button>
+          <button className="common-button" onClick={handleBackspaceButton}>
+            Backspace
+          </button>
+        </div>
+
         {isAdmin && (
           <button className="common-button" onClick={handleBackButton}>
             Back
