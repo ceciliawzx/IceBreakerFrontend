@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { UserProfile } from "./type/UserProfile";
@@ -21,6 +21,55 @@ const UserProfilePage = () => {
   const [favFood, setFavFood] = useState("");
   const [favActivity, setfavActivity] = useState("");
   const [selfieBase64, setSelfieBase64] = useState("");
+  const [showCameraPopup, setShowCameraPopup] = useState(false);
+  const streamRef = useRef<MediaStream | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [image, setImage] = useState('');
+
+  const startCamera = () => {
+    setShowCameraPopup(true);
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        streamRef.current = stream;
+        const video = videoRef.current;
+        if (video) {
+          video.srcObject = stream;
+          video.play();
+        }
+      })
+      .catch(err => {
+        console.error("error accessing the camera", err);
+      });
+  };
+
+  const closeCamera = () => {
+    if (streamRef.current) {
+      const tracks = streamRef.current.getTracks();
+      tracks.forEach((track: MediaStreamTrack) => track.stop());
+      streamRef.current = null; // Clear the reference
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null; // Detach the stream from the video element
+    }
+    setShowCameraPopup(false);
+  };
+  
+
+  const captureImage = () => {
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+    if (canvas && video) {
+      const context = canvas.getContext('2d');
+      if (context) {
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = canvas.toDataURL('image/png');
+        setImage(imageData); // This is the image in base64 format
+        setSelfieBase64(imageData);
+      }
+    }
+  };
+  
 
   const handleSelfieChange = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -44,6 +93,7 @@ const UserProfilePage = () => {
       };
     });
   };
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -175,12 +225,33 @@ const UserProfilePage = () => {
         <div className="row-container">
           <label>Selfie:</label>
           <input type="file" onChange={handleSelfieChange} accept="image/*" />
+          <button type="button" onClick={startCamera}>Take a Picture</button>
+        </div>
+        <div className="row-container">
+          <label>Selfie Preview:</label>
+          <div className="selfie-preview-container">
+            {selfieBase64 && <img src={selfieBase64} alt="Selfie preview" className="selfie-preview" />}
+          </div>
         </div>
       </form>
       <button type="submit" className="common-button" onClick={handleSubmit}>
         Submit
       </button>
       {message && <p className="message">{message}</p>}
+
+      {showCameraPopup && (
+        <div className="camera-popup">
+          <div className="column-container">
+            <video ref={videoRef} width="640" height="480" />
+            <div className="row-container">
+              <button onClick={closeCamera}>Close Camera</button>
+              <button onClick={captureImage}>Capture Image</button>
+            </div>
+            <canvas ref={canvasRef} width="640" height="480" style={{ display: 'none' }} />
+            {image && <img src={image} alt="Captured" />}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
