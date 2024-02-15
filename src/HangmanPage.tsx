@@ -407,7 +407,6 @@ const HangmanPage = () => {
         <div className="hangman-input">
           <p>{displayWord}</p>
         </div>
-
         <div className="alphabet-list">
           {Array.from(alphabetRows).map((row, rowIndex) => (
             <div key={rowIndex}>
