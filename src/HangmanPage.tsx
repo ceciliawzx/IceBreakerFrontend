@@ -91,10 +91,11 @@ const HangmanPage = () => {
   const [targetCharNum, setTargetCharNum] = useState<number>(0);
   const [targetWord, setTargetWord] = useState<string>("");
 
-  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const [currentPositions, setCurrentPositions] = useState<number[]>([]);
-
   const [currentStages, setCurrentStages] = useState<string[]>([]);
+
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const alphabetRows = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
   const [allLetterStatus, setAllLetterStatus] = useState<LetterStatus[]>(
     Array.from(alphabet).map((_) => LetterStatus.UNCHECKED)
   );
@@ -138,6 +139,30 @@ const HangmanPage = () => {
     // Show the modal
     setShowModal(true);
   };
+
+  // Handle keyboard input
+  useEffect(() => {
+    const handleKeyDown = (event: any) => {
+      const pressedKey = event.key.toUpperCase();
+      if (
+        alphabet.includes(pressedKey) &&
+        allLetterStatus[alphabet.indexOf(pressedKey)] ===
+          LetterStatus.UNCHECKED &&
+        !isFinished
+      ) {
+        // Assuming sendHangmanMessage is your function to handle guesses
+        sendHangmanMessage(pressedKey);
+      }
+    };
+
+    // Attach the event listener when the component mounts
+    window.addEventListener("keydown", handleKeyDown);
+
+    // Detach the event listener when the component unmounts
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [allLetterStatus, isFinished]);
 
   // When receive message from web socket
   const receiveMessage = useCallback(
@@ -382,23 +407,30 @@ const HangmanPage = () => {
         <div className="hangman-input">
           <p>{displayWord}</p>
         </div>
+
         <div className="alphabet-list">
-          {Array.from(alphabet).map((letter, index) => (
-            <button
-              key={index}
-              className={`hangman-alphabet-block row-${
-                Math.floor(index / 9) + 1
-              }`}
-              style={getStatusStyle(allLetterStatus[index])}
-              onClick={() => sendHangmanMessage(letter)} // Assuming sendWordleMessage is your function to handle guesses
-              // 114514
-              // disabled={!isSameUser(user, currentGuesser) || allLetterStatus[index] !== LetterStatus.UNCHECKED || isFinished}
-              disabled={
-                allLetterStatus[index] !== LetterStatus.UNCHECKED || isFinished
-              }
-            >
-              {letter}
-            </button>
+          {Array.from(alphabetRows).map((row, rowIndex) => (
+            <div key={rowIndex}>
+              {row.split("").map((letter, columnIndex) => {
+                const letterIndex = alphabet.indexOf(letter);
+                return (
+                  <button
+                    key={columnIndex}
+                    className={`alphabet-block`}
+                    style={getStatusStyle(allLetterStatus[letterIndex])}
+                    onClick={() => sendHangmanMessage(letter)} // Assuming sendWordleMessage is your function to handle guesses
+                    // 114514
+                    // disabled={!isSameUser(user, currentGuesser) || allLetterStatus[index] !== LetterStatus.UNCHECKED || isFinished}
+                    disabled={
+                      allLetterStatus[letterIndex] !== LetterStatus.UNCHECKED ||
+                      isFinished
+                    }
+                  >
+                    {alphabet[letterIndex]}
+                  </button>
+                );
+              })}
+            </div>
           ))}
         </div>
         {isAdmin && (

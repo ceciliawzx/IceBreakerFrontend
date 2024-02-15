@@ -9,25 +9,18 @@
 
 .alphabet-list {
   display: grid;
-  grid-template-columns: repeat(9, 1fr); /* 9 columns for the first row */
   grid-gap: 5px; /* Adjust the gap as needed */
-}
-
-.alphabet-list .row-2 {
-  grid-template-columns: repeat(9, 1fr); /* 9 columns for the second row */
-}
-
-.alphabet-list .row-3 {
-  grid-template-columns: repeat(8, 1fr); /* 8 columns for the third row */
 }
 
 .alphabet-block {
   display: inline-block;
-  grid-template-columns: repeat(9, 1fr);
   width: 30px;
   height: 30px;
   border: 1px solid var(--grey-background);
+  border-radius: 5px;
   margin: 5px;
   text-align: center;
   line-height: 30px;
+
+  cursor: pointer;
 }
