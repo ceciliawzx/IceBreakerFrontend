@@ -101,6 +101,7 @@ const HangmanPage = () => {
 
   // When launch
   useEffect(() => {
+    // Initialize web socket
     const onMessageReceived = (
       msg: HangmanMsg | BackMessage | ModalMessage
     ) => {

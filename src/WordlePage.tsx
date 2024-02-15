@@ -69,7 +69,6 @@ const Wordle = () => {
   const [targetCharNum, setTargetCharNum] = useState<number>(0);
   const [targetWord, setTargetWord] = useState<string>("");
   const [selectedField, setSelectedField] = useState<keyof PresentRoomInfo>();
-
   const [correct, setCorrect] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [initialized, setInitialized] = useState(false);

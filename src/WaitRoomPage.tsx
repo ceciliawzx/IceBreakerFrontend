@@ -202,7 +202,7 @@ const WaitRoomPage = () => {
 
       // Check if room dismissed
       Object.values(data).some((value) => {
-        if (typeof value === "string" && value.includes("Room not found")) {
+        if (typeof value === "string" && value.includes("Room Not Found")) {
           setShowDismissPopup(true);
           return;
         }
