@@ -23,7 +23,6 @@ const WaitRoomPage = () => {
   const [admin, setAdmin] = useState<User | null>(null);
   const [presenter, setPresenter] = useState<User | null>(null);
   const [notPresented, setNotPresented] = useState<User[]>([]);
-  const [allPresented, setAllPresented] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showKickPopup, setShowKickPopup] = useState(false);
   const [showDismissPopup, setShowDismissPopup] = useState(false);
@@ -270,6 +269,7 @@ const WaitRoomPage = () => {
       if (data.roomStatus) {
         setRoomStatus(data.roomStatus);
       }
+      console.log("roome status:", roomStatus);
     } catch (error) {
       console.error("Error fetching players:", error);
     }
@@ -304,12 +304,6 @@ const WaitRoomPage = () => {
       setNotPresented(data.notPresentedPeople || []);
       console.log("check who has not presenter", notPresented);
 
-      if (notPresented.length === 0) {
-        setAllPresented(true);
-      } else {
-        setAllPresented(false);
-      }
-
       if (!response.ok) {
         throw new Error("Room cannot be found");
       }
@@ -337,6 +331,13 @@ const WaitRoomPage = () => {
         state: { user, admin, presenter, guests },
       });
     }
+
+    // If the RoomStatus is ALL_FINISHED, navigate all users to the AllPresentedPage
+    if (roomStatus === RoomStatus.All_PRESENTED) {
+      navigate("/AllPresentedPage", {
+        state: { user, admin, presenter, guests },
+      });
+    }
   }, [roomStatus, user, admin, presenter, guests]);
 
   // Every refreshtime
@@ -350,7 +351,7 @@ const WaitRoomPage = () => {
 
     // Clear timer and count again
     return () => clearInterval(intervalId);
-  }, [notPresented, allPresented]);
+  }, [notPresented]);
 
   useEffect(() => {
     const notifyServerOnUnload = () => {
@@ -366,7 +367,6 @@ const WaitRoomPage = () => {
 
   useEffect(() => {
     if (admin?.userID && presenter?.userID) {
-      console.log(admin.userID, userID);
       if (presenter.userID === userID) {
         const notifyServerOnUnload = () => {
           handleChangePresenterAfterQuitting(admin!.userID)
@@ -552,7 +552,7 @@ const WaitRoomPage = () => {
         <div className="change-presenter-popup">
           <h3>Select New Presenter:</h3>
           <ul>
-            {notPresented.map((user) => (
+            {notPresented.filter(user => user.userID !== presenter?.userID).map((user) => (
               <li
                 key={user.userID}
                 onClick={() => handleSelectPresenter(user.userID)}
@@ -560,7 +560,7 @@ const WaitRoomPage = () => {
                   selectedPresenterUserID === user.userID ? "selected" : ""
                 }
               >
-                {user.displayName}
+                {user.displayName} {user.userID === admin?.userID ? "(admin)" : ""}
               </li>
             ))}
           </ul>
@@ -601,33 +601,7 @@ const WaitRoomPage = () => {
           </div>
         </div>
       )}
-
-      {/* All presented popup */}
-      {allPresented && (
-        <div className="overlay-popup">
-          <div className="popup">
-            <p>
-              All Users Presented!
-              <ul>
-                {guests.concat(admin || []).map((user) => (
-                  <li key={user.userID} className="user-display">
-                    <span>{user.displayName}</span>
-                    <button
-                      onClick={() => handleViewProfile(user)}
-                      className="common-button"
-                    >
-                      View Profile
-                    </button>
-                  </li>
-                ))}
-              </ul>
-              <br />
-              Returning to homepage.
-            </p>
-            <button onClick={() => navigate("/")}>OK</button>
-          </div>
-        </div>
-      )}
+    
     </div>
   );
 };

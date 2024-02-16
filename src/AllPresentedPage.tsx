@@ -1,0 +1,118 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { serverPort } from "./macro/MacroServer";
+import { refreshTime } from "./macro/MacroConst";
+import { User } from "./type/User";
+import { UserProfile } from "./type/UserProfile";
+import exportUserProfileAsPDF from "./utils/ExportPDF";
+// import "./css/AllPresented.css";
+import "./css/CommonStyle.css";
+
+const AllPresentedPage: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const user = location.state?.user;
+  const admin = location.state?.admin;
+  const guests = location.state?.guests;
+  const presenter = location.state?.presenter;
+  const allUsers = [...[admin], ...[presenter], ...guests];
+  const roomCode = user.roomCode;
+  const displayName = user.displayName;
+  
+  const [selectedUserProfile, setSelectedUserProfile] = useState<UserProfile | null>(null);
+  const [showProfilePopup, setShowProfilePopup] = useState(false);
+
+
+  const handleViewProfile = async (user: User | null) => {
+    if (user) {
+      const url = `${serverPort}/getPlayer?userID=${user.userID}&roomCode=${roomCode}`;
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        setSelectedUserProfile(
+          new UserProfile(
+            data.userInfo.displayName,
+            data.userInfo.roomCode,
+            data.userInfo.userID,
+            data.userInfo.profileImage,
+            data.userInfo.firstName,
+            data.userInfo.lastName,
+            data.userInfo.country,
+            data.userInfo.city,
+            data.userInfo.feeling,
+            data.userInfo.favFood,
+            data.userInfo.favActivity
+          )
+        );
+
+        setShowProfilePopup(true);
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+      }
+    }
+  };
+
+  return (
+    <div className="page">
+      <h1>Congrautalations, {displayName}! </h1>
+      <h1>You have finished the Icebreaker!</h1>
+      <div className="column-container">
+        {allUsers.map((user) => (
+          <li key={user.userID} className="user-display">
+            <span>{user.displayName}</span>
+            <button
+              onClick={() => handleViewProfile(user)}
+              className="common-button"
+            >
+              View Profile
+            </button>
+          </li>
+        ))}
+      </div>
+
+      <button
+        className="button common-button"
+        onClick={() => navigate("/")}
+      >
+        Back to HomePage
+      </button>
+
+      {/* show profile popup */}
+      {showProfilePopup && selectedUserProfile && (
+        <div className="outside-popup">
+          <p>First name: {selectedUserProfile.firstName}</p>
+          <p>Last name: {selectedUserProfile.lastName}</p>
+          <p>Country: {selectedUserProfile.country}</p>
+          <p>City: {selectedUserProfile.city}</p>
+          <p>Feeling: {selectedUserProfile.feeling}</p>
+          <p>Favourite food: {selectedUserProfile.favFood}</p>
+          <p>Favourite activity: {selectedUserProfile.favActivity}</p>
+          <button
+            className="button common-button"
+            onClick={() => setShowProfilePopup(false)}
+          >
+            Close
+          </button>
+          <div>
+            <button
+              className="button common-button"
+              onClick={() => exportUserProfileAsPDF(selectedUserProfile)}
+            >
+              Export as PDF
+            </button>
+          </div>
+        </div>
+      )}
+    
+    </div>
+    
+  );
+};
+
+export default AllPresentedPage;
