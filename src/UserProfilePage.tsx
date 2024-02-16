@@ -167,7 +167,7 @@ const UserProfilePage = () => {
       <h2>Hi {displayName},please enter your details</h2>
       <form className="column-container">
         <div className="row-container">
-          <label>First Name:</label>
+        <label><span className="mandatory">*</span>First Name:</label>
           <input
             type="text"
             value={firstName}
@@ -175,7 +175,7 @@ const UserProfilePage = () => {
           />
         </div>
         <div className="row-container">
-          <label>Last Name:</label>
+          <label><span className="mandatory">*</span>Last Name:</label>
           <input
             type="text"
             value={lastName}
@@ -183,7 +183,7 @@ const UserProfilePage = () => {
           />
         </div>
         <div className="row-container">
-          <label>City:</label>
+          <label><span className="mandatory">*</span>City:</label>
           <input
             type="text"
             value={city}
@@ -191,7 +191,7 @@ const UserProfilePage = () => {
           />
         </div>
         <div className="row-container">
-          <label>Country:</label>
+          <label><span className="mandatory">*</span>Country:</label>
           <input
             type="text"
             value={country}
@@ -199,7 +199,7 @@ const UserProfilePage = () => {
           />
         </div>
         <div className="row-container">
-          <label>Current Feeling:</label>
+          <label><span className="mandatory">*</span>Current Feeling:</label>
           <input
             type="text"
             value={feeling}
@@ -207,7 +207,7 @@ const UserProfilePage = () => {
           />
         </div>
         <div className="row-container">
-          <label>Favourite food:</label>
+          <label><span className="mandatory">*</span>Favourite food:</label>
           <input
             type="text"
             value={favFood}
@@ -215,7 +215,7 @@ const UserProfilePage = () => {
           />
         </div>
         <div className="row-container">
-          <label>Favourite activity:</label>
+          <label><span className="mandatory">*</span>Favourite activity:</label>
           <input
             type="text"
             value={favActivity}
