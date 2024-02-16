@@ -57,3 +57,7 @@
   margin: 10px;
   padding: 20px;
 }
+
+.mandatory {
+  color: red;
+}
