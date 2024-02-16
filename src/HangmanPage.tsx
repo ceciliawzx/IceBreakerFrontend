@@ -292,8 +292,8 @@ const HangmanPage = () => {
 
   // Display current guess
   const displayWord = currentStages
-    .map((letter) => (letter ? letter : "_"))
-    .join(" ");
+    .map((letter) =>  (letter === null ? "_" : letter))
+    .join("");
 
   // When click view profile button
   const handleViewProfile = async (user: User | null) => {
