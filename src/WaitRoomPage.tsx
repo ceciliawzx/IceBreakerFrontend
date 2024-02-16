@@ -291,6 +291,8 @@ const WaitRoomPage = () => {
 
       if (notPresented.length === 0) {
         setAllPresented(true);
+      } else {
+        setAllPresented(false);
       }
 
       if (!response.ok) {
