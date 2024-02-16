@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./css/Homepage.css";
-import titleImage from "./assets/title.png";
-import iceHouse from "./assets/iceHouse.png";
+import titleImage from "./assets/Title.png";
+import createRoomImage from "./assets/CreateRoom.png";
+import joinRoomImage from "./assets/JoinRoom.png";
+import joinMockRoomImage from "./assets/MockRoom.png";
 
 const Homepage: React.FC = () => {
   const navigate = useNavigate();
@@ -26,32 +28,30 @@ const Homepage: React.FC = () => {
   return (
     <div className="page">
       <img src={titleImage} className="title-image" />
-      
-      <div className="column-container">
-        <button
-          className="home-button"
-          onClick={handleCreateRoom}
-          data-testid="create-room-button"
-        >
-          Create Room
-        </button>
-        <button
-          className="home-button"
-          onClick={handleJoinRoom}
-          data-testid="join-room-button"
-        >
-          Join Room
-        </button>
-        <button
-          className="home-button"
-          onClick={handleJoinMockRoom}
-          data-testid="join-mockroom-button"
-        >
-          Join Mock Room
-        </button>
-      </div>
+
+      <button
+        onClick={handleCreateRoom}
+        className="create-room-button"
+        data-testid="create-room-button"
+      >
+        <img src={createRoomImage} alt="Create Room" />
+      </button>
+      <button
+        onClick={handleJoinRoom}
+        className="join-room-button create-room-button"
+        data-testid="join-room-button"
+      >
+        <img src={joinRoomImage} alt="Join Room" />
+      </button>
+      <button
+        onClick={handleJoinMockRoom}
+        className="join-mock-room-button create-room-button"
+        data-testid="join-mock-room-button"
+      >
+        <img src={joinMockRoomImage} alt="Join Mock Room" />
+      </button>
+
       {log && <p data-testid="log-message">{log}</p>}
-      <img src={iceHouse} alt="ice house" className="ice-house-image" />
     </div>
   );
 };

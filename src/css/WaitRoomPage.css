@@ -36,11 +36,6 @@
   font-size: 15px;
 }
 
-.river {
-  height: 50px; /* Adjust the height as needed */
-  background-image: url("~/public/river.png");
-  background-size: 100% 100%;
-}
 
 .guest-list {
   margin-top: 2%;
@@ -51,64 +46,14 @@
   top: 30px; /* Adjust the top distance as needed */
   right: 30px; /* Adjust the right distance as needed */
   background-color: var(--red-button);
-  color: white;
-  border: none;
-  cursor: pointer;
   margin: 10px;
   padding: 10px;
-  border-radius: 5px;
-}
-
-.leave-room-button:hover {
-  background-color: var(--red-button-hover);
 }
 
 .kick-button {
-  background-image: url("~/public/cross.png");
   position: absolute;
   top: -15px;
   right: -25px;
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
   margin: 10px;
   padding: 20px;
-  background-size: 100% 100%;
-}
-
-.kick-button:hover {
-  position: absolute;
-  top: -17px;
-  right: -27px;
-  background-color: transparent;
-  border: 2px solid var(--red-button-hover);
-}
-
-.change-presenter-popup {
-  background-color: white;
-  border: 1px solid var(--grey-background);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  text-align: center;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1000;
-}
-
-.change-presenter-popup ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.change-presenter-popup li {
-  cursor: pointer;
-  padding: 5px 0;
-}
-
-.change-presenter-popup li.selected {
-  background-color: var(--common-button);
-  color: white;
 }

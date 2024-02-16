@@ -311,7 +311,7 @@ const GeoguesserPage: React.FC = () => {
           onClick={handleMapClick}
         />
       </div>
-      <button className="common-button" onClick={handleSubmitAnswer}>
+      <button className="button common-button" onClick={handleSubmitAnswer}>
           Submit Answer
         </button>
 

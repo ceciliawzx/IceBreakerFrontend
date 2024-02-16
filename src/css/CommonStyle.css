@@ -13,7 +13,7 @@
   --wordle-yellow: #ffe479;
   --wordle-green: #7ed78c;
 
-  --hangman-red:#f55157;
+  --hangman-red: #f55157;
 
   --chat-self: rgb(21, 159, 21);
   --chat-other: #da7414;
@@ -25,8 +25,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   text-align: center;
+  min-height: 100vh;
+  position: relative;
 }
 
 .row-page {
@@ -93,37 +94,43 @@
   position: relative;
 }
 
-.admin-only-button {
-  background-color: var(--admin-button);
-  color: white;
+.button {
+  min-width: 100px;
+  background-color: transparent;
+  color: black;
   border: none;
   cursor: pointer;
-  margin: 10px;
-  padding: 10px;
-  border-radius: 5px;
+  margin-left: 10px;
+  padding: 15px 20px;
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  font-size: 0.8rem;
+  font-weight: bold;
+  transition: transform 0.2s ease;
 }
 
-.admin-only-button:hover {
-  background-color: var(--admin-button-hover);
+.button:hover {
+  opacity: 0.6;
+  transform: scale(1.05);
 }
 
-.admin-only-button:disabled {
+.button:disabled {
   background-color: var(--grey-background); /* Grey color for disabled state */
   cursor: not-allowed; /* Change cursor to indicate the button is not clickable */
 }
 
-.common-button {
-  background-color: var(--common-button);
-  color: white;
-  cursor: pointer;
-  border: none;
-  margin: 10px;
-  padding: 10px;
-  border-radius: 5px;
+.admin-only-button {
+  background-image: url("../assets/AdminButton.png");
 }
 
-.common-button:hover {
-  background-color: var(--common-button-hover);
+.common-button {
+  background-image: url("../assets/CommonButton.png");
+}
+
+.red-button {
+  min-width: 10px;
+  background-image: url("../assets/RedButton.png");
 }
 
 .small-common-button {

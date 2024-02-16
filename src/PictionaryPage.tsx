@@ -12,7 +12,7 @@ import { RoomStatus } from "./type/RoomStatus";
 import { Timer } from "./timer/Timer";
 import { BackMessage } from "./type/BackMessage";
 import { ModalMessage } from "./type/ModalMessage";
-import { Modal } from "./utils/Modal";
+import { Modal } from './utils/Modal';
 import { PresentRoomInfo } from "./type/PresentRoomInfo";
 import Instructions from './Instructions';
 import Inst1 from './instructions/draw&guess/1.png'
@@ -189,7 +189,7 @@ const PictionaryPage = () => {
           {(isPresenter || userID === admin.userID) && (
             <button
               id="back-to-presentroom-button"
-              className="admin-only-button"
+              className="button admin-only-button"
               onClick={() => handleBackToPresentRoom()}
             >
               Back to PresentRoom

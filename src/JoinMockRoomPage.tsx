@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "./css/JoinRoomPage.css";
 import { serverPort } from "./macro/MacroServer";
 import { User } from "./type/User";
+import joinPenguin from "./assets/JoinPenguin.png";
 
 const JoinMockRoomPage = () => {
   const navigate = useNavigate();
@@ -99,6 +100,11 @@ const JoinMockRoomPage = () => {
 
   return (
     <div className="center-page">
+      <img
+        src={joinPenguin}
+        alt="Joining Penguin"
+        className="joining-penguin"
+      />
       <h1>Join a New Room</h1>
       <div>
         <form onSubmit={handleSubmit} className="column-container">
@@ -110,12 +116,12 @@ const JoinMockRoomPage = () => {
             placeholder="User ID"
           />
           Use id = 1 to log as admin
-          <button type="submit" className="common-button">
+          <button type="submit" className="button common-button">
             Join Room
           </button>
           {message && <p className="message">{message}</p>}
         </form>
-        <button className="admin-only-button" onClick={handleResetMockServer}>
+        <button className="button admin-only-button" onClick={handleResetMockServer}>
           Reset mock room
         </button>
       </div>
