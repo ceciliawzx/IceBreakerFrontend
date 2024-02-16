@@ -8,6 +8,9 @@ import { User } from "./type/User";
 import { UserProfile } from "./type/UserProfile";
 import { RoomStatus } from "./type/RoomStatus";
 import exportUserProfileAsPDF from "./utils/ExportPDF";
+import blackBoard from "./assets/BlackBoard.png";
+import card from "./assets/Card.png";
+import { isDisabled } from "@testing-library/user-event/dist/utils";
 
 const WaitRoomPage = () => {
   const location = useLocation();
@@ -352,13 +355,13 @@ const WaitRoomPage = () => {
 
   useEffect(() => {
     const notifyServerOnUnload = () => {
-      handleKickUser(userID)
+      handleKickUser(userID);
     };
-    
-    window.addEventListener('beforeunload', notifyServerOnUnload);
+
+    window.addEventListener("beforeunload", notifyServerOnUnload);
 
     return () => {
-      window.removeEventListener('beforeunload', notifyServerOnUnload);
+      window.removeEventListener("beforeunload", notifyServerOnUnload);
     };
   }, []);
 
@@ -367,16 +370,16 @@ const WaitRoomPage = () => {
       console.log(admin.userID, userID);
       if (presenter.userID === userID) {
         const notifyServerOnUnload = () => {
-          handleChangePresenterAfterQuitting(admin!.userID)
+          handleChangePresenterAfterQuitting(admin!.userID);
         };
-  
-        window.addEventListener('beforeunload', notifyServerOnUnload);
-  
+
+        window.addEventListener("beforeunload", notifyServerOnUnload);
+
         return () => {
-          window.removeEventListener('beforeunload', notifyServerOnUnload);
+          window.removeEventListener("beforeunload", notifyServerOnUnload);
         };
       }
-    } 
+    }
   }, [admin, presenter]);
 
   // main render
@@ -385,54 +388,52 @@ const WaitRoomPage = () => {
       <h1>
         Welcome to Wait Room {roomCode}, {displayName}!
       </h1>
-      <div className="row-container">
-        {/* Moderator */}
-        <div className="moderator">
-          <h2>Moderator:</h2>
-          <img
-            src={`${admin?.profileImage}`} // {admin.profileImage}
-            alt="Moderator's Image"
-            className="avatar"
-          />
-          <p>{admin?.displayName}</p>
-        </div>
-
-        {/* Presenter */}
-        <div className="presenter">
-          <h2>Presenter:</h2>
-
-          <div className="avatar-container">
+      <div className="blackboard-container">
+        <img src={blackBoard} alt="BlackBoard" className="blackBoard" />
+        <div className="row-container presenter-on-blackboard">
+          {/* Moderator */}
+          <div className="avatar-container" style={{ color: "white" }}>
+            <h2>Moderator:</h2>
             <img
-              src={`${presenter?.profileImage}`}
-              alt={`${presenter}'s avatar`}
+              src={`${admin?.profileImage}`} // {admin.profileImage}
+              alt="Moderator's Image"
               className="avatar"
             />
-            {presenter?.completed && (
-              <div className="input-status-indicator">✓</div>
-            )}
-            {/* Show presented indicator */}
-            {!notPresented.some(
-              (npUser) => npUser.userID === presenter?.userID
-            ) && <div className="presented-status-indicator">6</div>}
+            <p>{admin?.displayName}</p>
           </div>
-          <p>{presenter?.displayName}</p>
-          {isAdmin && (
-            <div className="button-container">
-              <button
-                className="button admin-only-button"
-                onClick={() => handleViewProfile(presenter)}
-              >
-                View Profile
-              </button>
 
+          <div className="column-container">
+            <div className="avatar-container" style={{ color: "white" }}>
+              <h2>Presenter:</h2>
+              <img
+                src={`${presenter?.profileImage}`}
+                alt={`${presenter?.displayName}'s avatar`}
+                className="avatar"
+              />
+              <p>{presenter?.displayName}</p>
+            </div>
+
+            <button
+              className="button admin-only-button"
+              onClick={() => handleViewProfile(presenter)}
+              disabled={
+                !isAdmin ||
+                notPresented.some((npUser) => npUser.userID === presenter?.userID)
+              }
+            >
+              View Profile
+            </button>
+
+            {isAdmin && (
               <button
                 className="button admin-only-button"
                 onClick={handleChangePresenter}
               >
                 Change Presenter
               </button>
-            </div>
-          )}
+            )}
+          </div>
+          {/* Presenter on the blackboard */}
         </div>
       </div>
 
@@ -440,41 +441,54 @@ const WaitRoomPage = () => {
         <h2>Joined Guests:</h2>
         <div className="row-container">
           {guests.map((guest, index) => (
-            <div key={index} className="guest">
-              <div className="avatar-container">
-                <img
-                  src={`${guest.profileImage}`}
-                  alt={`${guest}'s avatar`}
-                  className="avatar"
-                />
-                {guest.completed && (
-                  <div className="input-status-indicator">✓</div>
-                )}
-                {/* Show presented indicator */}
-                {!notPresented.some(
-                  (npUser) => npUser.userID === guest.userID
-                ) && <div className="presented-status-indicator">6</div>}
+            <div key={index} className="guest-card">
+              <div className="row-container">
+                <div className="column-container">
+                  <div className="avatar-container">
+                    <img
+                      src={`${guest.profileImage}`}
+                      alt={`${guest}'s avatar`}
+                      className="avatar"
+                    />
+                    {guest.completed && (
+                      <div className="input-status-indicator">✓</div>
+                    )}
+
+                    {/* Show presented indicator */}
+                    {!notPresented.some(
+                      (npUser) => npUser.userID === guest.userID
+                    ) && <div className="presented-status-indicator">6</div>}
+                  </div>
+                  <p>{guest.displayName}</p>
+                </div>
+
+                <div
+                  className="column-container"
+                  style={{ paddingBottom: "30px" }}
+                >
+                  {isAdmin && (
+                    <button
+                      className="button red-button "
+                      onClick={() => handleKickUser(guest.userID)}
+                    >
+                      Kick
+                    </button>
+                  )}
+
+                  <button
+                    className="button common-button"
+                    onClick={() => handleViewProfile(guest)}
+                    disabled={
+                      !isAdmin ||
+                      notPresented.some(
+                        (npUser) => npUser.userID === guest.userID
+                      )
+                    }
+                  >
+                    View Profile
+                  </button>
+                </div>
               </div>
-              <p>{guest.displayName}</p>
-              {(isAdmin ||
-                !notPresented.some(
-                  (npUser) => npUser.userID === guest.userID
-                )) && (
-                <button
-                  className="button admin-only-button"
-                  onClick={() => handleViewProfile(guest)}
-                >
-                  View Profile
-                </button>
-              )}
-              {isAdmin && (
-                <button
-                  className="button red-button kick-button"
-                  onClick={() => handleKickUser(guest.userID)}
-                >
-                  Kick
-                </button>
-              )}
             </div>
           ))}
         </div>
@@ -561,7 +575,7 @@ const WaitRoomPage = () => {
           </ul>
           <div>
             <button
-              className="button common-button"
+              className="button admin-only-button"
               onClick={confirmChangePresenter}
             >
               Confirm
@@ -592,33 +606,6 @@ const WaitRoomPage = () => {
               onClick={() => exportUserProfileAsPDF(selectedUserProfile)}
             >
               Export as PDF
-            </button>
-          </div>
-        </div>
-      )}
-
-      {showChangePresenterPopup && (
-        <div className="popup">
-          <h3>Select New Presenter:</h3>
-          <ul>
-            {guests.concat(admin || []).map((user) => (
-              <li
-                key={user.userID}
-                onClick={() => handleSelectPresenter(user.userID)}
-                className={
-                  selectedPresenterUserID === user.userID ? "selected" : ""
-                }
-              >
-                {user.displayName}
-              </li>
-            ))}
-          </ul>
-          <div>
-            <button
-              className="button admin-only-button"
-              onClick={confirmChangePresenter}
-            >
-              Confirm
             </button>
           </div>
         </div>
