@@ -10,6 +10,7 @@ import { RoomStatus } from "./type/RoomStatus";
 import exportUserProfileAsPDF from "./utils/ExportPDF";
 import blackBoard from "./assets/BlackBoard.png";
 import card from "./assets/Card.png";
+import { isDisabled } from "@testing-library/user-event/dist/utils";
 
 const WaitRoomPage = () => {
   const location = useLocation();
@@ -391,13 +392,13 @@ const WaitRoomPage = () => {
 
   useEffect(() => {
     const notifyServerOnUnload = () => {
-      handleKickUser(userID)
+      handleKickUser(userID);
     };
-    
-    window.addEventListener('beforeunload', notifyServerOnUnload);
+
+    window.addEventListener("beforeunload", notifyServerOnUnload);
 
     return () => {
-      window.removeEventListener('beforeunload', notifyServerOnUnload);
+      window.removeEventListener("beforeunload", notifyServerOnUnload);
     };
   }, []);
 
@@ -405,16 +406,16 @@ const WaitRoomPage = () => {
     if (admin?.userID && presenter?.userID) {
       if (presenter.userID === userID) {
         const notifyServerOnUnload = () => {
-          handleChangePresenterAfterQuitting(admin!.userID)
+          handleChangePresenterAfterQuitting(admin!.userID);
         };
-  
-        window.addEventListener('beforeunload', notifyServerOnUnload);
-  
+
+        window.addEventListener("beforeunload", notifyServerOnUnload);
+
         return () => {
-          window.removeEventListener('beforeunload', notifyServerOnUnload);
+          window.removeEventListener("beforeunload", notifyServerOnUnload);
         };
       }
-    } 
+    }
   }, [admin, presenter]);
 
   // main render
@@ -448,21 +449,24 @@ const WaitRoomPage = () => {
               <p>{presenter?.displayName}</p>
             </div>
 
+            <button
+              className="button admin-only-button"
+              onClick={() => handleViewProfile(presenter)}
+              disabled={
+                !isAdmin ||
+                notPresented.some((npUser) => npUser.userID === presenter?.userID)
+              }
+            >
+              View Profile
+            </button>
+
             {isAdmin && (
-              <div>
-                <button
-                  className="button admin-only-button"
-                  onClick={() => handleViewProfile(presenter)}
-                >
-                  View Profile
-                </button>
-                <button
-                  className="button admin-only-button"
-                  onClick={handleChangePresenter}
-                >
-                  Change Presenter
-                </button>
-              </div>
+              <button
+                className="button admin-only-button"
+                onClick={handleChangePresenter}
+              >
+                Change Presenter
+              </button>
             )}
           </div>
           {/* Presenter on the blackboard */}
@@ -494,7 +498,10 @@ const WaitRoomPage = () => {
                   <p>{guest.displayName}</p>
                 </div>
 
-                <div className="column-container">
+                <div
+                  className="column-container"
+                  style={{ paddingBottom: "30px" }}
+                >
                   {isAdmin && (
                     <button
                       className="button red-button "
@@ -503,17 +510,19 @@ const WaitRoomPage = () => {
                       Kick
                     </button>
                   )}
-                  {(isAdmin ||
-                    !notPresented.some(
-                      (npUser) => npUser.userID === guest.userID
-                    )) && (
-                    <button
-                      className="button admin-only-button"
-                      onClick={() => handleViewProfile(guest)}
-                    >
-                      View Profile
-                    </button>
-                  )}
+
+                  <button
+                    className="button common-button"
+                    onClick={() => handleViewProfile(guest)}
+                    disabled={
+                      !isAdmin ||
+                      notPresented.some(
+                        (npUser) => npUser.userID === guest.userID
+                      )
+                    }
+                  >
+                    View Profile
+                  </button>
                 </div>
               </div>
             </div>

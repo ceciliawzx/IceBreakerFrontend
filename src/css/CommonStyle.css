@@ -22,6 +22,7 @@
 
 .page {
   margin-top: 2%;
+  margin-bottom: 2%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -116,7 +117,7 @@
 }
 
 .button:disabled {
-  background-color: var(--grey-background); /* Grey color for disabled state */
+  filter: grayscale(100%);
   cursor: not-allowed; /* Change cursor to indicate the button is not clickable */
 }
 
