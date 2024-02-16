@@ -71,6 +71,19 @@ const WaitRoomPage = () => {
     }
   };
 
+  const handleChangePresenterAfterQuitting = async (userID: string) => {
+    const response = await fetch(
+      `${serverPort}/changePresenter?roomCode=${roomCode}&userID=${userID}`,
+      {
+        method: "POST",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+  };
+
   const handleLeaveRoom = async () => {
     // If admin leaves, send http request to delete room and all user should be kicked out
     if (isAdmin) {
@@ -336,6 +349,35 @@ const WaitRoomPage = () => {
     // Clear timer and count again
     return () => clearInterval(intervalId);
   }, [notPresented, allPresented]);
+
+  useEffect(() => {
+    const notifyServerOnUnload = () => {
+      handleKickUser(userID)
+    };
+    
+    window.addEventListener('beforeunload', notifyServerOnUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', notifyServerOnUnload);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (admin?.userID && presenter?.userID) {
+      console.log(admin.userID, userID);
+      if (presenter.userID === userID) {
+        const notifyServerOnUnload = () => {
+          handleChangePresenterAfterQuitting(admin!.userID)
+        };
+  
+        window.addEventListener('beforeunload', notifyServerOnUnload);
+  
+        return () => {
+          window.removeEventListener('beforeunload', notifyServerOnUnload);
+        };
+      }
+    } 
+  }, [admin, presenter]);
 
   // main render
   return (
