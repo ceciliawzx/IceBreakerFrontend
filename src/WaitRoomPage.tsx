@@ -182,6 +182,33 @@ const WaitRoomPage = () => {
     setShowChangePresenterPopup(false); // Close the popup
   };
 
+  const changeToNextPresenter = async () => {
+    // Ensure there are users who haven't presented
+    if (notPresented.length > 0) {
+      // Select the next presenter (e.g., the first in the list)
+      const nextPresenterID = notPresented[0].userID;
+  
+      // Make an API call or update state to change the presenter
+      const response = await fetch(
+        `${serverPort}/changePresenter?roomCode=${roomCode}&userID=${nextPresenterID}`,
+        {
+          method: "POST",
+        }
+      );
+  
+      if (!response.ok) {
+        console.error(`HTTP error! Status: ${response.status}`);
+        return;
+      }
+  
+      // Update local state if necessary (e.g., set new presenter, update notPresented list)
+      setPresenter(notPresented[0]);
+    } else {
+      console.log("No more users to present");
+    }
+  };
+  
+
   // Check if the user is the admin
   const checkAdminStatus = async () => {
     const url = `${serverPort}/isAdmin?userID=${userID}&roomCode=${roomCode}`;
@@ -311,6 +338,15 @@ const WaitRoomPage = () => {
       console.error("Error checking notPresented:", error);
     }
   };
+
+  // check if current presenter finished presentation, if so change to a new one
+  useEffect(() => {
+    // Example check to see if presenter has finished
+    if (presenter && !notPresented.some(user => user.userID === presenter.userID)) {
+      changeToNextPresenter();
+    }
+  }, [presenter, notPresented]);
+  
 
   useEffect(() => {
     // Check whether the user is admin

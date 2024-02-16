@@ -6,20 +6,16 @@ import { refreshTime } from "./macro/MacroConst";
 import { User } from "./type/User";
 import { UserProfile } from "./type/UserProfile";
 import exportUserProfileAsPDF from "./utils/ExportPDF";
-// import "./css/AllPresented.css";
 import "./css/CommonStyle.css";
 
 const AllPresentedPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const user = location.state?.user;
-  const admin = location.state?.admin;
-  const guests = location.state?.guests;
-  const presenter = location.state?.presenter;
-  const allUsers = [...[admin], ...[presenter], ...guests];
   const roomCode = user.roomCode;
   const displayName = user.displayName;
-  
+
+  const [allUsers, setAllUsers] = useState<User[]>([]);
   const [selectedUserProfile, setSelectedUserProfile] = useState<UserProfile | null>(null);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
 
@@ -57,6 +53,27 @@ const AllPresentedPage: React.FC = () => {
       }
     }
   };
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch(`${serverPort}/getPlayers?roomCode=${roomCode}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json();
+      const users = [data.admin, ...data.otherPlayers];
+      setAllUsers(users);
+      console.log("all users: ", allUsers);
+
+    } catch (error) {
+      console.error("Error fetching all users:", error);
+    }
+  };
+
+  // Fetch all users when component mounts
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   return (
     <div className="page">
