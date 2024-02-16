@@ -286,10 +286,10 @@ const WaitRoomPage = () => {
       );
 
       const data = await response.json();
-      setNotPresented(data.notPresentedPeople);
+      setNotPresented(data.notPresentedPeople || []);
       console.log("check who has not presenter", notPresented);
 
-      if (!notPresented) {
+      if (notPresented.length === 0) {
         setAllPresented(true);
       }
 
