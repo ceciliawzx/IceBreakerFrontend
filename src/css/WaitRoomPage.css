@@ -25,6 +25,17 @@
   font-size: 15px;
 }
 
+.presented-status-indicator {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: #1382c3; /* Green background or any color you prefer */
+  color: rgb(159, 17, 17);
+  border-radius: 50%;
+  padding: 5px;
+  font-size: 15px;
+}
+
 .river {
   height: 50px; /* Adjust the height as needed */
   background-image: url("~/public/river.png");

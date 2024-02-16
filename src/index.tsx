@@ -15,7 +15,6 @@ import JoinMockRoomPage from "./JoinMockRoomPage";
 import WordlePage from "./WordlePage";
 import "./css/CommonStyle.css";
 import HangmanPage from "./HangmanPage";
-import Camera from "./Camera";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -34,7 +33,6 @@ root.render(
       <Route path="/JoinMockRoompage" element={<JoinMockRoomPage />} />
       <Route path="/GeoguesserPage" element={<GeoguesserPage />} />
       <Route path="/HangmanPage" element={<HangmanPage />} />
-      <Route path="/Camera" element={<Camera />} />
     </Routes>
   </Router>
 );

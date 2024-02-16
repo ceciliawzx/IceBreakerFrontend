@@ -46,6 +46,7 @@ const PresentPage = () => {
     RoomStatus.PRESENTING
   );
   const [selectedField, setSelectedField] = useState<keyof PresentRoomInfo>();
+  const [allPrsented, setAllPresented] = useState<boolean>(false);
 
   // Update the RoomStatus list every interval
   useEffect(() => {
@@ -71,7 +72,31 @@ const PresentPage = () => {
       } catch (error) {
         console.error("Error fetching getPlayers on interval:", error);
       }
+
+      // check if all fields submitted
+      try {
+        const response = await fetch(
+          `${serverPort}/getPresentRoomInfo?roomCode=${roomCode}`,
+          {
+            method: "GET",
+          }
+        );
+  
+        const data = await response.json();
+        const fieldList = Object.values(data.presentRoomInfo);
+        console.log("get all presented?: ", fieldList);
+        const allFieldsPresented = fieldList.every((value: any) => value);
+        setAllPresented(allFieldsPresented);
+        console.log("set all presented?: ", allPrsented);
+  
+        if (!response.ok) {
+          throw new Error("Failed to get allPresented info");
+        }
+      } catch (error) {
+        console.error("Error checking notPresented:", error);
+      }
     }, refreshTime);
+
     // Navigate to ShareBoard
     if (roomStatus === RoomStatus.SHAREBOARD) {
       navigate("/PictionaryRoomPage", {
@@ -149,7 +174,7 @@ const PresentPage = () => {
     // Clear timer and count again
     return () => clearInterval(intervalId);
     // Add other navigation conditions if needed
-  }, [roomStatus, user, presenter]);
+  }, [roomStatus, user, presenter, allPrsented]);
 
   // Fetch presenterInfo
   useEffect(() => {
@@ -377,6 +402,7 @@ const PresentPage = () => {
           <button
             className="admin-only-button"
             onClick={() => handleBackToWaitRoom()}
+            disabled={!allPrsented}
           >
             Back to WaitRoom
           </button>
