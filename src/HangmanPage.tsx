@@ -373,7 +373,7 @@ const HangmanPage = () => {
           <p>{presenter?.displayName}</p>
           {isAdmin && (
             <button
-              className="admin-only-button"
+              className="button admin-only-button"
               onClick={() => handleViewProfile(presenter)}
             >
               View Profile
@@ -433,7 +433,7 @@ const HangmanPage = () => {
           ))}
         </div>
         {isAdmin && (
-          <button className="admin-only-button" onClick={handleBackButton}>
+          <button className="button admin-only-button" onClick={handleBackButton}>
             Back
           </button>
         )}
@@ -459,7 +459,7 @@ const HangmanPage = () => {
                 </div>
                 {isAdmin && (
                   <button
-                    className="admin-only-button"
+                    className="button admin-only-button"
                     onClick={() => handleViewProfile(guest)}
                   >
                     View Profile
@@ -480,7 +480,7 @@ const HangmanPage = () => {
           <p>Feeling: {selectedUserProfile.feeling}</p>
           <p>Favourite food: {selectedUserProfile.favFood}</p>
           <p>Favourite activity: {selectedUserProfile.favActivity}</p>
-          <button onClick={() => setShowProfilePopup(false)}>Close</button>
+          <button className="button common-button" onClick={() => setShowProfilePopup(false)}>Close</button>
         </div>
       )}
       {/* Modal */}

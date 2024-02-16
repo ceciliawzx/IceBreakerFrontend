@@ -487,7 +487,7 @@ const Wordle = () => {
           <p>{presenter?.displayName}</p>
           {isAdmin && (
             <button
-              className="admin-only-button"
+              className="button admin-only-button"
               onClick={() => handleViewProfile(presenter)}
             >
               View Profile
@@ -561,16 +561,19 @@ const Wordle = () => {
         </div>
 
         <div className="row-container">
-          <button className="common-button" onClick={handleGuess}>
+          <button className="button common-button" onClick={handleGuess}>
             Guess
           </button>
-          <button className="common-button" onClick={handleBackspaceButton}>
+          <button
+            className="button common-button"
+            onClick={handleBackspaceButton}
+          >
             Backspace
           </button>
         </div>
 
         {isAdmin && (
-          <button className="common-button" onClick={handleBackButton}>
+          <button className="button common-button" onClick={handleBackButton}>
             Back
           </button>
         )}
@@ -595,7 +598,7 @@ const Wordle = () => {
                 </div>
                 {isAdmin && (
                   <button
-                    className="admin-only-button"
+                    className="button admin-only-button"
                     onClick={() => handleViewProfile(guest)}
                   >
                     View Profile
@@ -617,7 +620,12 @@ const Wordle = () => {
           <p>Feeling: {selectedUserProfile.feeling}</p>
           <p>Favourite food: {selectedUserProfile.favFood}</p>
           <p>Favourite activity: {selectedUserProfile.favActivity}</p>
-          <button onClick={() => setShowProfilePopup(false)}>Close</button>
+          <button
+            className="button common-button"
+            onClick={() => setShowProfilePopup(false)}
+          >
+            Close
+          </button>
         </div>
       )}
       {/* Modal */}
