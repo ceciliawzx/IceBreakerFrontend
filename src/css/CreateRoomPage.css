@@ -1,12 +1,4 @@
-.form-input {
-  margin: 10px;
-  padding: 10px;
-  border-radius: 5px;
-  border: 1px solid #ddd;
-  font-size: 1.2rem;
-}
-
-.joining-penguin {
+.building-penguin {
   position: absolute;
   top: 50%;
   left: 0%;
@@ -16,7 +8,7 @@
 
 .create-room-heading {
   font-size: 2.5rem; /* Increase the font size of the heading */
-  margin-top:17%; /* Increase spacing below the heading */
+  margin-top: 17%; /* Increase spacing below the heading */
   margin-bottom: 5%;
 }
 
@@ -24,4 +16,6 @@
   font-size: 1.2rem; /* Increase the font size of the input field */
 }
 
-
+.create-button-margin {
+  font-size: 1rem; /* Adjust button font size if necessary */
+}

@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { serverPort } from "./macro/MacroServer";
 import { User } from "./type/User";
-import "./css/JoinRoomPage.css";
+import "./css/CreateRoomPage.css";
+import buildingPenguin from "./assets/BuildingPenguin.png";
 
 const CreateRoomPage = () => {
   const navigate = useNavigate();
@@ -61,25 +62,26 @@ const CreateRoomPage = () => {
   };
 
   return (
-    <div className="center-page">
-      <h1>Create a New Room</h1>
+    <div className="page">
+      <img src={buildingPenguin} alt="Building Penguin" className="building-penguin" />
+      <h1 className="create-room-heading">Create a New Room</h1>
       <div>
         <input
           type="text"
-          className="form-input"
+          className="form-input create-room-form-input"
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
-          placeholder="Display Name"
+          placeholder="Enter Your Display Name"
         />
       </div>
-      <button onClick={createRoom} className="common-button">
+      <button onClick={createRoom} className="button common-button create-button-margin">
         Create Room
       </button>
       {message && <p className="error-message">{message}</p>}
       {showPopup && (
         <div className="popup">
           <p>Please enter a displayname.</p>
-          <button onClick={() => setShowPopup(false)}>OK</button>
+          <button className="button common-button" onClick={() => setShowPopup(false)}>OK</button>
         </div>
       )}
     </div>

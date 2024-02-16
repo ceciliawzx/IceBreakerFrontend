@@ -225,7 +225,7 @@ const UserProfilePage = () => {
         <div className="row-container">
           <label>Selfie:</label>
           <input type="file" onChange={handleSelfieChange} accept="image/*" />
-          <button type="button" onClick={startCamera}>Take a Picture</button>
+          <button type="button" className="button common-button" onClick={startCamera}>Take a Picture</button>
         </div>
         <div className="row-container">
           <label>Selfie Preview:</label>
@@ -234,7 +234,7 @@ const UserProfilePage = () => {
           </div>
         </div>
       </form>
-      <button type="submit" className="common-button" onClick={handleSubmit}>
+      <button type="submit" className="button common-button" onClick={handleSubmit}>
         Submit
       </button>
       {message && <p className="message">{message}</p>}
@@ -244,8 +244,8 @@ const UserProfilePage = () => {
           <div className="column-container">
             <video ref={videoRef} width="640" height="480" />
             <div className="row-container">
-              <button onClick={closeCamera}>Close Camera</button>
-              <button onClick={captureImage}>Capture Image</button>
+              <button className="button common-button" onClick={closeCamera}>Close Camera</button>
+              <button className="button common-button" onClick={captureImage}>Capture Image</button>
             </div>
             <canvas ref={canvasRef} width="640" height="480" style={{ display: 'none' }} />
             {image && <img src={image} alt="Captured" />}

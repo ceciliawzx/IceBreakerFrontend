@@ -205,7 +205,7 @@ const PresentPage = () => {
           ) : (
             <>
               <button
-                className="small-common-button"
+                className="button small-common-button"
                 onClick={() => toggleGameSelector(fieldName)}
               >
                 Select a Game
@@ -214,7 +214,7 @@ const PresentPage = () => {
                 <div id="game-selector">
                   {games.map((gameType) => (
                     <button
-                      className="small-common-button"
+                      className="button small-common-button"
                       key={gameType}
                       onClick={() => handleGameSelection(gameType, fieldName)}
                     >
@@ -400,7 +400,7 @@ const PresentPage = () => {
       <div>
         {userID === admin.userID && (
           <button
-            className="admin-only-button"
+            className="button admin-only-button"
             onClick={() => handleBackToWaitRoom()}
             disabled={!allPrsented}
           >

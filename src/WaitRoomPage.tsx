@@ -367,22 +367,22 @@ const WaitRoomPage = () => {
               <div className="input-status-indicator">✓</div>
             )}
             {/* Show presented indicator */}
-            {(!notPresented.some(npUser => npUser.userID === presenter?.userID)) && (
-              <div className="presented-status-indicator">6</div>
-            )}
+            {!notPresented.some(
+              (npUser) => npUser.userID === presenter?.userID
+            ) && <div className="presented-status-indicator">6</div>}
           </div>
           <p>{presenter?.displayName}</p>
           {isAdmin && (
             <div className="button-container">
               <button
-                className="admin-only-button"
+                className="button admin-only-button"
                 onClick={() => handleViewProfile(presenter)}
               >
                 View Profile
               </button>
 
               <button
-                className="admin-only-button"
+                className="button admin-only-button"
                 onClick={handleChangePresenter}
               >
                 Change Presenter
@@ -407,14 +407,17 @@ const WaitRoomPage = () => {
                   <div className="input-status-indicator">✓</div>
                 )}
                 {/* Show presented indicator */}
-                {(!notPresented.some(npUser => npUser.userID === guest.userID)) && (
-                  <div className="presented-status-indicator">6</div>
-                )}
+                {!notPresented.some(
+                  (npUser) => npUser.userID === guest.userID
+                ) && <div className="presented-status-indicator">6</div>}
               </div>
               <p>{guest.displayName}</p>
-              {(isAdmin || (!notPresented.some(npUser => npUser.userID === guest.userID))) && (
+              {(isAdmin ||
+                !notPresented.some(
+                  (npUser) => npUser.userID === guest.userID
+                )) && (
                 <button
-                  className="admin-only-button"
+                  className="button admin-only-button"
                   onClick={() => handleViewProfile(guest)}
                 >
                   View Profile
@@ -422,18 +425,19 @@ const WaitRoomPage = () => {
               )}
               {isAdmin && (
                 <button
-                  className="kick-button"
+                  className="button red-button kick-button"
                   onClick={() => handleKickUser(guest.userID)}
-                ></button>
+                >
+                  Kick
+                </button>
               )}
             </div>
           ))}
         </div>
-        <div className="river"></div>
       </div>
       {isAdmin && (
         <button
-          className="admin-only-button"
+          className="button admin-only-button"
           onClick={handleStartRoom}
           disabled={!allGuestsCompleted || guests.length == 0}
         >
@@ -441,40 +445,56 @@ const WaitRoomPage = () => {
         </button>
       )}
       {
-        <button className="common-button" onClick={handleUserInformation}>
+        <button
+          className="button common-button"
+          onClick={handleUserInformation}
+        >
           Enter your information
         </button>
       }
       {
-        <button className="leave-room-button" onClick={handleLeaveRoom}>
+        <button
+          className="button red-button leave-room-button"
+          onClick={handleLeaveRoom}
+        >
           Leave Room
         </button>
       }
       {/* dimmiss popup */}
       {showDismissPopup && (
         <div className="overlay-popup">
-        <div className="popup">
-          <p>
-            Room {roomCode} dismissed by moderator.
-            <br />
-            Returning to homepage.
-          </p>
-          <button onClick={() => navigate("/")}>OK</button>
-        </div>
+          <div className="popup">
+            <p>
+              Room {roomCode} dismissed by moderator.
+              <br />
+              Returning to homepage.
+            </p>
+            <button
+              className="button common-button"
+              onClick={() => navigate("/")}
+            >
+              OK
+            </button>
+          </div>
         </div>
       )}
 
       {/* kickout popup */}
       {showKickPopup && (
         <div className="overlay-popup">
-        <div className="popup">
-          <p>
-            You are kicked out by moderator.
-            <br />
-            Returning to homepage.
-          </p>
-          <button onClick={() => navigate("/")}>OK</button>
-        </div>
+          <div className="popup">
+            <p>
+              You are kicked out by moderator.
+              <br />
+              Returning to homepage.
+            </p>
+            <button
+              className="button common-button"
+              onClick={() => navigate("/")}
+            >
+              OK
+            </button>
+          </div>
         </div>
       )}
 
@@ -495,8 +515,13 @@ const WaitRoomPage = () => {
               </li>
             ))}
           </ul>
-          <div className="button-container">
-            <button onClick={confirmChangePresenter}>Confirm</button>
+          <div>
+            <button
+              className="button common-button"
+              onClick={confirmChangePresenter}
+            >
+              Confirm
+            </button>
           </div>
         </div>
       )}
@@ -512,14 +537,14 @@ const WaitRoomPage = () => {
           <p>Favourite food: {selectedUserProfile.favFood}</p>
           <p>Favourite activity: {selectedUserProfile.favActivity}</p>
           <button
-            className="common-button"
+            className="button common-button"
             onClick={() => setShowProfilePopup(false)}
           >
             Close
           </button>
           <div>
             <button
-              className="common-button"
+              className="button common-button"
               onClick={() => exportUserProfileAsPDF(selectedUserProfile)}
             >
               Export as PDF
@@ -528,10 +553,8 @@ const WaitRoomPage = () => {
         </div>
       )}
 
-
-
-            {showChangePresenterPopup && (
-        <div className="change-presenter-popup">
+      {showChangePresenterPopup && (
+        <div className="popup">
           <h3>Select New Presenter:</h3>
           <ul>
             {guests.concat(admin || []).map((user) => (
@@ -546,13 +569,16 @@ const WaitRoomPage = () => {
               </li>
             ))}
           </ul>
-          <div className="button-container">
-            <button onClick={confirmChangePresenter}>Confirm</button>
+          <div>
+            <button
+              className="button admin-only-button"
+              onClick={confirmChangePresenter}
+            >
+              Confirm
+            </button>
           </div>
         </div>
       )}
-
-
 
       {/* All presented popup */}
       {allPresented && (
@@ -560,28 +586,26 @@ const WaitRoomPage = () => {
           <div className="popup">
             <p>
               All Users Presented!
-            <ul>
-              {guests.concat(admin || []).map((user) => (
-                <li key={user.userID} className="user-display">
-                  <span>{user.displayName}</span>
-                  <button 
-                    onClick={() => handleViewProfile(user)}
-                    className="common-button"
-                  >
-                    View Profile
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <br />
+              <ul>
+                {guests.concat(admin || []).map((user) => (
+                  <li key={user.userID} className="user-display">
+                    <span>{user.displayName}</span>
+                    <button
+                      onClick={() => handleViewProfile(user)}
+                      className="common-button"
+                    >
+                      View Profile
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <br />
               Returning to homepage.
             </p>
             <button onClick={() => navigate("/")}>OK</button>
           </div>
         </div>
-        
       )}
-
     </div>
   );
 };

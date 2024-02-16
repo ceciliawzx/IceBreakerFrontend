@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "./css/JoinRoomPage.css";
 import { serverPort } from "./macro/MacroServer";
 import { User } from "./type/User";
+import joinPenguin from "./assets/JoinPenguin.png";
 
 const JoinRoomPage = () => {
   const navigate = useNavigate();
@@ -58,8 +59,14 @@ const JoinRoomPage = () => {
   };
 
   return (
-    <div className="center-page">
-      <h1>Join a New Room</h1>
+    <div className="page">
+
+      <img
+        src={joinPenguin}
+        alt="Joining Penguin"
+        className="joining-penguin"
+      />
+      <h1 className="create-room-heading">Join a New Room</h1>
       <div>
         <form onSubmit={handleSubmit} className="column-container">
           <input
@@ -76,7 +83,7 @@ const JoinRoomPage = () => {
             onChange={(e) => setRoomCode(e.target.value)}
             placeholder="Room Code"
           />
-          <button type="submit" className="common-button">
+          <button type="submit" className="button common-button">
             Join Room
           </button>
           {message && <p>{message}</p>}
@@ -85,7 +92,7 @@ const JoinRoomPage = () => {
       {showPopup && (
         <div className="popup">
           <p>Please enter a displayname.</p>
-          <button onClick={() => setShowPopup(false)}>OK</button>
+          <button className="button common-button" onClick={() => setShowPopup(false)}>OK</button>
         </div>
       )}
     </div>
