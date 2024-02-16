@@ -9,6 +9,7 @@ import { UserProfile } from "./type/UserProfile";
 import { RoomStatus } from "./type/RoomStatus";
 import exportUserProfileAsPDF from "./utils/ExportPDF";
 import blackBoard from "./assets/BlackBoard.png";
+import card from "./assets/Card.png";
 
 const WaitRoomPage = () => {
   const location = useLocation();
@@ -346,7 +347,7 @@ const WaitRoomPage = () => {
         <img src={blackBoard} alt="BlackBoard" className="blackBoard" />
         <div className="row-container presenter-on-blackboard">
           {/* Moderator */}
-          <div className="avatar-container">
+          <div className="avatar-container" style={{ color: "white" }}>
             <h2>Moderator:</h2>
             <img
               src={`${admin?.profileImage}`} // {admin.profileImage}
@@ -357,7 +358,7 @@ const WaitRoomPage = () => {
           </div>
 
           <div className="column-container">
-            <div className="avatar-container">
+            <div className="avatar-container" style={{ color: "white" }}>
               <h2>Presenter:</h2>
               <img
                 src={`${presenter?.profileImage}`}
@@ -392,41 +393,49 @@ const WaitRoomPage = () => {
         <h2>Joined Guests:</h2>
         <div className="row-container">
           {guests.map((guest, index) => (
-            <div key={index} className="guest">
-              <div className="avatar-container">
-                <img
-                  src={`${guest.profileImage}`}
-                  alt={`${guest}'s avatar`}
-                  className="avatar"
-                />
-                {guest.completed && (
-                  <div className="input-status-indicator">✓</div>
-                )}
-                {/* Show presented indicator */}
-                {!notPresented.some(
-                  (npUser) => npUser.userID === guest.userID
-                ) && <div className="presented-status-indicator">6</div>}
+            <div key={index} className="guest-card">
+              <div className="row-container">
+                <div className="column-container">
+                  <div className="avatar-container">
+                    <img
+                      src={`${guest.profileImage}`}
+                      alt={`${guest}'s avatar`}
+                      className="avatar"
+                    />
+                    {guest.completed && (
+                      <div className="input-status-indicator">✓</div>
+                    )}
+
+                    {/* Show presented indicator */}
+                    {!notPresented.some(
+                      (npUser) => npUser.userID === guest.userID
+                    ) && <div className="presented-status-indicator">6</div>}
+                  </div>
+                  <p>{guest.displayName}</p>
+                </div>
+
+                <div className="column-container">
+                  {isAdmin && (
+                    <button
+                      className="button red-button "
+                      onClick={() => handleKickUser(guest.userID)}
+                    >
+                      Kick
+                    </button>
+                  )}
+                  {(isAdmin ||
+                    !notPresented.some(
+                      (npUser) => npUser.userID === guest.userID
+                    )) && (
+                    <button
+                      className="button admin-only-button"
+                      onClick={() => handleViewProfile(guest)}
+                    >
+                      View Profile
+                    </button>
+                  )}
+                </div>
               </div>
-              <p>{guest.displayName}</p>
-              {(isAdmin ||
-                !notPresented.some(
-                  (npUser) => npUser.userID === guest.userID
-                )) && (
-                <button
-                  className="button admin-only-button"
-                  onClick={() => handleViewProfile(guest)}
-                >
-                  View Profile
-                </button>
-              )}
-              {isAdmin && (
-                <button
-                  className="button red-button kick-button"
-                  onClick={() => handleKickUser(guest.userID)}
-                >
-                  Kick
-                </button>
-              )}
             </div>
           ))}
         </div>
