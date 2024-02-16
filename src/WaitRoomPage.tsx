@@ -20,6 +20,8 @@ const WaitRoomPage = () => {
   const [guests, setGuests] = useState<User[]>([]);
   const [admin, setAdmin] = useState<User | null>(null);
   const [presenter, setPresenter] = useState<User | null>(null);
+  const [notPresented, setNotPresented] = useState<User[]>([]);
+  const [allPresented, setAllPresented] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showKickPopup, setShowKickPopup] = useState(false);
   const [showDismissPopup, setShowDismissPopup] = useState(false);
@@ -274,6 +276,31 @@ const WaitRoomPage = () => {
     }
   };
 
+  const checkNotPresented = async () => {
+    try {
+      const response = await fetch(
+        `${serverPort}/notPresentedPeople?roomCode=${roomCode}`,
+        {
+          method: "GET",
+        }
+      );
+
+      const data = await response.json();
+      setNotPresented(data.notPresentedPeople);
+      console.log("check who has not presenter", notPresented);
+
+      if (!notPresented) {
+        setAllPresented(true);
+      }
+
+      if (!response.ok) {
+        throw new Error("Room cannot be found");
+      }
+    } catch (error) {
+      console.error("Error checking notPresented:", error);
+    }
+  };
+
   useEffect(() => {
     // Check whether the user is admin
     checkAdminStatus();
@@ -301,11 +328,12 @@ const WaitRoomPage = () => {
     const intervalId = setInterval(() => {
       checkPlayers();
       checkKickOut();
+      checkNotPresented();
     }, refreshTime);
 
     // Clear timer and count again
     return () => clearInterval(intervalId);
-  }, []);
+  }, [notPresented, allPresented]);
 
   // main render
   return (
@@ -337,6 +365,10 @@ const WaitRoomPage = () => {
             />
             {presenter?.completed && (
               <div className="input-status-indicator">✓</div>
+            )}
+            {/* Show presented indicator */}
+            {(!notPresented.some(npUser => npUser.userID === presenter?.userID)) && (
+              <div className="presented-status-indicator">6</div>
             )}
           </div>
           <p>{presenter?.displayName}</p>
@@ -374,9 +406,13 @@ const WaitRoomPage = () => {
                 {guest.completed && (
                   <div className="input-status-indicator">✓</div>
                 )}
+                {/* Show presented indicator */}
+                {(!notPresented.some(npUser => npUser.userID === guest.userID)) && (
+                  <div className="presented-status-indicator">6</div>
+                )}
               </div>
               <p>{guest.displayName}</p>
-              {isAdmin && (
+              {(isAdmin || (!notPresented.some(npUser => npUser.userID === guest.userID))) && (
                 <button
                   className="admin-only-button"
                   onClick={() => handleViewProfile(guest)}
@@ -416,6 +452,7 @@ const WaitRoomPage = () => {
       }
       {/* dimmiss popup */}
       {showDismissPopup && (
+        <div className="overlay-popup">
         <div className="popup">
           <p>
             Room {roomCode} dismissed by moderator.
@@ -424,9 +461,12 @@ const WaitRoomPage = () => {
           </p>
           <button onClick={() => navigate("/")}>OK</button>
         </div>
+        </div>
       )}
+
       {/* kickout popup */}
       {showKickPopup && (
+        <div className="overlay-popup">
         <div className="popup">
           <p>
             You are kicked out by moderator.
@@ -435,13 +475,15 @@ const WaitRoomPage = () => {
           </p>
           <button onClick={() => navigate("/")}>OK</button>
         </div>
+        </div>
       )}
+
       {/* change presenter popup */}
       {showChangePresenterPopup && (
         <div className="change-presenter-popup">
           <h3>Select New Presenter:</h3>
           <ul>
-            {guests.concat(admin || []).map((user) => (
+            {notPresented.map((user) => (
               <li
                 key={user.userID}
                 onClick={() => handleSelectPresenter(user.userID)}
@@ -461,7 +503,7 @@ const WaitRoomPage = () => {
 
       {/* show profile popup */}
       {isAdmin && showProfilePopup && selectedUserProfile && (
-        <div className="popup">
+        <div className="outside-popup">
           <p>First name: {selectedUserProfile.firstName}</p>
           <p>Last name: {selectedUserProfile.lastName}</p>
           <p>Country: {selectedUserProfile.country}</p>
@@ -485,6 +527,61 @@ const WaitRoomPage = () => {
           </div>
         </div>
       )}
+
+
+
+            {showChangePresenterPopup && (
+        <div className="change-presenter-popup">
+          <h3>Select New Presenter:</h3>
+          <ul>
+            {guests.concat(admin || []).map((user) => (
+              <li
+                key={user.userID}
+                onClick={() => handleSelectPresenter(user.userID)}
+                className={
+                  selectedPresenterUserID === user.userID ? "selected" : ""
+                }
+              >
+                {user.displayName}
+              </li>
+            ))}
+          </ul>
+          <div className="button-container">
+            <button onClick={confirmChangePresenter}>Confirm</button>
+          </div>
+        </div>
+      )}
+
+
+
+      {/* All presented popup */}
+      {allPresented && (
+        <div className="overlay-popup">
+          <div className="popup">
+            <p>
+              All Users Presented!
+            <ul>
+              {guests.concat(admin || []).map((user) => (
+                <li key={user.userID} className="user-display">
+                  <span>{user.displayName}</span>
+                  <button 
+                    onClick={() => handleViewProfile(user)}
+                    className="common-button"
+                  >
+                    View Profile
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <br />
+              Returning to homepage.
+            </p>
+            <button onClick={() => navigate("/")}>OK</button>
+          </div>
+        </div>
+        
+      )}
+
     </div>
   );
 };
