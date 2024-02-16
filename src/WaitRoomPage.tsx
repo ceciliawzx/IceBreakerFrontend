@@ -8,6 +8,7 @@ import { User } from "./type/User";
 import { UserProfile } from "./type/UserProfile";
 import { RoomStatus } from "./type/RoomStatus";
 import exportUserProfileAsPDF from "./utils/ExportPDF";
+import blackBoard from "./assets/BlackBoard.png";
 
 const WaitRoomPage = () => {
   const location = useLocation();
@@ -341,54 +342,49 @@ const WaitRoomPage = () => {
       <h1>
         Welcome to Wait Room {roomCode}, {displayName}!
       </h1>
-      <div className="row-container">
-        {/* Moderator */}
-        <div className="moderator">
-          <h2>Moderator:</h2>
-          <img
-            src={`${admin?.profileImage}`} // {admin.profileImage}
-            alt="Moderator's Image"
-            className="avatar"
-          />
-          <p>{admin?.displayName}</p>
-        </div>
-
-        {/* Presenter */}
-        <div className="presenter">
-          <h2>Presenter:</h2>
-
+      <div className="blackboard-container">
+        <img src={blackBoard} alt="BlackBoard" className="blackBoard" />
+        <div className="row-container presenter-on-blackboard">
+          {/* Moderator */}
           <div className="avatar-container">
+            <h2>Moderator:</h2>
             <img
-              src={`${presenter?.profileImage}`}
-              alt={`${presenter}'s avatar`}
+              src={`${admin?.profileImage}`} // {admin.profileImage}
+              alt="Moderator's Image"
               className="avatar"
             />
-            {presenter?.completed && (
-              <div className="input-status-indicator">✓</div>
-            )}
-            {/* Show presented indicator */}
-            {!notPresented.some(
-              (npUser) => npUser.userID === presenter?.userID
-            ) && <div className="presented-status-indicator">6</div>}
+            <p>{admin?.displayName}</p>
           </div>
-          <p>{presenter?.displayName}</p>
-          {isAdmin && (
-            <div className="button-container">
-              <button
-                className="button admin-only-button"
-                onClick={() => handleViewProfile(presenter)}
-              >
-                View Profile
-              </button>
 
-              <button
-                className="button admin-only-button"
-                onClick={handleChangePresenter}
-              >
-                Change Presenter
-              </button>
+          <div className="column-container">
+            <div className="avatar-container">
+              <h2>Presenter:</h2>
+              <img
+                src={`${presenter?.profileImage}`}
+                alt={`${presenter?.displayName}'s avatar`}
+                className="avatar"
+              />
+              <p>{presenter?.displayName}</p>
             </div>
-          )}
+
+            {isAdmin && (
+              <div>
+                <button
+                  className="button admin-only-button"
+                  onClick={() => handleViewProfile(presenter)}
+                >
+                  View Profile
+                </button>
+                <button
+                  className="button admin-only-button"
+                  onClick={handleChangePresenter}
+                >
+                  Change Presenter
+                </button>
+              </div>
+            )}
+          </div>
+          {/* Presenter on the blackboard */}
         </div>
       </div>
 
@@ -517,7 +513,7 @@ const WaitRoomPage = () => {
           </ul>
           <div>
             <button
-              className="button common-button"
+              className="button admin-only-button"
               onClick={confirmChangePresenter}
             >
               Confirm
@@ -548,33 +544,6 @@ const WaitRoomPage = () => {
               onClick={() => exportUserProfileAsPDF(selectedUserProfile)}
             >
               Export as PDF
-            </button>
-          </div>
-        </div>
-      )}
-
-      {showChangePresenterPopup && (
-        <div className="popup">
-          <h3>Select New Presenter:</h3>
-          <ul>
-            {guests.concat(admin || []).map((user) => (
-              <li
-                key={user.userID}
-                onClick={() => handleSelectPresenter(user.userID)}
-                className={
-                  selectedPresenterUserID === user.userID ? "selected" : ""
-                }
-              >
-                {user.displayName}
-              </li>
-            ))}
-          </ul>
-          <div>
-            <button
-              className="button admin-only-button"
-              onClick={confirmChangePresenter}
-            >
-              Confirm
             </button>
           </div>
         </div>
