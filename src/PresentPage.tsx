@@ -17,7 +17,7 @@ const PresentPage = () => {
   const user: UserProfile = location.state?.user;
   const userID: string = user.userID;
   const roomCode: string = user.roomCode;
-  const presenter: User = location.state?.presenter;
+  // const presenter: User = location.state?.presenter;
   const admin: User = location.state?.admin;
   const guests: UserProfile[] = location.state?.guests;
   const [presenterInfo, setPresenterInfo] = useState<UserProfile | null>(null);
@@ -30,7 +30,7 @@ const PresentPage = () => {
     favFood: false,
     favActivity: false,
   });
-  const isPresenter: boolean = user.userID === presenter.userID;
+  // const isPresenter: boolean = user.userID === presenter.userID;
   const [availableGamesForField, setAvailableGamesForField] = useState({
     firstName: [],
     lastName: [],
@@ -46,7 +46,39 @@ const PresentPage = () => {
     RoomStatus.PRESENTING
   );
   const [selectedField, setSelectedField] = useState<keyof PresentRoomInfo>();
+  const [presenter, setPresenter] = useState<UserProfile | null>(null);
+  const [isPresenter, setIsPresenter] = useState(false);
+  const [render, setRender] = useState(false);
   const [allPrsented, setAllPresented] = useState<boolean>(false);
+
+  // Fetch the presenter info
+  useEffect(() => {
+    // Define an IIFE to handle async operation
+    (async () => {
+      try {
+        const response = await fetch(
+          `${serverPort}/getPresenter?roomCode=${roomCode}`
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+        if (data && data.presenter) {
+          setPresenter(data.presenter);
+          setIsPresenter(data.presenter.userID === userID);
+        }
+      } catch (error) {
+        console.error("Failed to fetch presenter's info:", error);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    console.log("presenter ??? ", presenter);
+    if (presenter !== null) {
+      setRender(true);
+    }
+  }, [presenter]);
 
   // Update the RoomStatus list every interval
   useEffect(() => {
@@ -135,7 +167,7 @@ const PresentPage = () => {
           presenter,
           guests,
           presentRoomInfo,
-          selectedField
+          selectedField,
         },
       });
     }
@@ -179,12 +211,14 @@ const PresentPage = () => {
   // Fetch presenterInfo
   useEffect(() => {
     // fetch detailed information of presenter when entering the room
-    fetchPresenterInfo();
-    // Refetch available games for each field when the component mounts
-    Object.keys(presentRoomInfo).forEach((fieldName) => {
-      fetchAvailableGames(fieldName);
-    });
-  }, []);
+    if (presenter?.userID) {
+      fetchPresenterInfo();
+      // Refetch available games for each field when the component mounts
+      Object.keys(presentRoomInfo).forEach((fieldName) => {
+        fetchAvailableGames(fieldName);
+      });
+    }
+  }, [presenter?.userID]);
 
   // Function to toggle the game selector submenu
   const toggleGameSelector = (fieldName: any) => {
@@ -337,11 +371,15 @@ const PresentPage = () => {
   }, [user, presenter]);
 
   const fetchPresenterInfo = async () => {
-    const url = `${serverPort}/getPlayer?roomCode=${roomCode}&userID=${presenter.userID}`;
     try {
-      const response = await fetch(url);
-      const data = await response.json();
-      setPresenterInfo(data.userInfo);
+      if (presenter) {
+        const url = `${serverPort}/getPlayer?roomCode=${roomCode}&userID=${presenter.userID}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        setPresenterInfo(data.userInfo);
+      } else {
+        console.error("Presenter undefined: ", presenter);
+      }
     } catch (error) {
       console.error("Error fetching presenterInfo:", error);
     }
@@ -375,7 +413,7 @@ const PresentPage = () => {
     }
   };
 
-  return (
+  return render ? (
     <div className="page">
       <div className="separate-bar">
         <img
@@ -409,6 +447,8 @@ const PresentPage = () => {
         )}
       </div>
     </div>
+  ) : (
+    <></>
   );
 };
 
