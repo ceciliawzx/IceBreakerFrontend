@@ -49,7 +49,36 @@ const PresentPage = () => {
   const [presenter, setPresenter] = useState<UserProfile | null>(null);
   const [isPresenter, setIsPresenter] = useState(false);
   const [render, setRender] = useState(false);
-  const [allPrsented, setAllPresented] = useState<boolean>(false);
+  const [allPresented, setAllPresented] = useState<boolean>(false);
+
+  // Fetch the presenter info
+  useEffect(() => {
+    // Define an IIFE to handle async operation
+    (async () => {
+      try {
+        const response = await fetch(
+          `${serverPort}/getPresenter?roomCode=${roomCode}`
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+        if (data && data.presenter) {
+          setPresenter(data.presenter);
+          setIsPresenter(data.presenter.userID === userID);
+        }
+      } catch (error) {
+        console.error("Failed to fetch presenter's info:", error);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    console.log("presenter ??? ", presenter);
+    if (presenter !== null) {
+      setRender(true);
+    }
+  }, [presenter]);
 
   // Fetch the presenter info
   useEffect(() => {
@@ -119,7 +148,7 @@ const PresentPage = () => {
         console.log("get all presented?: ", fieldList);
         const allFieldsPresented = fieldList.every((value: any) => value);
         setAllPresented(allFieldsPresented);
-        console.log("set all presented?: ", allPrsented);
+        console.log("set all presented?: ", allPresented);
   
         if (!response.ok) {
           throw new Error("Failed to get allPresented info");
@@ -206,7 +235,7 @@ const PresentPage = () => {
     // Clear timer and count again
     return () => clearInterval(intervalId);
     // Add other navigation conditions if needed
-  }, [roomStatus, user, presenter, allPrsented]);
+  }, [roomStatus, user, presenter, allPresented]);
 
   // Fetch presenterInfo
   useEffect(() => {
@@ -413,6 +442,17 @@ const PresentPage = () => {
     }
   };
 
+  const handleRevealAll = async () => {
+    const url = `${serverPort}/revealAllPresentRoomInfo?roomCode=${roomCode}`;
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+      });
+    } catch (error) {
+      console.error("Error returning to WaitRoom:", error);
+    }
+  };
+
   return render ? (
     <div className="page">
       <div className="separate-bar">
@@ -440,9 +480,17 @@ const PresentPage = () => {
           <button
             className="button admin-only-button"
             onClick={() => handleBackToWaitRoom()}
-            disabled={!allPrsented}
+            disabled={!allPresented}
           >
             Back to WaitRoom
+          </button>
+        )}
+        {userID === admin.userID && (
+          <button
+            className="button admin-only-button"
+            onClick={() => handleRevealAll()}
+          >
+            Reveal All
           </button>
         )}
       </div>

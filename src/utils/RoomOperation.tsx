@@ -36,3 +36,4 @@ export const updatePresentRoomInfo = async ({
     console.error("Error setting presentRoomInfo in backend: ", error);
   }
 };
+
