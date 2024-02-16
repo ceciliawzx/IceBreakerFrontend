@@ -452,22 +452,20 @@ const WaitRoomPage = () => {
             {isAdmin && (
               <button
                 className="button admin-only-button"
+                onClick={() => handleViewProfile(presenter)}
+              >
+                View Profile
+              </button>
+            )}
+
+            {isAdmin && (
+              <button
+                className="button admin-only-button"
                 onClick={handleChangePresenter}
               >
                 Change Presenter
               </button>
             )}
-
-            <button
-              className="button admin-only-button"
-              onClick={() => handleViewProfile(presenter)}
-              disabled={
-                !isAdmin ||
-                notPresented.some((npUser) => npUser.userID === presenter?.userID)
-              }
-            >
-              View Profile
-            </button>
 
           </div>
           {/* Presenter on the blackboard */}
@@ -516,7 +514,7 @@ const WaitRoomPage = () => {
                     className="button common-button"
                     onClick={() => handleViewProfile(guest)}
                     disabled={
-                      !isAdmin ||
+                      !isAdmin &&
                       notPresented.some(
                         (npUser) => npUser.userID === guest.userID
                       )
