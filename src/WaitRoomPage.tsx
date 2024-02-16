@@ -449,6 +449,15 @@ const WaitRoomPage = () => {
               <p>{presenter?.displayName}</p>
             </div>
 
+            {isAdmin && (
+              <button
+                className="button admin-only-button"
+                onClick={handleChangePresenter}
+              >
+                Change Presenter
+              </button>
+            )}
+
             <button
               className="button admin-only-button"
               onClick={() => handleViewProfile(presenter)}
@@ -460,14 +469,6 @@ const WaitRoomPage = () => {
               View Profile
             </button>
 
-            {isAdmin && (
-              <button
-                className="button admin-only-button"
-                onClick={handleChangePresenter}
-              >
-                Change Presenter
-              </button>
-            )}
           </div>
           {/* Presenter on the blackboard */}
         </div>

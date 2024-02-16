@@ -227,7 +227,7 @@ const PresentPage = () => {
       });
     }
     // Back to WaitRoom
-    else if (roomStatus === RoomStatus.WAITING) {
+    else if ((roomStatus === RoomStatus.WAITING) || (roomStatus === RoomStatus.All_PRESENTED)) {
       navigate("/WaitRoomPage", {
         state: { user, admin },
       });
