@@ -10,6 +10,8 @@ import { User } from "./type/User";
 import { checkRoomStatus } from "./utils/RoomOperation";
 import { updatePresentRoomInfo } from "./utils/RoomOperation";
 import "./css/PresentPage.css";
+import blackBoard from "./assets/BlackBoard.png";
+import { disableScroll } from "./utils/CssOperation";
 
 const PresentPage = () => {
   const location = useLocation();
@@ -50,6 +52,9 @@ const PresentPage = () => {
   const [isPresenter, setIsPresenter] = useState(false);
   const [render, setRender] = useState(false);
   const [allPresented, setAllPresented] = useState<boolean>(false);
+
+  // disable scroll for this page
+  useEffect(disableScroll, []);
 
   // Fetch the presenter info
   useEffect(() => {
@@ -142,14 +147,16 @@ const PresentPage = () => {
             method: "GET",
           }
         );
-  
+
         const data = await response.json();
         const fieldList = Object.values(data.presentRoomInfo);
         console.log("get all presented?: ", fieldList);
-        const allFieldsPresented = fieldList.every((value: any) => value);
+
+        const fieldsToCheck = fieldList.slice(2);
+        const allFieldsPresented = fieldsToCheck.every((value: any) => value);
         setAllPresented(allFieldsPresented);
         console.log("set all presented?: ", allPresented);
-  
+
         if (!response.ok) {
           throw new Error("Failed to get allPresented info");
         }
@@ -227,7 +234,10 @@ const PresentPage = () => {
       });
     }
     // Back to WaitRoom
-    else if ((roomStatus === RoomStatus.WAITING) || (roomStatus === RoomStatus.All_PRESENTED)) {
+    else if (
+      roomStatus === RoomStatus.WAITING ||
+      roomStatus === RoomStatus.All_PRESENTED
+    ) {
       navigate("/WaitRoomPage", {
         state: { user, admin },
       });
@@ -269,9 +279,10 @@ const PresentPage = () => {
             <>
               <button
                 className="button small-common-button"
+                style={{margin:"0px"}}
                 onClick={() => toggleGameSelector(fieldName)}
               >
-                Select a Game
+                Select Game
               </button>
               {activeGameSelector === fieldName && (
                 <div id="game-selector">
@@ -454,28 +465,67 @@ const PresentPage = () => {
   };
 
   return render ? (
-    <div className="page">
-      <div className="separate-bar">
-        <img
-          src={presenter?.profileImage}
-          alt={presenter?.displayName}
-          className="avatar"
-        />
-        <h2>{presenter?.displayName}</h2>
-      </div>
-      <div className="presenter-info">
-        <div>
-          <p>First Name: {renderInfoOrGameSelector("firstName")}</p>
-          <p>Last Name: {renderInfoOrGameSelector("lastName")}</p>
-          <p>City: {renderInfoOrGameSelector("city")}</p>
-          <p>Country: {renderInfoOrGameSelector("country")}</p>
-          <p>Feeling: {renderInfoOrGameSelector("feeling")}</p>
-          <p>Favourite Food: {renderInfoOrGameSelector("favFood")}</p>
-          <p>Favorite Activity: {renderInfoOrGameSelector("favActivity")}</p>
+    <div className="page" style={{ marginBottom: "0" }}>
+      <div className="present-blackboard-container" style={{ color: "white" }}>
+        <img src={blackBoard} alt="BlackBoard" className="blackBoard" />
+        <div className="row-container presenter-on-blackboard">
+          <div className="presenter-avatar-position">
+            <img
+              src={presenter?.profileImage}
+              alt={presenter?.displayName}
+              className="avatar"
+            />
+            <h2>{presenter?.displayName}</h2>
+          </div>
+
+          <div className="presenter-info-container">
+            <div className="presenter-name">
+              <p>
+                {presenterInfo?.firstName} {presenterInfo?.lastName}
+              </p>
+            </div>
+
+            <div className="info-columns">
+              <div className="info-item">
+                <p>City:</p>
+              </div>
+              <div className="info-item">
+                <p>{renderInfoOrGameSelector("city")}</p>
+              </div>
+
+              <div className="info-item">
+                <p>Country:</p>
+              </div>
+              <div className="info-item">
+                <p>{renderInfoOrGameSelector("country")}</p>
+              </div>
+
+              <div className="info-item">
+                <p>Feeling:</p>
+              </div>
+              <div className="info-item">
+                <p>{renderInfoOrGameSelector("feeling")}</p>
+              </div>
+
+              <div className="info-item">
+                <p>Favourite Food:</p>
+              </div>
+              <div className="info-item">
+                <p>{renderInfoOrGameSelector("favFood")}</p>
+              </div>
+
+              <div className="info-item">
+                <p>Favorite Activity:</p>
+              </div>
+              <div className="info-item">
+                <p>{renderInfoOrGameSelector("favActivity")}</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div>
+      <div className="row-container">
         {userID === admin.userID && (
           <button
             className="button admin-only-button"
@@ -485,6 +535,7 @@ const PresentPage = () => {
             Back to WaitRoom
           </button>
         )}
+
         {userID === admin.userID && (
           <button
             className="button admin-only-button"
