@@ -24,7 +24,6 @@ const WaitRoomPage = () => {
   const [admin, setAdmin] = useState<User | null>(null);
   const [presenter, setPresenter] = useState<User | null>(null);
   const [notPresented, setNotPresented] = useState<User[]>([]);
-  const [allPresented, setAllPresented] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showKickPopup, setShowKickPopup] = useState(false);
   const [showDismissPopup, setShowDismissPopup] = useState(false);
@@ -184,6 +183,33 @@ const WaitRoomPage = () => {
     setShowChangePresenterPopup(false); // Close the popup
   };
 
+  const changeToNextPresenter = async () => {
+    // Ensure there are users who haven't presented
+    if (notPresented.length > 0) {
+      // Select the next presenter (e.g., the first in the list)
+      const nextPresenterID = notPresented[0].userID;
+  
+      // Make an API call or update state to change the presenter
+      const response = await fetch(
+        `${serverPort}/changePresenter?roomCode=${roomCode}&userID=${nextPresenterID}`,
+        {
+          method: "POST",
+        }
+      );
+  
+      if (!response.ok) {
+        console.error(`HTTP error! Status: ${response.status}`);
+        return;
+      }
+  
+      // Update local state if necessary (e.g., set new presenter, update notPresented list)
+      setPresenter(notPresented[0]);
+    } else {
+      console.log("No more users to present");
+    }
+  };
+  
+
   // Check if the user is the admin
   const checkAdminStatus = async () => {
     const url = `${serverPort}/isAdmin?userID=${userID}&roomCode=${roomCode}`;
@@ -271,6 +297,7 @@ const WaitRoomPage = () => {
       if (data.roomStatus) {
         setRoomStatus(data.roomStatus);
       }
+      console.log("roome status:", roomStatus);
     } catch (error) {
       console.error("Error fetching players:", error);
     }
@@ -305,12 +332,6 @@ const WaitRoomPage = () => {
       setNotPresented(data.notPresentedPeople || []);
       console.log("check who has not presenter", notPresented);
 
-      if (notPresented.length === 0) {
-        setAllPresented(true);
-      } else {
-        setAllPresented(false);
-      }
-
       if (!response.ok) {
         throw new Error("Room cannot be found");
       }
@@ -318,6 +339,15 @@ const WaitRoomPage = () => {
       console.error("Error checking notPresented:", error);
     }
   };
+
+  // check if current presenter finished presentation, if so change to a new one
+  useEffect(() => {
+    // Example check to see if presenter has finished
+    if (presenter && !notPresented.some(user => user.userID === presenter.userID)) {
+      changeToNextPresenter();
+    }
+  }, [presenter, notPresented]);
+  
 
   useEffect(() => {
     // Check whether the user is admin
@@ -338,6 +368,13 @@ const WaitRoomPage = () => {
         state: { user, admin, presenter, guests },
       });
     }
+
+    // If the RoomStatus is ALL_FINISHED, navigate all users to the AllPresentedPage
+    if (roomStatus === RoomStatus.All_PRESENTED) {
+      navigate("/AllPresentedPage", {
+        state: { user, admin, presenter, guests },
+      });
+    }
   }, [roomStatus, user, admin, presenter, guests]);
 
   // Every refreshtime
@@ -351,7 +388,7 @@ const WaitRoomPage = () => {
 
     // Clear timer and count again
     return () => clearInterval(intervalId);
-  }, [notPresented, allPresented]);
+  }, [notPresented]);
 
   useEffect(() => {
     const notifyServerOnUnload = () => {
@@ -367,7 +404,6 @@ const WaitRoomPage = () => {
 
   useEffect(() => {
     if (admin?.userID && presenter?.userID) {
-      console.log(admin.userID, userID);
       if (presenter.userID === userID) {
         const notifyServerOnUnload = () => {
           handleChangePresenterAfterQuitting(admin!.userID);
@@ -413,16 +449,14 @@ const WaitRoomPage = () => {
               <p>{presenter?.displayName}</p>
             </div>
 
-            <button
-              className="button admin-only-button"
-              onClick={() => handleViewProfile(presenter)}
-              disabled={
-                !isAdmin ||
-                notPresented.some((npUser) => npUser.userID === presenter?.userID)
-              }
-            >
-              View Profile
-            </button>
+            {isAdmin && (
+              <button
+                className="button admin-only-button"
+                onClick={() => handleViewProfile(presenter)}
+              >
+                View Profile
+              </button>
+            )}
 
             {isAdmin && (
               <button
@@ -432,6 +466,7 @@ const WaitRoomPage = () => {
                 Change Presenter
               </button>
             )}
+
           </div>
           {/* Presenter on the blackboard */}
         </div>
@@ -479,7 +514,7 @@ const WaitRoomPage = () => {
                     className="button common-button"
                     onClick={() => handleViewProfile(guest)}
                     disabled={
-                      !isAdmin ||
+                      !isAdmin &&
                       notPresented.some(
                         (npUser) => npUser.userID === guest.userID
                       )
@@ -561,7 +596,7 @@ const WaitRoomPage = () => {
         <div className="change-presenter-popup">
           <h3>Select New Presenter:</h3>
           <ul>
-            {notPresented.map((user) => (
+            {notPresented.filter(user => user.userID !== presenter?.userID).map((user) => (
               <li
                 key={user.userID}
                 onClick={() => handleSelectPresenter(user.userID)}
@@ -569,7 +604,7 @@ const WaitRoomPage = () => {
                   selectedPresenterUserID === user.userID ? "selected" : ""
                 }
               >
-                {user.displayName}
+                {user.displayName} {user.userID === admin?.userID ? "(admin)" : ""}
               </li>
             ))}
           </ul>
@@ -610,33 +645,7 @@ const WaitRoomPage = () => {
           </div>
         </div>
       )}
-
-      {/* All presented popup */}
-      {allPresented && (
-        <div className="overlay-popup">
-          <div className="popup">
-            <p>
-              All Users Presented!
-              <ul>
-                {guests.concat(admin || []).map((user) => (
-                  <li key={user.userID} className="user-display">
-                    <span>{user.displayName}</span>
-                    <button
-                      onClick={() => handleViewProfile(user)}
-                      className="common-button"
-                    >
-                      View Profile
-                    </button>
-                  </li>
-                ))}
-              </ul>
-              <br />
-              Returning to homepage.
-            </p>
-            <button onClick={() => navigate("/")}>OK</button>
-          </div>
-        </div>
-      )}
+    
     </div>
   );
 };
