@@ -411,13 +411,14 @@ const HangmanPage = () => {
           <p>{presenter?.displayName}</p>
           {
             <button
-              className="button admin-only-button"
+              className="button common-button"
               onClick={() => handleViewProfile(presenter)}
               disabled={
                 !isAdmin &&
                 notPresented.some(
                   (npUser) => npUser.userID === presenter?.userID
-                )
+                ) &&
+                presenter?.userID !== userID
               }
             >
               View Profile
@@ -433,6 +434,17 @@ const HangmanPage = () => {
             className="avatar"
           />
           <p>{admin?.displayName}</p>
+
+          <button
+            className="button common-button"
+            onClick={() => handleViewProfile(admin)}
+            disabled={
+              !isAdmin &&
+              notPresented.some((npUser) => npUser.userID === admin?.userID)
+            }
+          >
+            View Profile
+          </button>
         </div>
       </div>
 
@@ -478,7 +490,7 @@ const HangmanPage = () => {
         </div>
         {isAdmin && (
           <button
-            className="button admin-only-button"
+            className="button common-button"
             onClick={handleBackButton}
           >
             Back
@@ -506,13 +518,14 @@ const HangmanPage = () => {
                 </div>
                 {
                   <button
-                    className="button admin-only-button"
+                    className="button common-button"
                     onClick={() => handleViewProfile(guest)}
                     disabled={
                       !isAdmin &&
                       notPresented.some(
                         (npUser) => npUser.userID === guest.userID
-                      )
+                      ) &&
+                      guest.userID !== userID
                     }
                   >
                     View Profile

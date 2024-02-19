@@ -16,6 +16,7 @@ import { RoomStatus } from "./type/RoomStatus";
 import { ModalMessage } from "./type/ModalMessage";
 import Instructions from "./Instructions";
 import Inst1 from "./instructions/wordle/1.png";
+import { isSameUser } from "./utils/CommonCompare";
 
 const wordleInstructions = [
   {
@@ -472,8 +473,6 @@ const Wordle = () => {
     }
   };
 
-  const isSameUser = (self: User, other: User) => self.userID === other.userID;
-
   // Auto set color of grid
   const getStatusStyle = (status: LetterStatus) => {
     switch (status) {
@@ -511,13 +510,14 @@ const Wordle = () => {
           <p>{presenter?.displayName}</p>
           {
             <button
-              className="button admin-only-button"
+              className="button common-button"
               onClick={() => handleViewProfile(presenter)}
               disabled={
                 !isAdmin &&
                 notPresented.some(
                   (npUser) => npUser.userID === presenter?.userID
-                )
+                ) &&
+                !isSameUser(user, presenter)
               }
             >
               View Profile
@@ -533,6 +533,18 @@ const Wordle = () => {
             className="avatar"
           />
           <p>{admin?.displayName}</p>
+
+          <button
+            className="button common-button"
+            onClick={() => handleViewProfile(admin)}
+            // If not admin and not presented and not me
+            disabled={
+              !isAdmin &&
+              notPresented.some((npUser) => npUser.userID === admin?.userID)
+            }
+          >
+            View Profile
+          </button>
         </div>
       </div>
       <div className="main-column" onKeyDown={handleKeyPress}>
@@ -580,7 +592,8 @@ const Wordle = () => {
                     key={columnIndex}
                     className={`alphabet-block`}
                     style={getStatusStyle(allLetterStatus[letterIndex])}
-                    onClick={() => handleInputChangeByButton(letter)} // Assuming sendWordleMessage is your function to handle guesses
+                    onClick={() => handleInputChangeByButton(letter)}
+                    disabled={!isSameUser(user, currentGuesser)}
                   >
                     {alphabet[letterIndex]}
                   </button>
@@ -591,20 +604,29 @@ const Wordle = () => {
         </div>
 
         <div className="row-container">
-          <button className="button common-button" onClick={handleGuess}>
+          <button
+            className="button common-button"
+            onClick={handleGuess}
+            disabled={!isSameUser(user, currentGuesser)}
+          >
             Guess
           </button>
+
           <button
             className="button common-button"
             onClick={handleBackspaceButton}
+            disabled={!isSameUser(user, currentGuesser)}
           >
             Backspace
           </button>
         </div>
 
         {isAdmin && (
-          <button className="button common-button" onClick={handleBackButton}>
-            Back
+          <button
+            className="button admin-only-button"
+            onClick={handleBackButton}
+          >
+            Back to Present Room
           </button>
         )}
       </div>
@@ -628,13 +650,14 @@ const Wordle = () => {
                 </div>
                 {
                   <button
-                    className="button admin-only-button"
+                    className="button common-button"
                     onClick={() => handleViewProfile(guest)}
                     disabled={
                       !isAdmin &&
                       notPresented.some(
                         (npUser) => npUser.userID === guest.userID
-                      )
+                      ) &&
+                      !isSameUser(guest, user)
                     }
                   >
                     View Profile
