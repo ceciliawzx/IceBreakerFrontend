@@ -22,6 +22,7 @@ const WaitRoomPage = () => {
   const [admin, setAdmin] = useState<User | null>(null);
   const [presenter, setPresenter] = useState<User | null>(null);
   const [notPresented, setNotPresented] = useState<User[]>([]);
+  const [hasPresented, setHasPresented] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showKickPopup, setShowKickPopup] = useState(false);
   const [showDismissPopup, setShowDismissPopup] = useState(false);
@@ -370,7 +371,9 @@ const WaitRoomPage = () => {
 
       const data = await response.json();
       setNotPresented(data.notPresentedPeople || []);
+      setHasPresented(!(notPresented.some((npUser) => npUser.userID === userID)));
       console.log("check who has not presenter", notPresented);
+      console.log("current user presented?", hasPresented);
 
       if (!response.ok) {
         throw new Error("Room cannot be found");
@@ -616,14 +619,16 @@ const WaitRoomPage = () => {
           Start Presenting
         </button>
       )}
-      {
+      {!hasPresented && (
         <button
-          className="button common-button"
-          onClick={handleUserInformation}
-        >
-          Enter your information
-        </button>
-      }
+        className="button common-button"
+        onClick={handleUserInformation}
+      >
+        Enter your information
+      </button>
+
+      )}
+
       {
         <button
           className="button red-button leave-room-button"
