@@ -534,7 +534,7 @@ const WaitRoomPage = () => {
           onClick={handleStartRoom}
           disabled={!allGuestsCompleted || guests.length == 0}
         >
-          Start Room
+          Start Presenting
         </button>
       )}
       {
