@@ -71,6 +71,7 @@ const HangmanPage = () => {
   const [selectedUserProfile, setSelectedUserProfile] =
     useState<UserProfile | null>(null);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
+  const [notPresented, setNotPresented] = useState<User[]>([]);
 
   /* Modal */
   const [showModal, setShowModal] = useState(false);
@@ -115,6 +116,8 @@ const HangmanPage = () => {
     // fetch target word
     fetchWordLength();
     fetchTargetWord();
+
+    checkNotPresented();
   }, []);
 
   // When submit, change player
@@ -131,14 +134,6 @@ const HangmanPage = () => {
       handleModalMessage();
     }
   }, [isFinished]);
-
-  // Show modal
-  const handleModalMessage = () => {
-    // Update PresentRoomInfo
-    updatePresentRoomInfo({ roomCode, field: fieldName });
-    // Show the modal
-    setShowModal(true);
-  };
 
   // Handle keyboard input
   useEffect(() => {
@@ -189,6 +184,18 @@ const HangmanPage = () => {
     try {
       // Update guess
       setCurrentStages(msg.currentStages);
+      console.log(msg.currentStages);
+      const displayWord = msg.currentStages
+        .map((letter) =>
+          letter
+            ? letter === " "
+              ? "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0"
+              : letter
+            : "_"
+        )
+        .join("\u00A0");
+
+      console.log(displayWord);
       setCorrect(msg.isCorrect);
       setIsFinished(msg.isFinished);
       setCurrentPositions(msg.correctPositions);
@@ -214,14 +221,10 @@ const HangmanPage = () => {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
-      const wordLength = await response.json();
+      const data = await response.json();
 
-      if (wordLength > 0) {
-        setTargetCharNum(wordLength);
-        setCurrentStages(Array.from({ length: wordLength }, () => "_"));
-      } else {
-        console.error("Game cannot be found.");
-      }
+      const characterArray = Array.from(data as string[]);
+      setCurrentStages(characterArray);
     } catch (error) {
       console.error("Error fetching wordle length:", error);
     }
@@ -249,6 +252,35 @@ const HangmanPage = () => {
       }
     } catch (error) {
       console.error("Error fetching hangman answer:", error);
+    }
+  };
+
+  // Show modal
+  const handleModalMessage = () => {
+    // Update PresentRoomInfo
+    updatePresentRoomInfo({ roomCode, field: fieldName });
+    // Show the modal
+    setShowModal(true);
+  };
+
+  const checkNotPresented = async () => {
+    try {
+      const response = await fetch(
+        `${serverPort}/notPresentedPeople?roomCode=${roomCode}`,
+        {
+          method: "GET",
+        }
+      );
+
+      const data = await response.json();
+      setNotPresented(data.notPresentedPeople || []);
+      console.log("check who has not presenter", notPresented);
+
+      if (!response.ok) {
+        throw new Error("Room cannot be found");
+      }
+    } catch (error) {
+      console.error("Error checking notPresented:", error);
     }
   };
 
@@ -292,8 +324,14 @@ const HangmanPage = () => {
 
   // Display current guess
   const displayWord = currentStages
-    .map((letter) =>  (letter === null ? "_" : letter))
-    .join("");
+    .map((letter) =>
+      letter
+        ? letter === " "
+          ? "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0"
+          : letter
+        : "_"
+    )
+    .join("\u00A0");
 
   // When click view profile button
   const handleViewProfile = async (user: User | null) => {
@@ -371,14 +409,20 @@ const HangmanPage = () => {
             className="avatar"
           />
           <p>{presenter?.displayName}</p>
-          {isAdmin && (
+          {
             <button
               className="button admin-only-button"
               onClick={() => handleViewProfile(presenter)}
+              disabled={
+                !isAdmin &&
+                notPresented.some(
+                  (npUser) => npUser.userID === presenter?.userID
+                )
+              }
             >
               View Profile
             </button>
-          )}
+          }
         </div>
 
         <div className="presenter">
@@ -405,7 +449,7 @@ const HangmanPage = () => {
           </pre>
         </div>
         <div className="hangman-input">
-          <p>{displayWord}</p>
+          <h3>{displayWord}</h3>
         </div>
         <div className="alphabet-list">
           {Array.from(alphabetRows).map((row, rowIndex) => (
@@ -433,7 +477,10 @@ const HangmanPage = () => {
           ))}
         </div>
         {isAdmin && (
-          <button className="button admin-only-button" onClick={handleBackButton}>
+          <button
+            className="button admin-only-button"
+            onClick={handleBackButton}
+          >
             Back
           </button>
         )}
@@ -457,21 +504,27 @@ const HangmanPage = () => {
                   />
                   <p>{guest.displayName}</p>
                 </div>
-                {isAdmin && (
+                {
                   <button
                     className="button admin-only-button"
                     onClick={() => handleViewProfile(guest)}
+                    disabled={
+                      !isAdmin &&
+                      notPresented.some(
+                        (npUser) => npUser.userID === guest.userID
+                      )
+                    }
                   >
                     View Profile
                   </button>
-                )}
+                }
               </div>
             ))}
           </div>
         </div>
       </div>
       {/* show profile popup */}
-      {isAdmin && showProfilePopup && selectedUserProfile && (
+      {showProfilePopup && selectedUserProfile && (
         <div className="popup">
           <p>First name: {selectedUserProfile.firstName}</p>
           <p>Last name: {selectedUserProfile.lastName}</p>
@@ -480,7 +533,12 @@ const HangmanPage = () => {
           <p>Feeling: {selectedUserProfile.feeling}</p>
           <p>Favourite food: {selectedUserProfile.favFood}</p>
           <p>Favourite activity: {selectedUserProfile.favActivity}</p>
-          <button className="button common-button" onClick={() => setShowProfilePopup(false)}>Close</button>
+          <button
+            className="button common-button"
+            onClick={() => setShowProfilePopup(false)}
+          >
+            Close
+          </button>
         </div>
       )}
       {/* Modal */}
