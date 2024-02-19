@@ -173,12 +173,6 @@ const WaitRoomPage = () => {
   };
 
   const handleReceiveNotification = async () => {
-    const response = await fetch(
-      `${serverPort}/acknowledgeNotification?roomCode=${roomCode}&userID=${userID}`,
-      {
-        method: "POST",
-      }
-    );
 
     setShowRingPopUp(false);
     
