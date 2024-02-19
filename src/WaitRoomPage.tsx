@@ -73,8 +73,6 @@ const WaitRoomPage = () => {
     }
   };
 
-
-
   const handleChangePresenterAfterQuitting = async (userID: string) => {
     const response = await fetch(
       `${serverPort}/changePresenter?roomCode=${roomCode}&userID=${userID}`,
@@ -363,7 +361,7 @@ const WaitRoomPage = () => {
 
       const data = await response.json();
       setNotPresented(data.notPresentedPeople || []);
-      setHasPresented(!(notPresented.some((npUser) => npUser.userID === userID)));
+      setHasPresented(!notPresented.some((npUser) => npUser.userID === userID));
       console.log("check who has not presenter", notPresented);
       console.log("current user presented?", hasPresented);
 
@@ -463,7 +461,6 @@ const WaitRoomPage = () => {
     }, refreshTime);
 
     return () => clearInterval(intervalId);
-    
   }, [showRingPopUp]);
 
   // main render
@@ -484,6 +481,20 @@ const WaitRoomPage = () => {
               className="avatar"
             />
             <p>{admin?.displayName}</p>
+
+            {
+              <button
+                className="button common-button"
+                onClick={() => handleViewProfile(admin)}
+                // If not admin; and admin not presented; cannot view
+                disabled={
+                  !isAdmin &&
+                  notPresented.some((npUser) => npUser.userID === admin?.userID)
+                }
+              >
+                View Profile
+              </button>
+            }
           </div>
 
           <div className="column-container">
@@ -513,11 +524,13 @@ const WaitRoomPage = () => {
               <button
                 className="button common-button"
                 onClick={() => handleViewProfile(presenter)}
+                // If not admin; and not presented; and not me
                 disabled={
                   !isAdmin &&
                   notPresented.some(
                     (npUser) => npUser.userID === presenter?.userID
-                  )
+                  ) &&
+                  presenter?.userID !== userID
                 }
               >
                 View Profile
@@ -587,11 +600,13 @@ const WaitRoomPage = () => {
                   <button
                     className="button common-button"
                     onClick={() => handleViewProfile(guest)}
+                    // If not admin and not presented and not me
                     disabled={
                       !isAdmin &&
                       notPresented.some(
                         (npUser) => npUser.userID === guest.userID
-                      )
+                      ) &&
+                      guest.userID !== userID
                     }
                   >
                     View Profile
@@ -613,12 +628,11 @@ const WaitRoomPage = () => {
       )}
       {!hasPresented && (
         <button
-        className="button common-button"
-        onClick={handleUserInformation}
-      >
-        Enter your information
-      </button>
-
+          className="button common-button"
+          onClick={handleUserInformation}
+        >
+          Enter your information
+        </button>
       )}
 
       {
