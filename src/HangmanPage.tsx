@@ -71,6 +71,7 @@ const HangmanPage = () => {
   const [selectedUserProfile, setSelectedUserProfile] =
     useState<UserProfile | null>(null);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
+  const [notPresented, setNotPresented] = useState<User[]>([]);
 
   /* Modal */
   const [showModal, setShowModal] = useState(false);
@@ -115,6 +116,8 @@ const HangmanPage = () => {
     // fetch target word
     fetchWordLength();
     fetchTargetWord();
+
+    checkNotPresented();
   }, []);
 
   // When submit, change player
@@ -131,14 +134,6 @@ const HangmanPage = () => {
       handleModalMessage();
     }
   }, [isFinished]);
-
-  // Show modal
-  const handleModalMessage = () => {
-    // Update PresentRoomInfo
-    updatePresentRoomInfo({ roomCode, field: fieldName });
-    // Show the modal
-    setShowModal(true);
-  };
 
   // Handle keyboard input
   useEffect(() => {
@@ -257,6 +252,35 @@ const HangmanPage = () => {
       }
     } catch (error) {
       console.error("Error fetching hangman answer:", error);
+    }
+  };
+
+  // Show modal
+  const handleModalMessage = () => {
+    // Update PresentRoomInfo
+    updatePresentRoomInfo({ roomCode, field: fieldName });
+    // Show the modal
+    setShowModal(true);
+  };
+
+  const checkNotPresented = async () => {
+    try {
+      const response = await fetch(
+        `${serverPort}/notPresentedPeople?roomCode=${roomCode}`,
+        {
+          method: "GET",
+        }
+      );
+
+      const data = await response.json();
+      setNotPresented(data.notPresentedPeople || []);
+      console.log("check who has not presenter", notPresented);
+
+      if (!response.ok) {
+        throw new Error("Room cannot be found");
+      }
+    } catch (error) {
+      console.error("Error checking notPresented:", error);
     }
   };
 
@@ -385,14 +409,20 @@ const HangmanPage = () => {
             className="avatar"
           />
           <p>{presenter?.displayName}</p>
-          {isAdmin && (
+          {
             <button
               className="button admin-only-button"
               onClick={() => handleViewProfile(presenter)}
+              disabled={
+                !isAdmin &&
+                notPresented.some(
+                  (npUser) => npUser.userID === presenter?.userID
+                )
+              }
             >
               View Profile
             </button>
-          )}
+          }
         </div>
 
         <div className="presenter">
@@ -474,21 +504,27 @@ const HangmanPage = () => {
                   />
                   <p>{guest.displayName}</p>
                 </div>
-                {isAdmin && (
+                {
                   <button
                     className="button admin-only-button"
                     onClick={() => handleViewProfile(guest)}
+                    disabled={
+                      !isAdmin &&
+                      notPresented.some(
+                        (npUser) => npUser.userID === guest.userID
+                      )
+                    }
                   >
                     View Profile
                   </button>
-                )}
+                }
               </div>
             ))}
           </div>
         </div>
       </div>
       {/* show profile popup */}
-      {isAdmin && showProfilePopup && selectedUserProfile && (
+      {showProfilePopup && selectedUserProfile && (
         <div className="popup">
           <p>First name: {selectedUserProfile.firstName}</p>
           <p>Last name: {selectedUserProfile.lastName}</p>
