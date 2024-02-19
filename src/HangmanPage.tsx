@@ -189,6 +189,18 @@ const HangmanPage = () => {
     try {
       // Update guess
       setCurrentStages(msg.currentStages);
+      console.log(msg.currentStages);
+      const displayWord = msg.currentStages
+        .map((letter) =>
+          letter
+            ? letter === " "
+              ? "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0"
+              : letter
+            : "_"
+        )
+        .join("\u00A0");
+
+      console.log(displayWord);
       setCorrect(msg.isCorrect);
       setIsFinished(msg.isFinished);
       setCurrentPositions(msg.correctPositions);
@@ -214,14 +226,10 @@ const HangmanPage = () => {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
-      const wordLength = await response.json();
+      const data = await response.json();
 
-      if (wordLength > 0) {
-        setTargetCharNum(wordLength);
-        setCurrentStages(Array.from({ length: wordLength }, () => "_"));
-      } else {
-        console.error("Game cannot be found.");
-      }
+      const characterArray = Array.from(data as string[]);
+      setCurrentStages(characterArray);
     } catch (error) {
       console.error("Error fetching wordle length:", error);
     }
@@ -292,8 +300,14 @@ const HangmanPage = () => {
 
   // Display current guess
   const displayWord = currentStages
-    .map((letter) =>  (letter === null ? "_" : letter))
-    .join("");
+    .map((letter) =>
+      letter
+        ? letter === " "
+          ? "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0"
+          : letter
+        : "_"
+    )
+    .join("\u00A0");
 
   // When click view profile button
   const handleViewProfile = async (user: User | null) => {
@@ -405,7 +419,7 @@ const HangmanPage = () => {
           </pre>
         </div>
         <div className="hangman-input">
-          <p>{displayWord}</p>
+          <h3>{displayWord}</h3>
         </div>
         <div className="alphabet-list">
           {Array.from(alphabetRows).map((row, rowIndex) => (
@@ -433,7 +447,10 @@ const HangmanPage = () => {
           ))}
         </div>
         {isAdmin && (
-          <button className="button admin-only-button" onClick={handleBackButton}>
+          <button
+            className="button admin-only-button"
+            onClick={handleBackButton}
+          >
             Back
           </button>
         )}
@@ -480,7 +497,12 @@ const HangmanPage = () => {
           <p>Feeling: {selectedUserProfile.feeling}</p>
           <p>Favourite food: {selectedUserProfile.favFood}</p>
           <p>Favourite activity: {selectedUserProfile.favActivity}</p>
-          <button className="button common-button" onClick={() => setShowProfilePopup(false)}>Close</button>
+          <button
+            className="button common-button"
+            onClick={() => setShowProfilePopup(false)}
+          >
+            Close
+          </button>
         </div>
       )}
       {/* Modal */}
