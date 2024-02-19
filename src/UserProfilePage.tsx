@@ -3,12 +3,14 @@ import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { UserProfile } from "./type/UserProfile";
 import { serverPort } from "./macro/MacroServer";
+import { refreshTime } from "./macro/MacroConst";
 import "./css/UserProfilePage.css";
 
 const UserProfilePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const user = location.state?.user;
+  const userID = user.userID;
   const preID = location.state?.preID;
   const roomCode = user.roomCode;
   const displayName = user.displayName;
@@ -26,6 +28,8 @@ const UserProfilePage = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [image, setImage] = useState('');
+  const [showKickPopup, setShowKickPopup] = useState(false);
+  const [showRingPopUp, setShowRingPopUp] = useState(false);
 
   const startCamera = () => {
     setShowCameraPopup(true);
@@ -94,6 +98,41 @@ const UserProfilePage = () => {
     });
   };
 
+  const checkRing = async () => {
+    const url = `${serverPort}/isNotified?userID=${userID}&roomCode=${roomCode}`;
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error("Room cannot be found");
+      }
+      if (data) {
+        console.log("Notification received!");
+        setShowRingPopUp(true);
+      }
+      
+    } catch (error) {
+      console.error("Error fetching ring:", error);
+    }
+  };
+
+  const checkKickOut = async () => {
+    const url = `${serverPort}/getPlayer?userID=${userID}&roomCode=${roomCode}`;
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error("Room cannot be found");
+      }
+      if (data.error === "Person Not Found") {
+        setShowKickPopup(true);
+      }
+    } catch (error) {
+      console.error("Error fetching player:", error);
+    }
+  };
+
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -122,6 +161,17 @@ const UserProfilePage = () => {
 
     fetchUserData();
   }, [user.userID, user.roomCode]);
+
+  useEffect(() => {
+
+    const intervalId = setInterval(() => {
+      checkRing();
+      checkKickOut();
+    }, refreshTime);
+
+    return () => clearInterval(intervalId);
+    
+  }, [showRingPopUp, showKickPopup]);
 
   const handleSubmit = async () => {
     const userProfile = new UserProfile(
@@ -161,6 +211,18 @@ const UserProfilePage = () => {
       console.error("Error updating person:", error);
     }
   };
+
+  const handleReceiveNotification = async () => {
+    const response = await fetch(
+      `${serverPort}/acknowledgeNotification?roomCode=${roomCode}&userID=${userID}`,
+      {
+        method: "POST",
+      }
+    );
+
+    setShowRingPopUp(false);
+    
+  }
 
   return (
     <div className="center-page">
@@ -252,6 +314,44 @@ const UserProfilePage = () => {
           </div>
         </div>
       )}
+
+      {/* kickout popup */}
+      {showKickPopup && (
+        <div className="overlay-popup">
+          <div className="popup">
+            <p>
+              You are kicked out by moderator.
+              <br />
+              Returning to homepage.
+            </p>
+            <button
+              className="button common-button"
+              onClick={() => navigate("/")}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Ring popup */}
+      {showRingPopUp && (
+        <div className="overlay-popup">
+          <div className="popup">
+            <p>
+              Please wrap it up.
+            </p>
+            <button
+              className="button common-button"
+              onClick={() => handleReceiveNotification()}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+
+
     </div>
   );
 };

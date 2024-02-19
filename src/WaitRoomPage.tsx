@@ -72,19 +72,7 @@ const WaitRoomPage = () => {
     }
   };
 
-  const handleRingUser = async (userID: string) => {
-    // notify this user to hurry up
-    const response = await fetch(
-      `${serverPort}/pushNotification?roomCode=${roomCode}&userID=${userID}`,
-      {
-        method: "POST",
-      }
-    );
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-  };
 
   const handleChangePresenterAfterQuitting = async (userID: string) => {
     const response = await fetch(
@@ -173,6 +161,16 @@ const WaitRoomPage = () => {
     }
   };
 
+  const handleRingUser = async (userID: string) => {
+    // notify this user to hurry up
+    const response = await fetch(
+      `${serverPort}/pushNotification?roomCode=${roomCode}&userID=${userID}`,
+      {
+        method: "POST",
+      }
+    );
+  };
+
   const handleReceiveNotification = async () => {
     const response = await fetch(
       `${serverPort}/acknowledgeNotification?roomCode=${roomCode}&userID=${userID}`,
@@ -180,11 +178,6 @@ const WaitRoomPage = () => {
         method: "POST",
       }
     );
-
-    if (!response.ok) {
-      console.error(`HTTP error! Status: ${response.status}`);
-      return;
-    }
 
     setShowRingPopUp(false);
     
@@ -473,6 +466,8 @@ const WaitRoomPage = () => {
     const intervalId = setInterval(() => {
       checkRing()
     }, refreshTime);
+
+    return () => clearInterval(intervalId);
     
   }, [showRingPopUp]);
 
