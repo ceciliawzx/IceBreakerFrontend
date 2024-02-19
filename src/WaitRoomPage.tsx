@@ -9,8 +9,6 @@ import { UserProfile } from "./type/UserProfile";
 import { RoomStatus } from "./type/RoomStatus";
 import exportUserProfileAsPDF from "./utils/ExportPDF";
 import blackBoard from "./assets/BlackBoard.png";
-import card from "./assets/Card.png";
-import { isDisabled } from "@testing-library/user-event/dist/utils";
 
 const WaitRoomPage = () => {
   const location = useLocation();
@@ -188,7 +186,7 @@ const WaitRoomPage = () => {
     if (notPresented.length > 0) {
       // Select the next presenter (e.g., the first in the list)
       const nextPresenterID = notPresented[0].userID;
-  
+
       // Make an API call or update state to change the presenter
       const response = await fetch(
         `${serverPort}/changePresenter?roomCode=${roomCode}&userID=${nextPresenterID}`,
@@ -196,19 +194,18 @@ const WaitRoomPage = () => {
           method: "POST",
         }
       );
-  
+
       if (!response.ok) {
         console.error(`HTTP error! Status: ${response.status}`);
         return;
       }
-  
+
       // Update local state if necessary (e.g., set new presenter, update notPresented list)
       setPresenter(notPresented[0]);
     } else {
       console.log("No more users to present");
     }
   };
-  
 
   // Check if the user is the admin
   const checkAdminStatus = async () => {
@@ -343,11 +340,13 @@ const WaitRoomPage = () => {
   // check if current presenter finished presentation, if so change to a new one
   useEffect(() => {
     // Example check to see if presenter has finished
-    if (presenter && !notPresented.some(user => user.userID === presenter.userID)) {
+    if (
+      presenter &&
+      !notPresented.some((user) => user.userID === presenter.userID)
+    ) {
       changeToNextPresenter();
     }
   }, [presenter, notPresented]);
-  
 
   useEffect(() => {
     // Check whether the user is admin
@@ -439,24 +438,42 @@ const WaitRoomPage = () => {
           </div>
 
           <div className="column-container">
-            <div className="avatar-container" style={{ color: "white" }}>
+            <div className="avatar-container">
               <h2>Presenter:</h2>
               <img
                 src={`${presenter?.profileImage}`}
                 alt={`${presenter?.displayName}'s avatar`}
                 className="avatar"
               />
+
+              {presenter?.completed && (
+                <div className="input-status-indicator">✓</div>
+              )}
+
+              {/* Show presented indicator */}
+              {!notPresented.some(
+                (npUser) => npUser.userID === presenter?.userID
+              ) && <div className="presented-status-indicator">6</div>}
+            </div>
+
+            <div style={{ color: "white" }}>
               <p>{presenter?.displayName}</p>
             </div>
 
-            {isAdmin && (
+            {
               <button
-                className="button admin-only-button"
+                className="button common-button"
                 onClick={() => handleViewProfile(presenter)}
+                disabled={
+                  !isAdmin &&
+                  notPresented.some(
+                    (npUser) => npUser.userID === presenter?.userID
+                  )
+                }
               >
                 View Profile
               </button>
-            )}
+            }
 
             {isAdmin && (
               <button
@@ -466,7 +483,6 @@ const WaitRoomPage = () => {
                 Change Presenter
               </button>
             )}
-
           </div>
           {/* Presenter on the blackboard */}
         </div>
@@ -596,17 +612,20 @@ const WaitRoomPage = () => {
         <div className="change-presenter-popup">
           <h3>Select New Presenter:</h3>
           <ul>
-            {notPresented.filter(user => user.userID !== presenter?.userID).map((user) => (
-              <li
-                key={user.userID}
-                onClick={() => handleSelectPresenter(user.userID)}
-                className={
-                  selectedPresenterUserID === user.userID ? "selected" : ""
-                }
-              >
-                {user.displayName} {user.userID === admin?.userID ? "(admin)" : ""}
-              </li>
-            ))}
+            {notPresented
+              .filter((user) => user.userID !== presenter?.userID)
+              .map((user) => (
+                <li
+                  key={user.userID}
+                  onClick={() => handleSelectPresenter(user.userID)}
+                  className={
+                    selectedPresenterUserID === user.userID ? "selected" : ""
+                  }
+                >
+                  {user.displayName}{" "}
+                  {user.userID === admin?.userID ? "(admin)" : ""}
+                </li>
+              ))}
           </ul>
           <div>
             <button
@@ -620,7 +639,7 @@ const WaitRoomPage = () => {
       )}
 
       {/* show profile popup */}
-      {isAdmin && showProfilePopup && selectedUserProfile && (
+      {showProfilePopup && selectedUserProfile && (
         <div className="outside-popup">
           <p>First name: {selectedUserProfile.firstName}</p>
           <p>Last name: {selectedUserProfile.lastName}</p>
@@ -645,7 +664,6 @@ const WaitRoomPage = () => {
           </div>
         </div>
       )}
-    
     </div>
   );
 };

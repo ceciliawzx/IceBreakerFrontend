@@ -51,6 +51,7 @@ const Wordle = () => {
   const [selectedUserProfile, setSelectedUserProfile] =
     useState<UserProfile | null>(null);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
+  const [notPresented, setNotPresented] = useState<User[]>([]);
 
   /* Modal */
   const [showModal, setShowModal] = useState(false);
@@ -99,6 +100,8 @@ const Wordle = () => {
     // fetch target word
     fetchWordLength();
     fetchTargetWord();
+
+    checkNotPresented();
   }, []);
 
   // When got target word, initialize grid
@@ -135,6 +138,13 @@ const Wordle = () => {
     // Set is finished
     setIsFinished(currentAttempt >= totalAttempts || correct);
   }, [currentAttempt]);
+
+  // When isFinished update
+  useEffect(() => {
+    if (isFinished) {
+      handleModalMessage();
+    }
+  }, [isFinished]);
 
   // Fetch target word length
   const fetchWordLength = async () => {
@@ -187,6 +197,27 @@ const Wordle = () => {
     }
   };
 
+  const checkNotPresented = async () => {
+    try {
+      const response = await fetch(
+        `${serverPort}/notPresentedPeople?roomCode=${roomCode}`,
+        {
+          method: "GET",
+        }
+      );
+
+      const data = await response.json();
+      setNotPresented(data.notPresentedPeople || []);
+      console.log("check who has not presenter", notPresented);
+
+      if (!response.ok) {
+        throw new Error("Room cannot be found");
+      }
+    } catch (error) {
+      console.error("Error checking notPresented:", error);
+    }
+  };
+
   // Send message via websocket
   const sendWordleMessage = (
     icCheck: boolean,
@@ -234,13 +265,6 @@ const Wordle = () => {
 
     setAllLetterStatus(msg.allLetterStat);
   };
-
-  // When isFinished update
-  useEffect(() => {
-    if (isFinished) {
-      handleModalMessage();
-    }
-  }, [isFinished]);
 
   // Show modal
   const handleModalMessage = () => {
@@ -485,14 +509,20 @@ const Wordle = () => {
             className="avatar"
           />
           <p>{presenter?.displayName}</p>
-          {isAdmin && (
+          {
             <button
               className="button admin-only-button"
               onClick={() => handleViewProfile(presenter)}
+              disabled={
+                !isAdmin &&
+                notPresented.some(
+                  (npUser) => npUser.userID === presenter?.userID
+                )
+              }
             >
               View Profile
             </button>
-          )}
+          }
         </div>
 
         <div className="presenter">
@@ -596,14 +626,20 @@ const Wordle = () => {
                   />
                   <p>{guest.displayName}</p>
                 </div>
-                {isAdmin && (
+                {
                   <button
                     className="button admin-only-button"
                     onClick={() => handleViewProfile(guest)}
+                    disabled={
+                      !isAdmin &&
+                      notPresented.some(
+                        (npUser) => npUser.userID === guest.userID
+                      )
+                    }
                   >
                     View Profile
                   </button>
-                )}
+                }
               </div>
             ))}
           </div>
@@ -611,7 +647,7 @@ const Wordle = () => {
       </div>
 
       {/* show profile popup */}
-      {isAdmin && showProfilePopup && selectedUserProfile && (
+      {showProfilePopup && selectedUserProfile && (
         <div className="popup">
           <p>First name: {selectedUserProfile.firstName}</p>
           <p>Last name: {selectedUserProfile.lastName}</p>
