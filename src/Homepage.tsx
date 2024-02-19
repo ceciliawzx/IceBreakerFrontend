@@ -1,14 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./css/Homepage.css";
 import titleImage from "./assets/Title.png";
 import createRoomImage from "./assets/CreateRoom.png";
 import joinRoomImage from "./assets/JoinRoom.png";
 import joinMockRoomImage from "./assets/MockRoom.png";
+import { disableScroll } from "./utils/CssOperation";
 
 const Homepage: React.FC = () => {
   const navigate = useNavigate();
   const [log, setLog] = useState<string | null>(null);
+
+  // disable scroll for this page
+  useEffect(disableScroll, []);
 
   const handleCreateRoom = () => {
     setLog("Create Room clicked");
