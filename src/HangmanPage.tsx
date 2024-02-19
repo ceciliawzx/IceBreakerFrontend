@@ -371,8 +371,7 @@ const HangmanPage = () => {
   // Auto set grid color
   const getStatusStyle = (status: LetterStatus) => {
     const baseStyle = {
-      color: "black", // Keeping font color the same
-      fontSize: "16px", // Keeping font size the same
+      fontSize: "1rem",
     };
     switch (status) {
       case LetterStatus.GREY:
@@ -418,7 +417,7 @@ const HangmanPage = () => {
                 notPresented.some(
                   (npUser) => npUser.userID === presenter?.userID
                 ) &&
-                presenter?.userID !== userID
+                !isSameUser(presenter, user)
               }
             >
               View Profile
@@ -475,8 +474,8 @@ const HangmanPage = () => {
                     style={getStatusStyle(allLetterStatus[letterIndex])}
                     onClick={() => sendHangmanMessage(letter)} // Assuming sendWordleMessage is your function to handle guesses
                     // 114514
-                    // disabled={!isSameUser(user, currentGuesser) || allLetterStatus[index] !== LetterStatus.UNCHECKED || isFinished}
                     disabled={
+                      !isSameUser(user, currentGuesser) ||
                       allLetterStatus[letterIndex] !== LetterStatus.UNCHECKED ||
                       isFinished
                     }
@@ -490,10 +489,10 @@ const HangmanPage = () => {
         </div>
         {isAdmin && (
           <button
-            className="button common-button"
+            className="button admin-only-button"
             onClick={handleBackButton}
           >
-            Back
+            Back to Present Room
           </button>
         )}
       </div>
@@ -525,7 +524,7 @@ const HangmanPage = () => {
                       notPresented.some(
                         (npUser) => npUser.userID === guest.userID
                       ) &&
-                      guest.userID !== userID
+                      !isSameUser(guest, user)
                     }
                   >
                     View Profile
