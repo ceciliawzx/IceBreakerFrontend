@@ -181,8 +181,7 @@ const WaitRoomPage = () => {
     );
 
     setShowRingPopUp(false);
-    
-  }
+  };
 
   const confirmChangePresenter = () => {
     var newPresenter;
@@ -338,7 +337,6 @@ const WaitRoomPage = () => {
         console.log("Notification received!");
         setShowRingPopUp(true);
       }
-      
     } catch (error) {
       console.error("Error fetching ring:", error);
     }
@@ -464,10 +462,10 @@ const WaitRoomPage = () => {
   }, [admin, presenter]);
 
   useEffect(() => {
-    checkRing()
+    checkRing();
 
     const intervalId = setInterval(() => {
-      checkRing()
+      checkRing();
     }, refreshTime);
 
     return () => clearInterval(intervalId);
@@ -495,7 +493,7 @@ const WaitRoomPage = () => {
           </div>
 
           <div className="column-container">
-            <div className="avatar-container">
+            <div className="avatar-container" style={{ color: "white" }}>
               <h2>Presenter:</h2>
               <img
                 src={`${presenter?.profileImage}`}
@@ -576,19 +574,19 @@ const WaitRoomPage = () => {
                 >
                   {isAdmin && (
                     <button
-                      className="button red-button "
-                      onClick={() => handleKickUser(guest.userID)}
+                      className="button red-button"
+                      onClick={() => handleRingUser(guest.userID)}
                     >
-                      Kick
+                      Ring
                     </button>
                   )}
 
                   {isAdmin && (
                     <button
                       className="button red-button "
-                      onClick={() => handleRingUser(guest.userID)}
+                      onClick={() => handleKickUser(guest.userID)}
                     >
-                      Ring
+                      Kick
                     </button>
                   )}
 
@@ -679,9 +677,7 @@ const WaitRoomPage = () => {
       {showRingPopUp && (
         <div className="overlay-popup">
           <div className="popup">
-            <p>
-              Please wrap it up.
-            </p>
+            <p>Please wrap it up.</p>
             <button
               className="button common-button"
               onClick={() => handleReceiveNotification()}

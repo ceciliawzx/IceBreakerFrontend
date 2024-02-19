@@ -1,22 +1,49 @@
-.separate-bar {
-  border-bottom: 1px solid var(--grey-background); /* Visually separate the header */
+/* Add a class for the blackboard container if not already present */
+.present-blackboard-container {
+  position: relative;
+  text-align: center;
+  width: 55%;
+  margin-bottom: 2%;
 }
 
-.presenter-info {
-  margin-top: 20px;
-  display: grid;
-  grid-template-columns: repeat(
-    auto-fit,
-    minmax(200px, 1fr)
-  ); /* Responsive grid */
+.presenter-avatar-position {
+  position: relative;
+  right: 20%;
+}
+
+.presenter-info-container {
+  position: absolute;
+  left: 35%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.presenter-name {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.info-columns {
+  margin-left: 30%;
+  display: flex;
+  flex-wrap: wrap;
+  text-align: left;
+}
+
+.info-item {
+  flex: 0 0 40%;
+  font-size: 1.2rem;
 }
 
 #game-selector {
   position: absolute;
   left: 55%;
   z-index: 100;
-  background: white;
-  border: 1px solid var(--grey-background);
+  background: #b58560;
+  border: 3px solid rgb(230, 168, 86);
+  border-radius: 10px;
   padding: 3px;
   display: flex;
   flex-direction: column;

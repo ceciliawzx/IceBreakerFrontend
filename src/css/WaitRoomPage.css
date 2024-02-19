@@ -7,28 +7,6 @@
   display: inline-block;
 }
 
-.input-status-indicator {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  background-color: #1cc313; /* Green background or any color you prefer */
-  color: rgb(159, 17, 17);
-  border-radius: 50%;
-  padding: 5px;
-  font-size: 15px;
-}
-
-.presented-status-indicator {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  background-color: #1382c3; /* Green background or any color you prefer */
-  color: rgb(159, 17, 17);
-  border-radius: 50%;
-  padding: 5px;
-  font-size: 15px;
-}
-
 .guest-list {
   margin-top: 2%;
 }
@@ -36,15 +14,16 @@
 .guest-card {
   display: flex;
   align-items: center; /* Align items vertically */
-  background-image: url('../assets/Card.png'); /* Update with your actual path */
-  background-size: 100% 100%; /* Cover the entire div */
-  background-position: center; /* Center the background image */
-  padding:10px 40px;
-  padding-top:60px;
+  background-image: url("../assets/Card.png"); /* Update with your actual path */
+  background-size: contain; /* Cover the entire div while maintaining aspect ratio */
+  background-position: center center; /* Center the background image */
+  padding: 20px 50px;
+  padding-top: 60px;
   margin-bottom: 20px; /* Space between cards */
   flex-direction: column; /* Stack items vertically */
   margin: 10px; /* Add some space around each guest */
   position: relative;
+  background-repeat: no-repeat;
 }
 
 .leave-room-button {
@@ -66,28 +45,28 @@
 /* Add a class for the blackboard container if not already present */
 .blackboard-container {
   position: relative;
-  text-align: center; 
+  text-align: center;
   width: 45%;
   margin: auto;
 }
 
 .blackBoard {
-  width: 100%; 
-  height: auto; 
+  width: 100%;
+  height: auto;
 }
 
 .presenter-on-blackboard {
   position: absolute;
-  top: 55%; 
-  width: 100%; 
-  display: flex; 
+  top: 55%;
+  width: 100%;
+  display: flex;
   transform: translateY(-50%);
 }
 
 .button-container {
   position: absolute;
-  top: 40%; 
-  left: 35%; 
+  top: 40%;
+  left: 35%;
   display: flex; /* Enable flexbox layout */
   flex-direction: column; /* Stack children vertically */
   justify-content: center; /* Center buttons vertically */
