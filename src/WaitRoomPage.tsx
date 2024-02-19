@@ -35,6 +35,7 @@ const WaitRoomPage = () => {
     useState<UserProfile | null>(null);
   const [allGuestsCompleted, setAllGuestsCompleted] = useState(false);
   const [roomStatus, setRoomStatus] = useState<RoomStatus>(RoomStatus.WAITING);
+  const [showRingPopUp, setShowRingPopUp] = useState(false);
 
   const handleStartRoom = async () => {
     // Tell server that to start room
@@ -63,6 +64,20 @@ const WaitRoomPage = () => {
       `${serverPort}/kickPerson?roomCode=${roomCode}&userID=${userID}`,
       {
         method: "DELETE",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+  };
+
+  const handleRingUser = async (userID: string) => {
+    // notify this user to hurry up
+    const response = await fetch(
+      `${serverPort}/pushNotification?roomCode=${roomCode}&userID=${userID}`,
+      {
+        method: "POST",
       }
     );
 
@@ -157,6 +172,23 @@ const WaitRoomPage = () => {
       }
     }
   };
+
+  const handleReceiveNotification = async () => {
+    const response = await fetch(
+      `${serverPort}/acknowledgeNotification?roomCode=${roomCode}&userID=${userID}`,
+      {
+        method: "POST",
+      }
+    );
+
+    if (!response.ok) {
+      console.error(`HTTP error! Status: ${response.status}`);
+      return;
+    }
+
+    setShowRingPopUp(false);
+    
+  }
 
   const confirmChangePresenter = () => {
     var newPresenter;
@@ -300,6 +332,24 @@ const WaitRoomPage = () => {
     }
   };
 
+  const checkRing = async () => {
+    const url = `${serverPort}/isNotified?userID=${userID}&roomCode=${roomCode}`;
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error("Room cannot be found");
+      }
+      if (data) {
+        console.log("Notification received!");
+        setShowRingPopUp(true);
+      }
+      
+    } catch (error) {
+      console.error("Error fetching ring:", error);
+    }
+  };
+
   const checkKickOut = async () => {
     const url = `${serverPort}/getPlayer?userID=${userID}&roomCode=${roomCode}`;
     try {
@@ -417,6 +467,15 @@ const WaitRoomPage = () => {
     }
   }, [admin, presenter]);
 
+  useEffect(() => {
+    checkRing()
+
+    const intervalId = setInterval(() => {
+      checkRing()
+    }, refreshTime);
+    
+  }, [showRingPopUp]);
+
   // main render
   return (
     <div className="page">
@@ -526,6 +585,15 @@ const WaitRoomPage = () => {
                     </button>
                   )}
 
+                  {isAdmin && (
+                    <button
+                      className="button red-button "
+                      onClick={() => handleRingUser(guest.userID)}
+                    >
+                      Ring
+                    </button>
+                  )}
+
                   <button
                     className="button common-button"
                     onClick={() => handleViewProfile(guest)}
@@ -600,6 +668,23 @@ const WaitRoomPage = () => {
             <button
               className="button common-button"
               onClick={() => navigate("/")}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Ring popup */}
+      {showRingPopUp && (
+        <div className="overlay-popup">
+          <div className="popup">
+            <p>
+              Please wrap it up.
+            </p>
+            <button
+              className="button common-button"
+              onClick={() => handleReceiveNotification()}
             >
               OK
             </button>
