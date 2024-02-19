@@ -244,8 +244,8 @@ const UserProfilePage = () => {
           <div className="column-container">
             <video ref={videoRef} width="640" height="480" />
             <div className="row-container">
-              <button className="button common-button" onClick={closeCamera}>Close Camera</button>
               <button className="button common-button" onClick={captureImage}>Capture Image</button>
+              <button className="button common-button" onClick={closeCamera}>Confirm</button>
             </div>
             <canvas ref={canvasRef} width="640" height="480" style={{ display: 'none' }} />
             {image && <img src={image} alt="Captured" />}
