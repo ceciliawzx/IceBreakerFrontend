@@ -12,13 +12,16 @@ import { RoomStatus } from "./type/RoomStatus";
 import { Timer } from "./timer/Timer";
 import { BackMessage } from "./type/BackMessage";
 import { ModalMessage } from "./type/ModalMessage";
-import { Modal } from './utils/Modal';
+import { Modal } from "./utils/Modal";
 import { PresentRoomInfo } from "./type/PresentRoomInfo";
-import Instructions from './Instructions';
-import Inst1 from './instructions/draw&guess/1.png'
+import Instructions from "./Instructions";
+import Inst1 from "./instructions/draw&guess/1.png";
 
 const pictionaryInstructions = [
-  { img: Inst1, text: 'In this game the presenter will draw their answer for you, and you can compete to guess the correct word. Have fun!' }
+  {
+    img: Inst1,
+    text: "In this game the presenter will draw their answer for you, and you can compete to guess the correct word. Have fun!",
+  },
 ];
 
 const PictionaryPage = () => {
@@ -144,28 +147,45 @@ const PictionaryPage = () => {
     }
   };
 
-  const target: JSX.Element | null = targetWord !== "" ? (
-    <div className="word-display">
-      {isPresenter || (admin && userID === admin.userID) ? (
-        <span>Target Word: {targetWord}</span> // Show the target word to the presenter and admin
-      ) : (
-        <div>
+  const target: JSX.Element | null =
+    targetWord !== "" ? (
+      <div className="word-display">
+        {isPresenter || (admin && userID === admin.userID) ? (
+          <span>Target Word: {targetWord}</span> // Show the target word to the presenter and admin
+        ) : (
           <div>
-            We are guessing {presenter.displayName}'s {seletedField}: {"  "}
+            <div>
+              We are guessing {presenter.displayName}'s {seletedField}: {"  "}
+            </div>
+            <span className="underscore-display">
+              {"_ ".repeat(targetWord.length).trim()}
+            </span>
           </div>
-          <span className="underscore-display">
-            {"_ ".repeat(targetWord.length).trim()}
-          </span>
-        </div>
-      )}
-    </div>
-  ) : null;
-  
+        )}
+      </div>
+    ) : null;
 
   return (
     <div className="row-page">
-      <div className="chat-room-container">
-        <ChatRoom />
+      <div className="left-column">
+        <div className="row-container up-row">
+          {/* Timer */}
+          <div>
+            <Timer
+              user={user}
+              roomCode={roomCode}
+              roomStatus={RoomStatus.PRESENTING}
+              defaultTime={60}
+            />
+          </div>
+
+          <Instructions instructionPics={pictionaryInstructions} />
+        </div>
+        <div className="column-container down-row">
+          <div className="chat-room-container">
+            <ChatRoom />
+          </div>
+        </div>
       </div>
       <div className="drawing-canvas-container">
         <DrawingCanvas
@@ -196,17 +216,7 @@ const PictionaryPage = () => {
             </button>
           )}
         </div>
-        <div>
-          <Timer
-            user={user}
-            roomCode={roomCode}
-            roomStatus={RoomStatus.PRESENTING}
-            defaultTime={40}
-          />
-        </div>
       </div>
-      {/* Instructions*/}
-      <Instructions instructionPics={pictionaryInstructions} />
     </div>
   );
 };

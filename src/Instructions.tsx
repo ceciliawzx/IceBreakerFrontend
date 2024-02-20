@@ -27,7 +27,7 @@ const Instructions: React.FC<InstructionsProps> = ({ instructionPics }) => {
     <div>
       {/* Instruction Button */}
       <button className="instruction-button" onClick={() => setShowInstructions(true)}>
-        ?
+        i
       </button>
 
       {/* Instruction Popup */}

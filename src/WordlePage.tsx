@@ -562,51 +562,66 @@ const Wordle = () => {
   return (
     <div className="row-page">
       <div className="left-column">
-        <div className="presenter" style={{ marginBottom: "30%" }}>
-          <h2>Presenter:</h2>
-          <img
-            src={`${presenter?.profileImage}`}
-            alt="Presenter's Image"
-            className="avatar"
-          />
-          <p>{presenter?.displayName}</p>
-          {
+        <div className="row-container up-row">
+          {/* Timer */}
+          <div>
+            <Timer
+              user={user}
+              roomCode={roomCode}
+              roomStatus={RoomStatus.PRESENTING}
+              defaultTime={60}
+            />
+          </div>
+
+          <Instructions instructionPics={wordleInstructions} />
+        </div>
+
+        <div className="column-container down-row">
+          <div className="guest" style={{ marginBottom: "30%" }}>
+            <h2>Presenter:</h2>
+            <img
+              src={`${presenter?.profileImage}`}
+              alt="Presenter's Image"
+              className="avatar"
+            />
+            <p>{presenter?.displayName}</p>
+            {
+              <button
+                className="button common-button"
+                onClick={() => handleViewProfile(presenter)}
+                disabled={
+                  !isAdmin &&
+                  notPresented.some(
+                    (npUser) => npUser.userID === presenter?.userID
+                  )
+                }
+              >
+                View Profile
+              </button>
+            }
+          </div>
+
+          <div className="guest">
+            <h2>Admin:</h2>
+            <img
+              src={`${admin?.profileImage}`}
+              alt="Admin's Image"
+              className="avatar"
+            />
+            <p>{admin?.displayName}</p>
+
             <button
               className="button common-button"
-              onClick={() => handleViewProfile(presenter)}
+              onClick={() => handleViewProfile(admin)}
+              // If not admin and not presented and not me
               disabled={
                 !isAdmin &&
-                notPresented.some(
-                  (npUser) => npUser.userID === presenter?.userID
-                ) &&
-                !isSameUser(user, presenter)
+                notPresented.some((npUser) => npUser.userID === admin?.userID)
               }
             >
               View Profile
             </button>
-          }
-        </div>
-
-        <div className="presenter">
-          <h2>Admin:</h2>
-          <img
-            src={`${admin?.profileImage}`}
-            alt="Admin's Image"
-            className="avatar"
-          />
-          <p>{admin?.displayName}</p>
-
-          <button
-            className="button common-button"
-            onClick={() => handleViewProfile(admin)}
-            // If not admin and not presented and not me
-            disabled={
-              !isAdmin &&
-              notPresented.some((npUser) => npUser.userID === admin?.userID)
-            }
-          >
-            View Profile
-          </button>
+          </div>
         </div>
       </div>
       <div className="main-column" onKeyDown={handleKeyPress}>
@@ -761,18 +776,6 @@ const Wordle = () => {
           adminID={admin.userID}
         />
       )}
-      {/* Timer */}
-      <div>
-        <Timer
-          user={user}
-          roomCode={roomCode}
-          roomStatus={RoomStatus.PRESENTING}
-          defaultTime={40}
-        />
-      </div>
-
-      {/* Instructions*/}
-      <Instructions instructionPics={wordleInstructions} />
     </div>
   );
 };

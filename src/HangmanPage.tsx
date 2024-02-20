@@ -456,52 +456,67 @@ const HangmanPage = () => {
   const isSameUser = (self: User, other: User) => self.userID === other.userID;
 
   return (
-    <div className="row-container">
+    <div className="row-page">
       <div className="left-column">
-        <div className="presenter" style={{ marginBottom: "30%" }}>
-          <h2>Presenter:</h2>
-          <img
-            src={`${presenter?.profileImage}`}
-            alt="Presenter's Image"
-            className="avatar"
-          />
-          <p>{presenter?.displayName}</p>
-          {
+        <div className="row-container up-row">
+          {/* Timer */}
+          <div>
+            <Timer
+              user={user}
+              roomCode={roomCode}
+              roomStatus={RoomStatus.PRESENTING}
+              defaultTime={60}
+            />
+          </div>
+
+          <Instructions instructionPics={hangmanInstructions} />
+        </div>
+        <div className="column-container down-row">
+          <div className="guest" style={{ marginBottom: "30%" }}>
+            <h2>Presenter:</h2>
+            <img
+              src={`${presenter?.profileImage}`}
+              alt="Presenter's Image"
+              className="avatar"
+            />
+            <p>{presenter?.displayName}</p>
+            {
+              <button
+                className="button common-button"
+                onClick={() => handleViewProfile(presenter)}
+                disabled={
+                  !isAdmin &&
+                  notPresented.some(
+                    (npUser) => npUser.userID === presenter?.userID
+                  ) &&
+                  !isSameUser(presenter, user)
+                }
+              >
+                View Profile
+              </button>
+            }
+          </div>
+
+          <div className="guest">
+            <h2>Admin:</h2>
+            <img
+              src={`${admin?.profileImage}`}
+              alt="Admin's Image"
+              className="avatar"
+            />
+            <p>{admin?.displayName}</p>
+
             <button
               className="button common-button"
-              onClick={() => handleViewProfile(presenter)}
+              onClick={() => handleViewProfile(admin)}
               disabled={
                 !isAdmin &&
-                notPresented.some(
-                  (npUser) => npUser.userID === presenter?.userID
-                ) &&
-                !isSameUser(presenter, user)
+                notPresented.some((npUser) => npUser.userID === admin?.userID)
               }
             >
               View Profile
             </button>
-          }
-        </div>
-
-        <div className="presenter">
-          <h2>Admin:</h2>
-          <img
-            src={`${admin?.profileImage}`}
-            alt="Admin's Image"
-            className="avatar"
-          />
-          <p>{admin?.displayName}</p>
-
-          <button
-            className="button common-button"
-            onClick={() => handleViewProfile(admin)}
-            disabled={
-              !isAdmin &&
-              notPresented.some((npUser) => npUser.userID === admin?.userID)
-            }
-          >
-            View Profile
-          </button>
+          </div>
         </div>
       </div>
 
@@ -623,17 +638,6 @@ const HangmanPage = () => {
           adminID={admin.userID}
         />
       )}
-      {/* Timer */}
-      <div>
-        <Timer
-          user={user}
-          roomCode={roomCode}
-          roomStatus={RoomStatus.PRESENTING}
-          defaultTime={40}
-        />
-      </div>
-      {/* Instructions*/}
-      <Instructions instructionPics={hangmanInstructions} />
     </div>
   );
 };

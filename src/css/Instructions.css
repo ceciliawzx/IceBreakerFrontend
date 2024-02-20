@@ -1,20 +1,23 @@
-.instruction-button{
+.instruction-button {
   display: flex;
-  flex-direction: column;
-  position: fixed;
-  top: 0;
-  left: 0;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
   margin: 10px;
   z-index: 1000;
-  background-color: var(--common-button);
-  padding: 10px;
-  border: none;
-  border-radius: 50px;
+
+  border: 3px solid var(--common-button);
+  border-radius: 50%;
   cursor: pointer;
+  font-size: 1.5rem;
+  background-color: var(--common-button);
+  color: white;
 }
 
 .instruction-button:hover {
-  background-color: var(--common-button-hover);
+  color: var(--common-button);
+  background-color: transparent;
 }
 
 .instruction-modal {
@@ -48,7 +51,6 @@
 
 .instruction-navigation button:hover {
   background-color: rgba(255, 255, 255, 0.694);
-  
 }
 
 .close-instruction {
@@ -73,7 +75,7 @@
 }
 
 .instruction-content p {
-  font-size: 25px; 
+  font-size: 25px;
   margin-bottom: 20px;
 }
 
