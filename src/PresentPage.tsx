@@ -79,7 +79,6 @@ const PresentPage = () => {
   }, []);
 
   useEffect(() => {
-    console.log("presenter ??? ", presenter);
     if (presenter !== null) {
       setRender(true);
     }
@@ -108,7 +107,6 @@ const PresentPage = () => {
   }, []);
 
   useEffect(() => {
-    console.log("presenter ??? ", presenter);
     if (presenter !== null) {
       setRender(true);
     }
@@ -150,12 +148,10 @@ const PresentPage = () => {
 
         const data = await response.json();
         const fieldList = Object.values(data.presentRoomInfo);
-        console.log("get all presented?: ", fieldList);
 
         const fieldsToCheck = fieldList.slice(2);
         const allFieldsPresented = fieldsToCheck.every((value: any) => value);
         setAllPresented(allFieldsPresented);
-        console.log("set all presented?: ", allPresented);
 
         if (!response.ok) {
           throw new Error("Failed to get allPresented info");
