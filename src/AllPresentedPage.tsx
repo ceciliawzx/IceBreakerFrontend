@@ -76,10 +76,7 @@ const AllPresentedPage: React.FC = () => {
 
   // Fetch all users when component mounts
   useEffect(() => {
-    const intervalId = setInterval(() => {
       fetchUsers();
-    }, refreshTime);
-    return () => clearInterval(intervalId);
   }, []);
 
   return (
