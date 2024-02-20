@@ -194,17 +194,6 @@ const PictionaryPage = () => {
           externalDrawing={externalDrawing}
           target={target}
         />
-        {showModal && (
-          <Modal
-            onClose={() => {
-              setShowModal(false);
-              handleBackToPresentRoom();
-            }}
-            targetWord={targetWord}
-            userID={userID}
-            adminID={admin.userID}
-          />
-        )}
         <div>
           {(isPresenter || userID === admin.userID) && (
             <button
@@ -217,6 +206,18 @@ const PictionaryPage = () => {
           )}
         </div>
       </div>
+
+      {showModal && (
+        <Modal
+          onClose={() => {
+            setShowModal(false);
+            handleBackToPresentRoom();
+          }}
+          targetWord={targetWord}
+          userID={userID}
+          adminID={admin.userID}
+        />
+      )}
     </div>
   );
 };
