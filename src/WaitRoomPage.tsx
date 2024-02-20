@@ -171,7 +171,6 @@ const WaitRoomPage = () => {
   };
 
   const handleReceiveNotification = async () => {
-
     setShowRingPopUp(false);
   };
 
@@ -579,7 +578,7 @@ const WaitRoomPage = () => {
                   className="column-container"
                   style={{ paddingBottom: "30px" }}
                 >
-                  {isAdmin && (
+                  {isAdmin && !guest.completed && (
                     <button
                       className="button red-button"
                       onClick={() => handleRingUser(guest.userID)}
