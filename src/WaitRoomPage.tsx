@@ -37,6 +37,7 @@ const WaitRoomPage = () => {
   const [allGuestsCompleted, setAllGuestsCompleted] = useState(false);
   const [roomStatus, setRoomStatus] = useState<RoomStatus>(RoomStatus.WAITING);
   const [showRingPopUp, setShowRingPopUp] = useState(false);
+  const [showFinishPopUp, setShowFinishPopup] = useState(false);
 
   const handleStartRoom = async () => {
     // Tell server that to start room
@@ -115,6 +116,9 @@ const WaitRoomPage = () => {
         navigate("/");
       }
     }
+  };
+  const handleFinishPresent = () => {
+    setShowFinishPopup(true);
   };
 
   const handleChangePresenter = () => {
@@ -613,6 +617,16 @@ const WaitRoomPage = () => {
           ))}
         </div>
       </div>
+
+      {!hasPresented && (
+        <button
+          className="button common-button"
+          onClick={handleUserInformation}
+        >
+          Enter your information
+        </button>
+      )}
+
       {isAdmin && (
         <button
           className="button admin-only-button"
@@ -622,12 +636,13 @@ const WaitRoomPage = () => {
           Start Presenting
         </button>
       )}
-      {!hasPresented && (
+
+      {isAdmin && (
         <button
-          className="button common-button"
-          onClick={handleUserInformation}
+          className="button admin-only-button"
+          onClick={handleFinishPresent}
         >
-          Enter your information
+          Finish Presenting
         </button>
       )}
 
@@ -650,7 +665,11 @@ const WaitRoomPage = () => {
             </p>
             <button
               className="button common-button"
-              onClick={() => navigate("/")}
+              onClick={() =>
+                navigate("/AllPresentedPage", {
+                  state: { user, admin, presenter, guests },
+                })
+              }
             >
               OK
             </button>
@@ -746,6 +765,41 @@ const WaitRoomPage = () => {
             >
               Export as PDF
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Finish presenting popup */}
+      {showFinishPopUp && (
+        <div className="overlay-popup">
+          <div className="popup">
+            <div>
+              <p>Do you really want to finish presenting?</p>
+              <p>The rest people have not presented:</p>
+              {notPresented.map((user: any) => (
+                <p key={user.userID}>{user.displayName}</p>
+              ))}
+            </div>
+
+            <div className="column-container">
+              <button
+                className="button admin-only-button"
+                onClick={() => setShowFinishPopup(false)}
+              >
+                Continue Presenting
+              </button>
+
+              <button
+                className="button admin-only-button"
+                onClick={() =>
+                  navigate("/AllPresentedPage", {
+                    state: { user, admin, presenter, guests },
+                  })
+                }
+              >
+                Finish Presenting
+              </button>
+            </div>
           </div>
         </div>
       )}

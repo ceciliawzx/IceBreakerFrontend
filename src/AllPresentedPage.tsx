@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { serverPort } from "./macro/MacroServer";
-import { refreshTime } from "./macro/MacroConst";
 import { User } from "./type/User";
 import { UserProfile } from "./type/UserProfile";
 import exportUserProfileAsPDF from "./utils/ExportPDF";
