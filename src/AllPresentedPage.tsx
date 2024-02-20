@@ -61,9 +61,14 @@ const AllPresentedPage: React.FC = () => {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
       const data = await response.json();
-      const users = [data.admin, ...data.otherPlayers];
+      let users;
+      if (data.admin === data.presenter) {
+        users = [data.admin, ...data.otherPlayers];
+      } else {
+        users = [...[data.admin], ...[data.presenter], ...data.otherPlayers];
+      }
       setAllUsers(users);
-      console.log("all users: ", allUsers);
+      console.log("all users: ", data);
 
     } catch (error) {
       console.error("Error fetching all users:", error);
@@ -72,7 +77,10 @@ const AllPresentedPage: React.FC = () => {
 
   // Fetch all users when component mounts
   useEffect(() => {
-    fetchUsers();
+    const intervalId = setInterval(() => {
+      fetchUsers();
+    }, refreshTime);
+    return () => clearInterval(intervalId);
   }, []);
 
   return (
