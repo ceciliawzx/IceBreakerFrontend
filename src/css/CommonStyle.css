@@ -39,7 +39,8 @@
   display: flex;
   flex-direction: row;
   justify-items: center;
-  height: 100vh;
+  min-height: 100vh;
+  margin-left: 2%;
 }
 
 .center-page {
@@ -48,7 +49,7 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  height: 100vh;
+  min-height: 100vh;
   position: relative;
 }
 
@@ -66,12 +67,23 @@
   align-items: center;
 }
 
+.up-row {
+  flex: 0.2;
+  flex-wrap: nowrap;
+}
+
+.down-row {
+  flex: 0.8;
+}
+
 .left-column {
   flex: 0.1;
+  display: flex;
+  flex-direction: column;
 }
 
 .main-column {
-  flex: 0.6;
+  flex: 0.7;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -80,7 +92,7 @@
 }
 
 .right-column {
-  flex: 0.3;
+  flex: 0.2;
 }
 
 .avatar {

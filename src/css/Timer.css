@@ -1,11 +1,7 @@
-/* Timer.css */
 .timerContainer {
   display: flex;
   flex-direction: column;
-  position: fixed;
-  top: 0;
-  right: 0;
-  margin: 10px;
+  margin: 10px 10px;
   z-index: 1000; /* Ensure it stays on top */
   background-color: white; /* For better visibility */
   padding: 10px;
@@ -14,3 +10,4 @@
   width: auto;
   max-width: 120px; /* Adjust based on content size */
 }
+

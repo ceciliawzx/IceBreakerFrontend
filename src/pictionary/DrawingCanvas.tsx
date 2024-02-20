@@ -205,7 +205,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
             />
           ))}
           <button
-            className="small-common-button"
+            className="button common-button"
             id="eraser"
             onClick={() => setIsEraser(!isEraser)}
           >
