@@ -43,9 +43,9 @@ const Wordle = () => {
   const userID = user.userID;
   const roomCode = user.roomCode;
   const isAdmin = user.isAdmin;
-  const admin = location.state?.admin;
-  const presenter = location.state?.presenter;
-  const guests: User[] = location.state?.guests;
+  const [admin, setAdmin] = useState<User>(location.state?.admin);
+  const [presenter, setPresenter] = useState<User>(location.state?.presenter);
+  const [guests, setGuests] = useState<User[]>(location.state?.guests);
   const fieldName = location.state?.selectedField;
 
   /* Pop up */
@@ -102,6 +102,10 @@ const Wordle = () => {
     fetchWordLength();
     fetchTargetWord();
 
+    console.log("Location guest: ", guests);
+
+    // get player status
+    checkPlayers();
     checkNotPresented();
   }, []);
 
@@ -494,6 +498,64 @@ const Wordle = () => {
             "--light-grey-background"
           ),
         };
+    }
+  };
+
+  // Get player info when start
+  const checkPlayers = async () => {
+    const url = `${serverPort}/getPlayers?roomCode=${roomCode}`;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error("Room cannot be found");
+      }
+
+      const data = await response.json();
+
+      if (data.admin) {
+        setAdmin(
+          new User(
+            roomCode,
+            data.admin.userID,
+            data.admin.displayName,
+            true,
+            // need to change after present room is completed
+            true,
+            data.admin.profileImage,
+            data.admin.completed
+          )
+        );
+      }
+      if (data.presenter) {
+        setPresenter(
+          new User(
+            roomCode,
+            data.presenter.userID,
+            data.presenter.displayName,
+            false,
+            true,
+            data.presenter.profileImage,
+            data.presenter.completed
+          )
+        );
+      }
+      if (data.otherPlayers) {
+        const updatedGuests = data.otherPlayers.map(
+          (guest: User) =>
+            new User(
+              roomCode,
+              guest.userID,
+              guest.displayName,
+              false,
+              false,
+              guest.profileImage,
+              guest.completed
+            )
+        );
+        setGuests(updatedGuests);
+      }
+    } catch (error) {
+      console.error("Error fetching players:", error);
     }
   };
 

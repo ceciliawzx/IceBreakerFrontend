@@ -310,7 +310,6 @@ const WaitRoomPage = () => {
       if (data.roomStatus) {
         setRoomStatus(data.roomStatus);
       }
-      console.log("roome status:", roomStatus);
     } catch (error) {
       console.error("Error fetching players:", error);
     }
@@ -361,8 +360,6 @@ const WaitRoomPage = () => {
       const data = await response.json();
       setNotPresented(data.notPresentedPeople || []);
       setHasPresented(!notPresented.some((npUser) => npUser.userID === userID));
-      console.log("check who has not presenter", notPresented);
-      console.log("current user presented?", hasPresented);
 
       if (!response.ok) {
         throw new Error("Room cannot be found");
