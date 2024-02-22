@@ -1,4 +1,4 @@
-// // Before push, change back to this deployed server
+// Before push, change back to this deployed server
 export const serverPort = "https://ice.ljthey.co.uk:8080";
 export const websocketPort = "wss://ice.ljthey.co.uk:8080";
 

@@ -21,6 +21,7 @@ const ChatRoom: React.FC = () => {
   const roomCode = user.roomCode;
   const [message, setMessage] = useState<string>("");
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [render, setRender] = useState(false);
 
   const socketUrl = `${serverPort}/chat?userId=${userID}`;
   const websocketUrl = `${websocketPort}/chat?userId=${userID}`;
@@ -30,7 +31,7 @@ const ChatRoom: React.FC = () => {
   useEffect(() => {
     const onMessageReceived = (msg: ChatMessage) => {
         setChatHistory((prevHistory) => [...prevHistory, msg])};
-    connect(socketUrl, websocketUrl, topic, onMessageReceived);
+    connect(socketUrl, websocketUrl, topic, onMessageReceived, setRender);
   }, []);
 
   const handleSendMessage = () => {
@@ -64,7 +65,7 @@ const ChatRoom: React.FC = () => {
     }
   };
 
-  return (
+  return render ? (
     <div className={`chat-room-page`}>
       <div className="chat-room-bar">
         <div className="chat-room-header">
@@ -103,7 +104,7 @@ const ChatRoom: React.FC = () => {
         </div>
       </div>
     </div>
-  );
+  ) : <></>;
 };
 
 export default ChatRoom;

@@ -403,8 +403,7 @@ const PresentPage = () => {
       checkPresentRoomInfo();
     }, refreshTime);
     return () => clearInterval(intervalId);
-    // Add other navigation conditions if needed
-  }, [user, presenter]);
+  }, []);
 
   const fetchPresenterInfo = async () => {
     try {
@@ -531,7 +530,6 @@ const PresentPage = () => {
             Back to WaitRoom
           </button>
         )}
-
         {userID === admin.userID && (
           <button
             className="button admin-only-button"

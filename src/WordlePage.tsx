@@ -84,6 +84,8 @@ const Wordle = () => {
     Array.from(alphabet).map((_) => LetterStatus.UNCHECKED)
   );
 
+  const [render, setRender] = useState(false);
+
   /*
       TODO:
       Ensure input after web socket connected
@@ -96,7 +98,7 @@ const Wordle = () => {
     };
 
     // Initialize web socket
-    connect(socketUrl, websocketUrl, topic, onMessageReceived);
+    connect(socketUrl, websocketUrl, topic, onMessageReceived, setRender);
 
     // fetch target word
     fetchWordLength();
@@ -559,7 +561,7 @@ const Wordle = () => {
     }
   };
 
-  return (
+  return render ? (
     <div className="row-page">
       <div className="left-column">
         <div className="row-container up-row">
@@ -777,7 +779,7 @@ const Wordle = () => {
         />
       )}
     </div>
-  );
+  ) : <></>;
 };
 
 export default Wordle;
