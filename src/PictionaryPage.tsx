@@ -43,6 +43,7 @@ const PictionaryPage = () => {
   const [targetWord, setTargetWord] = useState("");
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
+  const [render, setRender] = useState(false);
 
   // Fetch targetWord
   const fetchTargetWord = async () => {
@@ -116,7 +117,7 @@ const PictionaryPage = () => {
     const socketUrl = `${serverPort}/chat?userId=${userID}`;
     const websocketUrl = `${websocketPort}/chat?userId=${userID}`;
     const topic = `/topic/room/${roomCode}/drawing`;
-    connect(socketUrl, websocketUrl, topic, handleReceivedDrawing);
+    connect(socketUrl, websocketUrl, topic, handleReceivedDrawing, setRender);
   }, []);
 
   // Send DrawingMessage to server
@@ -165,7 +166,7 @@ const PictionaryPage = () => {
       </div>
     ) : null;
 
-  return (
+  return render ? (
     <div className="row-page">
       <div className="left-column">
         <div className="row-container up-row">
@@ -219,7 +220,7 @@ const PictionaryPage = () => {
         />
       )}
     </div>
-  );
+  ) : <></>;
 };
 
 export default PictionaryPage;

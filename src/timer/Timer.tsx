@@ -27,6 +27,8 @@ export const Timer = ({
   const socketUrl = `${serverPort}/chat?userId=${userID}`;
   const websocketUrl = `${websocketPort}/chat?userId=${userID}`;
 
+  const [render, setRender] = useState(false);
+
   const onTimerMessageReceived = useCallback((msg: number) => {
     setTimeLeft(msg);
   }, []);
@@ -34,7 +36,7 @@ export const Timer = ({
   useEffect(() => {
     // Connect to WebSocket and set up subscription
     const topic = `/topic/room/${roomCode}/timer`;
-    connect(socketUrl, websocketUrl, topic, onTimerMessageReceived);
+    connect(socketUrl, websocketUrl, topic, onTimerMessageReceived, setRender);
     setInputValue(defaultTime.toString());
   }, []);
   
@@ -72,7 +74,7 @@ export const Timer = ({
     sendMsg(destination, timerMessage);
   };
 
-  return (
+  return render ? (
     <div className="timerContainer">
       <div>
         Time Left:{" "}
@@ -99,5 +101,5 @@ export const Timer = ({
         </div>
       )}
     </div>
-  );
+  ) : <></>;
 };

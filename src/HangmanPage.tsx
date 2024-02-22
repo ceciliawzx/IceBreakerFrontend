@@ -99,6 +99,8 @@ const HangmanPage = () => {
     Array.from(alphabet).map((_) => LetterStatus.UNCHECKED)
   );
 
+  const [render, setRender] = useState(false);
+
   // When launch
   useEffect(() => {
     // Initialize web socket
@@ -109,7 +111,7 @@ const HangmanPage = () => {
     };
 
     // Initialize web socket
-    connect(socketUrl, websocketUrl, topic, onMessageReceived);
+    connect(socketUrl, websocketUrl, topic, onMessageReceived, setRender);
 
     // fetch target word
     fetchWordLength();
@@ -455,7 +457,7 @@ const HangmanPage = () => {
 
   const isSameUser = (self: User, other: User) => self.userID === other.userID;
 
-  return (
+  return render ? (
     <div className="row-page">
       <div className="left-column">
         <div className="row-container up-row">
@@ -639,7 +641,7 @@ const HangmanPage = () => {
         />
       )}
     </div>
-  );
+  ) : <></>;
 };
 
 export default HangmanPage;

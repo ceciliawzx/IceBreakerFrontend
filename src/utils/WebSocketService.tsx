@@ -7,7 +7,8 @@ const connect = (
   socketUrl: string,
   webSocketUrl: string,
   topic: string,
-  onMessageReceived: (msg: any) => void
+  onMessageReceived: (msg: any) => void,
+  setRender: (render: boolean) => void
 ) => {
   const socket = new SockJS(socketUrl);
   client = new Client({
@@ -17,6 +18,7 @@ const connect = (
       console.log("Connected to STOMP server"); // Logging connection
       setTimeout(() => {
         if (client && client.connected) {
+          setRender(true);
           console.log(`Subscribing to topic ${topic}`);
           client.subscribe(topic, (message) => {
             console.log("receiving message ", message.body);
@@ -25,7 +27,7 @@ const connect = (
         } else {
           console.error("STOMP client is not connected");
         }
-      }, 1000); // Delay of 1 second
+      }, 100); // Delay of 0.1 second
     },
     onStompError: (frame) => {
       console.error("Broker reported error: " + frame.headers["message"]);
