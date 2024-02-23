@@ -445,10 +445,10 @@ const WaitRoomPage = () => {
       handleKickUser(userID);
     };
 
-    window.addEventListener("beforeunload", notifyServerOnUnload);
+    window.addEventListener("unload", notifyServerOnUnload);
 
     return () => {
-      window.removeEventListener("beforeunload", notifyServerOnUnload);
+      window.removeEventListener("unload", notifyServerOnUnload);
     };
   }, []);
 
@@ -459,14 +459,30 @@ const WaitRoomPage = () => {
           handleChangePresenterAfterQuitting(admin!.userID);
         };
 
-        window.addEventListener("beforeunload", notifyServerOnUnload);
+        window.addEventListener("unload", notifyServerOnUnload);
 
         return () => {
-          window.removeEventListener("beforeunload", notifyServerOnUnload);
+          window.removeEventListener("unload", notifyServerOnUnload);
         };
       }
     }
   }, [admin, presenter]);
+
+  useEffect(() => {
+    if (admin?.userID) {
+      if (admin.userID === userID) {
+        const notifyServerOnUnload = () => {
+          handleLeaveRoom();
+        };
+
+        window.addEventListener("unload", notifyServerOnUnload);
+
+        return () => {
+          window.removeEventListener("unload", notifyServerOnUnload);
+        };
+      }
+    }
+  }, [admin]);
 
   useEffect(() => {
     checkRing();
