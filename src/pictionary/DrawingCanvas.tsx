@@ -150,38 +150,39 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     draw(drawingData); // End the current path
   };
 
+  const handleMouseLeave = (event: MouseEvent) => {
+    if (!isDrawer || !isDrawing.current) return;
+
+    isDrawing.current = false;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    // Capture the last trace within the canvas before stopping
+    const drawingData: DrawingData = {
+      x,
+      y,
+      drawing: false,
+      newLine: false,
+      color: isEraser ? backgroundColor : selectedColor,
+      strokeWidth: isEraser ? 20 : 2,
+      eraser: isEraser,
+    };
+    // Optionally send the last part of the trace to the server here
+    onDraw(drawingData);
+  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-  
-    const handleMouseLeave = (event: MouseEvent) => {
-      if (!isDrawer || !isDrawing.current) return;
-  
-      isDrawing.current = false;
-  
-      const rect = canvas.getBoundingClientRect();
-      const x = event.clientX - rect.left;
-      const y = event.clientY - rect.top;
-  
-      // Capture the last trace within the canvas before stopping
-      const drawingData: DrawingData = {
-        x,
-        y,
-        drawing: false,
-        newLine: false,
-        color: isEraser ? backgroundColor : selectedColor,
-        strokeWidth: isEraser ? 20 : 2,
-        eraser: isEraser,
-      };
-  
-      // Optionally send the last part of the trace to the server here
-      onDraw(drawingData);
-  
-      // No need to log here, but useful for debugging
-      console.log("Drawing stopped as cursor left the canvas");
-    };
-  
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
     canvas.addEventListener("mousedown", handleMouseDown);
     canvas.addEventListener("mouseup", handleMouseUp);
     canvas.addEventListener("mousemove", handleMouseMove);
@@ -193,7 +194,19 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       canvas.removeEventListener("mousemove", handleMouseMove);
       canvas.removeEventListener("mouseleave", handleMouseLeave);
     };
-  }, [isEraser]); // Update dependencies if necessary
+  }, [handleMouseDown, handleMouseUp, handleMouseMove, handleMouseLeave]); 
+
+   // Change cursor
+   useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    if (isEraser) {
+      canvas.classList.add("eraser-cursor");
+    } else {
+      canvas.classList.remove("eraser-cursor");
+    }
+  }, [isEraser]);
   
 
   // Placeholder for non-drawer users to maintain layout consistency
