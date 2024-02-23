@@ -30,6 +30,7 @@ const UserProfilePage = () => {
   const [image, setImage] = useState('');
   const [showKickPopup, setShowKickPopup] = useState(false);
   const [showRingPopUp, setShowRingPopUp] = useState(false);
+  const [filter, setFilter] = useState('');
 
   const startCamera = () => {
     setShowCameraPopup(true);
@@ -67,6 +68,7 @@ const UserProfilePage = () => {
       const context = canvas.getContext('2d');
       if (context) {
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        applyFilter(context);
         const imageData = canvas.toDataURL('image/png');
         setImage(imageData); // This is the image in base64 format
         setSelfieBase64(imageData);
@@ -132,6 +134,36 @@ const UserProfilePage = () => {
     }
   };
 
+  const applyFilter = (context: CanvasRenderingContext2D) => {
+    switch (filter) {
+      case 'grayscale':
+        context.filter = 'grayscale(100%)';
+        break;
+      case 'sepia':
+        context.filter = 'sepia(100%)';
+        break;
+      case 'invert':
+        context.filter = 'invert(100%)';
+        break;
+      case 'blur':
+        context.filter = 'blur(5px)';
+        break;
+      case 'contrast':
+        context.filter = 'contrast(150%)';
+        break;
+      case 'saturate':
+        context.filter = 'saturate(200%)';
+        break;
+      case 'brightness':
+        context.filter = 'brightness(120%)';
+        break;
+      case 'shadow':
+        context.filter = 'drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.3))';
+        break;
+      default:
+        context.filter = 'none';
+    }
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -308,6 +340,17 @@ const UserProfilePage = () => {
             <div className="row-container">
               <button className="button common-button" onClick={captureImage}>Capture Image</button>
               <button className="button common-button" onClick={closeCamera}>Confirm</button>
+              <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+                <option value="">No Filter</option>
+                <option value="grayscale">Grayscale</option>
+                <option value="sepia">Sepia</option>
+                <option value="invert">Invert</option>
+                <option value="blur">Smooth</option>
+                <option value="contrast">Contrast</option>
+                <option value="saturate">Saturate</option>
+                <option value="brightness">Brighten</option>
+                <option value="shadow">Shadow</option>
+              </select>
             </div>
             <canvas ref={canvasRef} width="640" height="480" style={{ display: 'none' }} />
             {image && <img src={image} alt="Captured" />}
