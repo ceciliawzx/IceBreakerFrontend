@@ -11,7 +11,7 @@ const UserProfilePage = () => {
   const navigate = useNavigate();
   const user = location.state?.user;
   const userID = user.userID;
-  const preID = location.state?.preID;
+
   const roomCode = user.roomCode;
   const displayName = user.displayName;
   const [message, setMessage] = useState("");

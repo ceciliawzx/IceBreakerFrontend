@@ -43,9 +43,9 @@ const Wordle = () => {
   const userID = user.userID;
   const roomCode = user.roomCode;
   const isAdmin = user.isAdmin;
-  const [admin, setAdmin] = useState<User>(location.state?.admin);
-  const [presenter, setPresenter] = useState<User>(location.state?.presenter);
-  const [guests, setGuests] = useState<User[]>(location.state?.guests);
+  const [admin, setAdmin] = useState<User | null>(null);
+  const [presenter, setPresenter] = useState<User | null>(null);
+  const [guests, setGuests] = useState<User[]>([]);
   const fieldName = location.state?.selectedField;
 
   /* Pop up */
@@ -66,7 +66,7 @@ const Wordle = () => {
   /* Wordle related */
   const totalAttempts = Math.max(6, guests.length);
 
-  const [currentGuesser, setCurrentGuesser] = useState<User>(guests[0]);
+  const [currentGuesser, setCurrentGuesser] = useState<User | null>(null);
   const [currentAttempt, setCurrentAttempt] = useState<number>(0);
   const [targetCharNum, setTargetCharNum] = useState<number>(0);
   const [targetWord, setTargetWord] = useState<string>("");
@@ -86,11 +86,6 @@ const Wordle = () => {
 
   const [render, setRender] = useState(false);
 
-  /*
-      TODO:
-      Ensure input after web socket connected
-  */
-
   // When launch
   useEffect(() => {
     const onMessageReceived = (msg: WordleMsg | BackMessage | ModalMessage) => {
@@ -109,8 +104,6 @@ const Wordle = () => {
     // fetch target word
     fetchWordLength();
     fetchTargetWord();
-
-    console.log("Location guest: ", guests);
 
     // get player status
     checkPlayers();
@@ -525,31 +518,10 @@ const Wordle = () => {
       const data = await response.json();
 
       if (data.admin) {
-        setAdmin(
-          new User(
-            roomCode,
-            data.admin.userID,
-            data.admin.displayName,
-            true,
-            // need to change after present room is completed
-            true,
-            data.admin.profileImage,
-            data.admin.completed
-          )
-        );
+        setAdmin(data.admin);
       }
       if (data.presenter) {
-        setPresenter(
-          new User(
-            roomCode,
-            data.presenter.userID,
-            data.presenter.displayName,
-            false,
-            true,
-            data.presenter.profileImage,
-            data.presenter.completed
-          )
-        );
+        setPresenter(data.presenter);
       }
       if (data.otherPlayers) {
         const updatedGuests = data.otherPlayers.map(
@@ -565,6 +537,7 @@ const Wordle = () => {
             )
         );
         setGuests(updatedGuests);
+        setCurrentGuesser(updatedGuests[0]);
       }
     } catch (error) {
       console.error("Error fetching players:", error);
@@ -603,9 +576,7 @@ const Wordle = () => {
                 onClick={() => handleViewProfile(presenter)}
                 disabled={
                   !isAdmin &&
-                  notPresented.some(
-                    (npUser) => npUser.userID === presenter?.userID
-                  )
+                  notPresented.some((npUser) => isSameUser(npUser, presenter))
                 }
               >
                 View Profile
@@ -628,7 +599,7 @@ const Wordle = () => {
               // If not admin and not presented and not me
               disabled={
                 !isAdmin &&
-                notPresented.some((npUser) => npUser.userID === admin?.userID)
+                notPresented.some((npUser) => isSameUser(npUser, admin))
               }
             >
               View Profile
@@ -639,7 +610,7 @@ const Wordle = () => {
       <div className="main-column" onKeyDown={handleKeyPress}>
         <h1>Welcome to Wordle, {user.displayName}!</h1>
         <h1>
-          We are guessing: {presenter.displayName}'s {selectedField}!
+          We are guessing: {presenter?.displayName}'s {selectedField}!
         </h1>
         <h2>Current guesser is: {currentGuesser?.displayName}</h2>
         <div className="wordle-input">
@@ -743,8 +714,8 @@ const Wordle = () => {
                     onClick={() => handleViewProfile(guest)}
                     disabled={
                       !isAdmin &&
-                      notPresented.some(
-                        (npUser) => npUser.userID === guest.userID
+                      notPresented.some((npUser) =>
+                        isSameUser(npUser, guest)
                       ) &&
                       !isSameUser(guest, user)
                     }
@@ -785,7 +756,7 @@ const Wordle = () => {
           }}
           targetWord={targetWord}
           userID={userID}
-          adminID={admin.userID}
+          adminID={admin?.userID || "Cannot find admin"}
         />
       )}
     </div>

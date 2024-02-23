@@ -12,17 +12,30 @@ import { updatePresentRoomInfo } from "./utils/RoomOperation";
 import "./css/PresentPage.css";
 import blackBoard from "./assets/BlackBoard.png";
 import { disableScroll } from "./utils/CssOperation";
+import { isSameUser } from "./utils/CommonCompare";
 
 const PresentPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const user: UserProfile = location.state?.user;
+  const user: User = location.state?.user;
   const userID: string = user.userID;
   const roomCode: string = user.roomCode;
-  // const presenter: User = location.state?.presenter;
-  const admin: User = location.state?.admin;
-  const guests: UserProfile[] = location.state?.guests;
+
+  const [admin, setAdmin] = useState<User | null>(null);
+  const [presenter, setPresenter] = useState<User | null>(null);
+  const [isPresenter, setIsPresenter] = useState(false);
   const [presenterInfo, setPresenterInfo] = useState<UserProfile | null>(null);
+
+  // state to track gameSelector
+  const [activeGameSelector, setActiveGameSelector] = useState(null);
+  const [roomStatus, setRoomStatus] = useState<RoomStatus>(
+    RoomStatus.PRESENTING
+  );
+  const [selectedField, setSelectedField] = useState<keyof PresentRoomInfo>();
+  const [allPresented, setAllPresented] = useState<boolean>(false);
+
+  const [render, setRender] = useState(false);
+
   const [presentRoomInfo, setPresentRoomInfo] = useState<PresentRoomInfo>({
     firstName: false,
     lastName: false,
@@ -32,7 +45,7 @@ const PresentPage = () => {
     favFood: false,
     favActivity: false,
   });
-  // const isPresenter: boolean = user.userID === presenter.userID;
+
   const [availableGamesForField, setAvailableGamesForField] = useState({
     firstName: [],
     lastName: [],
@@ -42,32 +55,26 @@ const PresentPage = () => {
     favFood: [],
     favActivity: [],
   });
-  // state to track gameSelector
-  const [activeGameSelector, setActiveGameSelector] = useState(null);
-  const [roomStatus, setRoomStatus] = useState<RoomStatus>(
-    RoomStatus.PRESENTING
-  );
-  const [selectedField, setSelectedField] = useState<keyof PresentRoomInfo>();
-  const [presenter, setPresenter] = useState<UserProfile | null>(null);
-  const [isPresenter, setIsPresenter] = useState(false);
-  const [render, setRender] = useState(false);
-  const [allPresented, setAllPresented] = useState<boolean>(false);
 
   // disable scroll for this page
   useEffect(disableScroll, []);
 
-  // Fetch the presenter info
+  // Fetch the presenter info when mount
   useEffect(() => {
     // Define an IIFE to handle async operation
     (async () => {
       try {
         const response = await fetch(
-          `${serverPort}/getPresenter?roomCode=${roomCode}`
+          `${serverPort}/getPlayers?roomCode=${roomCode}`
         );
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const data = await response.json();
+        if (data && data.admin) {
+          setAdmin(data.admin);
+        }
+
         if (data && data.presenter) {
           setPresenter(data.presenter);
           setIsPresenter(data.presenter.userID === userID);
@@ -78,34 +85,27 @@ const PresentPage = () => {
     })();
   }, []);
 
+  // Check what fields of presentRoomInfo are revealed every interval
   useEffect(() => {
-    if (presenter !== null) {
-      setRender(true);
+    const intervalId = setInterval(() => {
+      checkPresentRoomInfo();
+    }, refreshTime);
+    return () => clearInterval(intervalId);
+  }, []);
+
+  // Fetch presenterInfo
+  useEffect(() => {
+    // fetch detailed information of presenter when entering the room
+    if (presenter?.userID) {
+      fetchPresenterInfo();
+      // Refetch available games for each field when the component mounts
+      Object.keys(presentRoomInfo).forEach((fieldName) => {
+        fetchAvailableGames(fieldName);
+      });
     }
   }, [presenter]);
 
-  // Fetch the presenter info
-  useEffect(() => {
-    // Define an IIFE to handle async operation
-    (async () => {
-      try {
-        const response = await fetch(
-          `${serverPort}/getPresenter?roomCode=${roomCode}`
-        );
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        const data = await response.json();
-        if (data && data.presenter) {
-          setPresenter(data.presenter);
-          setIsPresenter(data.presenter.userID === userID);
-        }
-      } catch (error) {
-        console.error("Failed to fetch presenter's info:", error);
-      }
-    })();
-  }, []);
-
+  // Set render
   useEffect(() => {
     if (presenter !== null) {
       setRender(true);
@@ -137,7 +137,7 @@ const PresentPage = () => {
         console.error("Error fetching getPlayers on interval:", error);
       }
 
-      // check if all fields submitted
+      // check if all fields revealed
       try {
         const response = await fetch(
           `${serverPort}/getPresentRoomInfo?roomCode=${roomCode}`,
@@ -171,11 +171,6 @@ const PresentPage = () => {
       navigate("/PictionaryRoomPage", {
         state: {
           user,
-          isPresenter: isPresenter,
-          admin,
-          presenter,
-          guests,
-          presentRoomInfo,
           selectedField,
         },
       });
@@ -185,11 +180,6 @@ const PresentPage = () => {
       navigate("/GeoguesserPage", {
         state: {
           user,
-          isPresenter: isPresenter,
-          admin,
-          presenter,
-          guests,
-          presentRoomInfo,
           selectedField,
         },
       });
@@ -199,11 +189,6 @@ const PresentPage = () => {
       navigate("/PictionaryRoomPage", {
         state: {
           user,
-          isPresenter: isPresenter,
-          admin,
-          presenter,
-          guests,
-          presentRoomInfo,
           selectedField,
         },
       });
@@ -213,10 +198,6 @@ const PresentPage = () => {
       navigate("/WordlePage", {
         state: {
           user,
-          admin,
-          presenter,
-          guests,
-          presentRoomInfo,
           selectedField,
         },
       });
@@ -226,10 +207,6 @@ const PresentPage = () => {
       navigate("/HangmanPage", {
         state: {
           user,
-          admin,
-          presenter,
-          guests,
-          presentRoomInfo,
           selectedField,
         },
       });
@@ -240,22 +217,10 @@ const PresentPage = () => {
       roomStatus === RoomStatus.All_PRESENTED
     ) {
       navigate("/WaitRoomPage", {
-        state: { user, admin },
+        state: { user },
       });
     }
   }, [roomStatus, user, presenter, allPresented]);
-
-  // Fetch presenterInfo
-  useEffect(() => {
-    // fetch detailed information of presenter when entering the room
-    if (presenter?.userID) {
-      fetchPresenterInfo();
-      // Refetch available games for each field when the component mounts
-      Object.keys(presentRoomInfo).forEach((fieldName) => {
-        fetchAvailableGames(fieldName);
-      });
-    }
-  }, [presenter?.userID]);
 
   // Function to toggle the game selector submenu
   const toggleGameSelector = (fieldName: any) => {
@@ -399,14 +364,6 @@ const PresentPage = () => {
     setActiveGameSelector(null);
   };
 
-  useEffect(() => {
-    // Check what fields of presentRoomInfo are revealed every interval
-    const intervalId = setInterval(() => {
-      checkPresentRoomInfo();
-    }, refreshTime);
-    return () => clearInterval(intervalId);
-  }, []);
-
   const fetchPresenterInfo = async () => {
     try {
       if (presenter) {
@@ -523,7 +480,7 @@ const PresentPage = () => {
       </div>
 
       <div className="row-container">
-        {userID === admin.userID && (
+        {isSameUser(user, admin) && (
           <button
             className="button admin-only-button"
             onClick={() => handleBackToWaitRoom()}
@@ -532,7 +489,7 @@ const PresentPage = () => {
             Back to WaitRoom
           </button>
         )}
-        {userID === admin.userID && (
+        {isSameUser(user, admin) && (
           <button
             className="button admin-only-button"
             onClick={() => handleRevealAll()}
