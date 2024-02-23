@@ -173,7 +173,7 @@ const AllPresentedPage: React.FC = () => {
         alt="Create Room"
         className="celebration-right"
       />
-      <h1>Congrautalations, {displayName}! </h1>
+      <h1>Congratulations, {displayName}! </h1>
       <h1>You have finished the Icebreaker!</h1>
       <div className="row-container">
         {allUsers.map((guest, index) => (
