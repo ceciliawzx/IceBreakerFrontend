@@ -1,0 +1,15 @@
+.celebration-left {
+  width: 25%;
+  height: auto;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+.celebration-right {
+  width: 25%;
+  height: auto;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
