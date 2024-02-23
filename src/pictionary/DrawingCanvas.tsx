@@ -38,6 +38,14 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     };
   }, []);
 
+  useEffect(() => {
+    if (externalDrawing) {
+      console.log("external", externalDrawing.drawingData);
+      // const { x, y, drawing, newLine } = externalDrawing.drawingData;
+      draw(externalDrawing.drawingData);
+    }
+  }, [externalDrawing]);
+
   const draw = useCallback(
     (drawingData: DrawingData) => {
       const canvas = canvasRef.current;
@@ -142,43 +150,51 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     draw(drawingData); // End the current path
   };
 
-  useEffect(() => {
-    if (externalDrawing) {
-      console.log("external", externalDrawing.drawingData);
-      // const { x, y, drawing, newLine } = externalDrawing.drawingData;
-      draw(externalDrawing.drawingData);
-    }
-  }, [externalDrawing]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
+  
+    const handleMouseLeave = (event: MouseEvent) => {
+      if (!isDrawer || !isDrawing.current) return;
+  
+      isDrawing.current = false;
+  
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+  
+      // Capture the last trace within the canvas before stopping
+      const drawingData: DrawingData = {
+        x,
+        y,
+        drawing: false,
+        newLine: false,
+        color: isEraser ? backgroundColor : selectedColor,
+        strokeWidth: isEraser ? 20 : 2,
+        eraser: isEraser,
+      };
+  
+      // Optionally send the last part of the trace to the server here
+      onDraw(drawingData);
+  
+      // No need to log here, but useful for debugging
+      console.log("Drawing stopped as cursor left the canvas");
+    };
+  
     canvas.addEventListener("mousedown", handleMouseDown);
     canvas.addEventListener("mouseup", handleMouseUp);
     canvas.addEventListener("mousemove", handleMouseMove);
-
+    canvas.addEventListener("mouseleave", handleMouseLeave);
+  
     return () => {
       canvas.removeEventListener("mousedown", handleMouseDown);
       canvas.removeEventListener("mouseup", handleMouseUp);
       canvas.removeEventListener("mousemove", handleMouseMove);
+      canvas.removeEventListener("mouseleave", handleMouseLeave);
     };
-  }, [handleMouseDown, handleMouseUp, handleMouseMove]);
-
-  // Change cursor
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    if (isEraser) {
-      canvas.classList.add("eraser-cursor");
-    } else {
-      canvas.classList.remove("eraser-cursor");
-    }
-  }, [isEraser]);
+  }, [isEraser]); // Update dependencies if necessary
+  
 
   // Placeholder for non-drawer users to maintain layout consistency
   const Placeholder = () => <div style={{ height: "51px" }}></div>;
