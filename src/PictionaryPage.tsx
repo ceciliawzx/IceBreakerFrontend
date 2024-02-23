@@ -189,7 +189,6 @@ const PictionaryPage = () => {
               defaultTime={60}
             />
           </div>
-
           <Instructions instructionPics={pictionaryInstructions} />
         </div>
         <div className="column-container down-row">
