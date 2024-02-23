@@ -68,7 +68,7 @@ const ChatRoom: React.FC = () => {
     }
   };
 
-  return render ? (
+  return (
     <div className={`chat-room-page`}>
       <div className="chat-room-bar">
         <div className="chat-room-header">
@@ -107,7 +107,7 @@ const ChatRoom: React.FC = () => {
         </div>
       </div>
     </div>
-  ) : <></>;
+  );
 };
 
 export default ChatRoom;
