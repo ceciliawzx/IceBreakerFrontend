@@ -16,6 +16,7 @@ import { Modal } from "./utils/Modal";
 import { PresentRoomInfo } from "./type/PresentRoomInfo";
 import Instructions from "./Instructions";
 import Inst1 from "./instructions/draw&guess/1.png";
+import { isSameUser } from "./utils/CommonCompare";
 
 const pictionaryInstructions = [
   {
@@ -29,21 +30,47 @@ const PictionaryPage = () => {
   const [externalDrawing, setExternalDrawing] = useState<DrawingMessage>();
   const user: User = location.state?.user;
   const userID = user?.userID;
-  // const isDrawer = user?.isPresenter;
-  const isDrawer = location.state?.isPresenter;
   const roomCode = user?.roomCode;
-  const admin = location.state?.admin;
-  const presenter: User = location.state?.presenter;
-  const guests = location.state?.guests;
-  const isPresenter = location.state?.isPresenter;
   const fieldName = location.state?.selectedField;
+
+  const [isDrawer, setIsDrawer] = useState(false);
   const [seletedField, setSelectedField] = useState<
     keyof PresentRoomInfo | null
   >(null);
+
+  const [admin, setAdmin] = useState<User | null>(null);
+  const [presenter, setPresenter] = useState<User | null>(null);
+
   const [targetWord, setTargetWord] = useState("");
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
   const [render, setRender] = useState(false);
+
+  useEffect(() => {
+    // get player status
+    checkPlayers();
+  }, []);
+
+  useEffect(() => {
+    // set target word
+    fetchTargetWord();
+    // connect to drawing websocket
+    const socketUrl = `${serverPort}/chat?userId=${userID}`;
+    const websocketUrl = `${websocketPort}/chat?userId=${userID}`;
+    const topic = `/topic/room/${roomCode}/drawing`;
+
+    // Store the cleanup function returned by connect
+    const cleanup = connect(
+      socketUrl,
+      websocketUrl,
+      topic,
+      handleReceivedDrawing,
+      setRender
+    );
+
+    // Return the cleanup function from useEffect
+    return cleanup; // This will be called when the component unmounts
+  }, []);
 
   // Fetch targetWord
   const fetchTargetWord = async () => {
@@ -67,7 +94,7 @@ const PictionaryPage = () => {
   // Back to present page directly without revealing the field
   const handleBackMessage = async () => {
     navigate("/PresentPage", {
-      state: { user, admin, presenter, guests },
+      state: { user },
     });
   };
 
@@ -109,27 +136,6 @@ const PictionaryPage = () => {
     []
   );
 
-  useEffect(() => {
-    // set target word
-    fetchTargetWord();
-    // connect to drawing websocket
-    const socketUrl = `${serverPort}/chat?userId=${userID}`;
-    const websocketUrl = `${websocketPort}/chat?userId=${userID}`;
-    const topic = `/topic/room/${roomCode}/drawing`;
-
-    // Store the cleanup function returned by connect
-    const cleanup = connect(
-      socketUrl,
-      websocketUrl,
-      topic,
-      handleReceivedDrawing,
-      setRender
-    );
-
-    // Return the cleanup function from useEffect
-    return cleanup; // This will be called when the component unmounts
-  }, []);
-
   // Send DrawingMessage to server
   const handleDraw = useCallback(
     (drawingData: DrawingData) => {
@@ -161,12 +167,12 @@ const PictionaryPage = () => {
   const target: JSX.Element | null =
     targetWord !== "" ? (
       <div className="word-display">
-        {isPresenter || (admin && userID === admin.userID) ? (
+        {isSameUser(presenter, user) || isSameUser(user, admin) ? (
           <span>Target Word: {targetWord}</span> // Show the target word to the presenter and admin
         ) : (
           <div>
             <div>
-              We are guessing {presenter.displayName}'s {seletedField}: {"  "}
+              We are guessing {presenter?.displayName}'s {seletedField}: {"  "}
             </div>
             <span className="underscore-display">
               {"_ ".repeat(targetWord.length).trim()}
@@ -175,6 +181,31 @@ const PictionaryPage = () => {
         )}
       </div>
     ) : null;
+
+  // Get player info when start
+  const checkPlayers = async () => {
+    const url = `${serverPort}/getPlayers?roomCode=${roomCode}`;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error("Room cannot be found");
+      }
+
+      const data = await response.json();
+
+      if (data.admin) {
+        setAdmin(data.admin);
+      }
+      if (data.presenter) {
+        setPresenter(data.presenter);
+      }
+
+      // If I am presenter, set isDrawer
+      setIsDrawer(isSameUser(data.presenter, user));
+    } catch (error) {
+      console.error("Error fetching players:", error);
+    }
+  };
 
   return render ? (
     <div className="row-page">
@@ -205,7 +236,7 @@ const PictionaryPage = () => {
           target={target}
         />
         <div>
-          {(isPresenter || userID === admin.userID) && (
+          {userID === admin?.userID && (
             <button
               id="back-to-presentroom-button"
               className="button admin-only-button"
@@ -225,7 +256,7 @@ const PictionaryPage = () => {
           }}
           targetWord={targetWord}
           userID={userID}
-          adminID={admin.userID}
+          adminID={admin?.userID || "Cannot find admin"}
         />
       )}
     </div>

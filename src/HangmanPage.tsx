@@ -15,6 +15,7 @@ import { Modal } from "./utils/Modal";
 import { Timer } from "./timer/Timer";
 import { RoomStatus } from "./type/RoomStatus";
 import { ModalMessage } from "./type/ModalMessage";
+import { isSameUser } from "./utils/CommonCompare";
 import Instructions from "./Instructions";
 import Inst1 from "./instructions/hangman/1.png";
 import Inst2 from "./instructions/hangman/2.png";
@@ -61,9 +62,10 @@ const HangmanPage = () => {
   const userID = user.userID;
   const roomCode = user.roomCode;
   const isAdmin = user.isAdmin;
-  const [admin, setAdmin] = useState<User>(location.state?.admin);
-  const [presenter, setPresenter] = useState<User>(location.state?.presenter);
-  const [guests, setGuests] = useState<User[]>(location.state?.guests);
+
+  const [admin, setAdmin] = useState<User | null>(null);
+  const [presenter, setPresenter] = useState<User | null>(null);
+  const [guests, setGuests] = useState<User[]>([]);
   const fieldName = location.state?.selectedField;
   const [selectedField, setSelectedField] = useState<keyof PresentRoomInfo>();
 
@@ -87,7 +89,7 @@ const HangmanPage = () => {
   const [isFinished, setIsFinished] = useState(false);
 
   const [currentGuesserId, setCurrentGuesserId] = useState(0);
-  const [currentGuesser, setCurrentGuesser] = useState<User>(guests[0]);
+  const [currentGuesser, setCurrentGuesser] = useState<User | null>(null);
   const [targetWord, setTargetWord] = useState<string>("");
 
   const [currentPositions, setCurrentPositions] = useState<number[]>([]);
@@ -420,31 +422,10 @@ const HangmanPage = () => {
       const data = await response.json();
 
       if (data.admin) {
-        setAdmin(
-          new User(
-            roomCode,
-            data.admin.userID,
-            data.admin.displayName,
-            true,
-            // need to change after present room is completed
-            true,
-            data.admin.profileImage,
-            data.admin.completed
-          )
-        );
+        setAdmin(data.admin);
       }
       if (data.presenter) {
-        setPresenter(
-          new User(
-            roomCode,
-            data.presenter.userID,
-            data.presenter.displayName,
-            false,
-            true,
-            data.presenter.profileImage,
-            data.presenter.completed
-          )
-        );
+        setPresenter(data.presenter);
       }
       if (data.otherPlayers) {
         const updatedGuests = data.otherPlayers.map(
@@ -460,13 +441,12 @@ const HangmanPage = () => {
             )
         );
         setGuests(updatedGuests);
+        setCurrentGuesser(updatedGuests[0]);
       }
     } catch (error) {
       console.error("Error fetching players:", error);
     }
   };
-
-  const isSameUser = (self: User, other: User) => self.userID === other.userID;
 
   return render ? (
     <div className="row-page">
@@ -499,8 +479,8 @@ const HangmanPage = () => {
                 onClick={() => handleViewProfile(presenter)}
                 disabled={
                   !isAdmin &&
-                  notPresented.some(
-                    (npUser) => npUser.userID === presenter?.userID
+                  notPresented.some((npUser) =>
+                    isSameUser(npUser, presenter)
                   ) &&
                   !isSameUser(presenter, user)
                 }
@@ -524,7 +504,7 @@ const HangmanPage = () => {
               onClick={() => handleViewProfile(admin)}
               disabled={
                 !isAdmin &&
-                notPresented.some((npUser) => npUser.userID === admin?.userID)
+                notPresented.some((npUser) => isSameUser(npUser, admin))
               }
             >
               View Profile
@@ -536,7 +516,7 @@ const HangmanPage = () => {
       <div className="main-column">
         <h1>Welcome to Hangman, {user.displayName}!</h1>
         <h1>
-          We are guessing: {presenter.displayName}'s {selectedField}!
+          We are guessing: {presenter?.displayName}'s {selectedField}!
         </h1>
         <h2>Current guesser is: {currentGuesser?.displayName}</h2>
         <div className="column-container">
@@ -607,8 +587,8 @@ const HangmanPage = () => {
                     onClick={() => handleViewProfile(guest)}
                     disabled={
                       !isAdmin &&
-                      notPresented.some(
-                        (npUser) => npUser.userID === guest.userID
+                      notPresented.some((npUser) =>
+                        isSameUser(npUser, guest)
                       ) &&
                       !isSameUser(guest, user)
                     }
@@ -648,7 +628,7 @@ const HangmanPage = () => {
           }}
           targetWord={targetWord}
           userID={userID}
-          adminID={admin.userID}
+          adminID={admin?.userID || "Cannot find admin"}
         />
       )}
     </div>

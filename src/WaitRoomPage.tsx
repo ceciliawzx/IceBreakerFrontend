@@ -9,6 +9,7 @@ import { UserProfile } from "./type/UserProfile";
 import { RoomStatus } from "./type/RoomStatus";
 import exportUserProfileAsPDF from "./utils/ExportPDF";
 import blackBoard from "./assets/BlackBoard.png";
+import { isSameUser } from "./utils/CommonCompare";
 
 const WaitRoomPage = () => {
   const location = useLocation();
@@ -17,20 +18,19 @@ const WaitRoomPage = () => {
   const userID = user.userID;
   const roomCode = user.roomCode;
   const displayName = user.displayName;
-  const [isPresenter, setIsPresenter] = useState(false);
+
   const [guests, setGuests] = useState<User[]>([]);
   const [admin, setAdmin] = useState<User | null>(null);
   const [presenter, setPresenter] = useState<User | null>(null);
   const [notPresented, setNotPresented] = useState<User[]>([]);
   const [hasPresented, setHasPresented] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+
   const [showKickPopup, setShowKickPopup] = useState(false);
   const [showDismissPopup, setShowDismissPopup] = useState(false);
   const [showChangePresenterPopup, setShowChangePresenterPopup] =
     useState(false);
-  const [selectedPresenterUserID, setSelectedPresenterUserID] = useState<
-    string | null
-  >(null);
+  const [selectedPresenter, setSelectedPresenter] = useState<User | null>(null);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
   const [selectedUserProfile, setSelectedUserProfile] =
     useState<UserProfile | null>(null);
@@ -53,10 +53,8 @@ const WaitRoomPage = () => {
   };
 
   const handleUserInformation = () => {
-    const preID = presenter?.userID;
-
     navigate("/UserProfilePage", {
-      state: { user, preID },
+      state: { user },
     });
   };
 
@@ -138,11 +136,11 @@ const WaitRoomPage = () => {
 
   const handleChangePresenter = () => {
     setShowChangePresenterPopup(true);
-    setSelectedPresenterUserID(null);
+    setSelectedPresenter(null);
   };
 
-  const handleSelectPresenter = (userID: string) => {
-    setSelectedPresenterUserID(userID);
+  const handleSelectPresenter = (selectedUser: User) => {
+    setSelectedPresenter(selectedUser);
   };
 
   const handleViewProfile = async (user: User | null) => {
@@ -195,12 +193,12 @@ const WaitRoomPage = () => {
 
   const confirmChangePresenter = () => {
     var newPresenter;
-    if (selectedPresenterUserID) {
-      if (selectedPresenterUserID === admin?.userID) {
+    if (selectedPresenter) {
+      if (isSameUser(selectedPresenter, admin)) {
         newPresenter = admin;
       } else {
-        newPresenter = guests.find(
-          (guest) => guest.userID === selectedPresenterUserID
+        newPresenter = guests.find((guest) =>
+          isSameUser(selectedPresenter, guest)
         );
       }
 
@@ -254,17 +252,6 @@ const WaitRoomPage = () => {
     }
   };
 
-  const checkPresenterStatus = async () => {
-    const url = `${serverPort}/isPresenter?userID=${userID}&roomCode=${roomCode}`;
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
-      setIsPresenter(data === true);
-    } catch (error) {
-      console.error("Error checking admin status:", error);
-    }
-  };
-
   // Fetch the players & check if room start from the backend
   const checkPlayers = async () => {
     const url = `${serverPort}/getPlayers?roomCode=${roomCode}`;
@@ -285,31 +272,10 @@ const WaitRoomPage = () => {
       });
 
       if (data.admin) {
-        setAdmin(
-          new User(
-            roomCode,
-            data.admin.userID,
-            data.admin.displayName,
-            true,
-            // need to change after present room is completed
-            true,
-            data.admin.profileImage,
-            data.admin.completed
-          )
-        );
+        setAdmin(data.admin);
       }
       if (data.presenter) {
-        setPresenter(
-          new User(
-            roomCode,
-            data.presenter.userID,
-            data.presenter.displayName,
-            false,
-            true,
-            data.presenter.profileImage,
-            data.presenter.completed
-          )
-        );
+        setPresenter(data.presenter);
       }
       if (data.otherPlayers) {
         const updatedGuests = data.otherPlayers.map(
@@ -378,7 +344,7 @@ const WaitRoomPage = () => {
 
       const data = await response.json();
       setNotPresented(data.notPresentedPeople || []);
-      setHasPresented(!notPresented.some((npUser) => npUser.userID === userID));
+      setHasPresented(!notPresented.some((npUser) => isSameUser(npUser, user)));
 
       if (!response.ok) {
         throw new Error("Room cannot be found");
@@ -393,7 +359,7 @@ const WaitRoomPage = () => {
     // Example check to see if presenter has finished
     if (
       presenter &&
-      !notPresented.some((user) => user.userID === presenter.userID)
+      !notPresented.some((user) => isSameUser(user, presenter))
     ) {
       changeToNextPresenter();
     }
@@ -402,8 +368,6 @@ const WaitRoomPage = () => {
   useEffect(() => {
     // Check whether the user is admin
     checkAdminStatus();
-    // Check whether the user is presenter
-    checkPresenterStatus();
 
     // Check if all guests and presenter have completed
     const allCompleted =
@@ -415,14 +379,14 @@ const WaitRoomPage = () => {
     // If the RoomStatus is PRESENTING, navigate all users to the PresentPage
     if (roomStatus === RoomStatus.PRESENTING) {
       navigate("/PresentPage", {
-        state: { user, admin, presenter, guests },
+        state: { user },
       });
     }
 
     // If the RoomStatus is ALL_FINISHED, navigate all users to the AllPresentedPage
     if (roomStatus === RoomStatus.All_PRESENTED) {
       navigate("/AllPresentedPage", {
-        state: { user, admin, presenter, guests },
+        state: { user },
       });
     }
   }, [roomStatus, user, admin, presenter, guests]);
@@ -454,7 +418,7 @@ const WaitRoomPage = () => {
 
   useEffect(() => {
     if (admin?.userID && presenter?.userID) {
-      if (presenter.userID === userID) {
+      if (isSameUser(presenter, user)) {
         const notifyServerOnUnload = () => {
           handleChangePresenterAfterQuitting(admin!.userID);
         };
@@ -520,7 +484,7 @@ const WaitRoomPage = () => {
                 // If not admin; and admin not presented; cannot view
                 disabled={
                   !isAdmin &&
-                  notPresented.some((npUser) => npUser.userID === admin?.userID)
+                  notPresented.some((npUser) => isSameUser(npUser, admin))
                 }
               >
                 View Profile
@@ -542,8 +506,8 @@ const WaitRoomPage = () => {
               )}
 
               {/* Show presented indicator */}
-              {!notPresented.some(
-                (npUser) => npUser.userID === presenter?.userID
+              {!notPresented.some((npUser) =>
+                isSameUser(npUser, presenter)
               ) && <div className="presented-status-indicator">6</div>}
             </div>
 
@@ -558,8 +522,8 @@ const WaitRoomPage = () => {
                 // If not admin; and not presented; and not me
                 disabled={
                   !isAdmin &&
-                  notPresented.some(
-                    (npUser) => npUser.userID === presenter?.userID
+                  notPresented.some((npUser) =>
+                    isSameUser(npUser, presenter)
                   ) &&
                   presenter?.userID !== userID
                 }
@@ -599,8 +563,8 @@ const WaitRoomPage = () => {
                     )}
 
                     {/* Show presented indicator */}
-                    {!notPresented.some(
-                      (npUser) => npUser.userID === guest.userID
+                    {!notPresented.some((npUser) =>
+                      isSameUser(npUser, guest)
                     ) && <div className="presented-status-indicator">6</div>}
                   </div>
                   <p>{guest.displayName}</p>
@@ -634,8 +598,8 @@ const WaitRoomPage = () => {
                     // If not admin and not presented and not me
                     disabled={
                       !isAdmin &&
-                      notPresented.some(
-                        (npUser) => npUser.userID === guest.userID
+                      notPresented.some((npUser) =>
+                        isSameUser(npUser, guest)
                       ) &&
                       guest.userID !== userID
                     }
@@ -696,11 +660,7 @@ const WaitRoomPage = () => {
             </p>
             <button
               className="button common-button"
-              onClick={() =>
-                navigate("/AllPresentedPage", {
-                  state: { user, admin, presenter, guests },
-                })
-              }
+              onClick={() => navigate("/")}
             >
               OK
             </button>
@@ -752,13 +712,12 @@ const WaitRoomPage = () => {
               .map((user) => (
                 <li
                   key={user.userID}
-                  onClick={() => handleSelectPresenter(user.userID)}
+                  onClick={() => handleSelectPresenter(user)}
                   className={
-                    selectedPresenterUserID === user.userID ? "selected" : ""
+                    isSameUser(selectedPresenter, user) ? "selected" : ""
                   }
                 >
-                  {user.displayName}{" "}
-                  {user.userID === admin?.userID ? "(admin)" : ""}
+                  {user.displayName} {isSameUser(user, admin) ? "(admin)" : ""}
                 </li>
               ))}
           </ul>

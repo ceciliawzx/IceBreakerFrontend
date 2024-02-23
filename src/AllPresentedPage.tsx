@@ -8,8 +8,8 @@ import exportUserProfileAsPDF from "./utils/ExportPDF";
 import { disableScroll } from "./utils/CssOperation";
 import "./css/CommonStyle.css";
 import "./css/AllPresentedPage.css";
-import celebrationLeft from "./assets/CelebrationLeft.png"
-import celebrationRight from "./assets/CelebrationRight.png"
+import celebrationLeft from "./assets/CelebrationLeft.png";
+import celebrationRight from "./assets/CelebrationRight.png";
 
 const AllPresentedPage: React.FC = () => {
   const location = useLocation();
@@ -65,7 +65,7 @@ const AllPresentedPage: React.FC = () => {
     }
   };
 
-  const exportALLUserProfileAsPDF = async () => {
+  const exportAllUserProfileAsPDF = async () => {
     const url = `${serverPort}/getPlayers?roomCode=${roomCode}`;
     try {
       const response = await fetch(url);
@@ -163,8 +163,16 @@ const AllPresentedPage: React.FC = () => {
 
   return (
     <div className="page">
-      <img src={celebrationLeft} alt="Create Room" className="celebration-left"/>
-      <img src={celebrationRight} alt="Create Room" className="celebration-right"/>
+      <img
+        src={celebrationLeft}
+        alt="Create Room"
+        className="celebration-left"
+      />
+      <img
+        src={celebrationRight}
+        alt="Create Room"
+        className="celebration-right"
+      />
       <h1>Congrautalations, {displayName}! </h1>
       <h1>You have finished the Icebreaker!</h1>
       <div className="row-container">
@@ -198,7 +206,7 @@ const AllPresentedPage: React.FC = () => {
 
       <button
         className="button common-button"
-        onClick={exportALLUserProfileAsPDF}
+        onClick={exportAllUserProfileAsPDF}
       >
         Export all PDF
       </button>
