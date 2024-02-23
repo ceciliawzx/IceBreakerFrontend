@@ -87,7 +87,7 @@ export const Timer = ({
     sendMsg(destination, timerMessage);
   };
 
-  return render ? (
+  return (
     <div className="timerContainer">
       <div>
         Time Left: {timeLeft !== null ? `${timeLeft}s` : "Waiting for timer..."}
@@ -119,7 +119,5 @@ export const Timer = ({
         </div>
       )}
     </div>
-  ) : (
-    <></>
   );
 };
