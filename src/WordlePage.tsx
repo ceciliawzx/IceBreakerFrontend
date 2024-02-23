@@ -98,7 +98,13 @@ const Wordle = () => {
     };
 
     // Initialize web socket
-    connect(socketUrl, websocketUrl, topic, onMessageReceived, setRender);
+    const cleanup = connect(
+      socketUrl,
+      websocketUrl,
+      topic,
+      onMessageReceived,
+      setRender
+    );
 
     // fetch target word
     fetchWordLength();
@@ -109,6 +115,8 @@ const Wordle = () => {
     // get player status
     checkPlayers();
     checkNotPresented();
+
+    return cleanup;
   }, []);
 
   // When got target word, initialize grid
@@ -276,7 +284,9 @@ const Wordle = () => {
   // Show modal
   const handleModalMessage = () => {
     // Update PresentRoomInfo
-    updatePresentRoomInfo({ roomCode, field: fieldName });
+    if (fieldName) {
+      updatePresentRoomInfo({ roomCode, field: fieldName });
+    }
     // Show the modal
     setShowModal(true);
   };
@@ -779,7 +789,9 @@ const Wordle = () => {
         />
       )}
     </div>
-  ) : <></>;
+  ) : (
+    <></>
+  );
 };
 
 export default Wordle;

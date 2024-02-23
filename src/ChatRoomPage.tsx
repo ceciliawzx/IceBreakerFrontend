@@ -31,8 +31,11 @@ const ChatRoom: React.FC = () => {
   useEffect(() => {
     const onMessageReceived = (msg: ChatMessage) => {
         setChatHistory((prevHistory) => [...prevHistory, msg])};
-    connect(socketUrl, websocketUrl, topic, onMessageReceived, setRender);
+    const cleanup = connect(socketUrl, websocketUrl, topic, onMessageReceived, setRender);
+    return cleanup;
   }, []);
+
+
 
   const handleSendMessage = () => {
     if (message.trim() !== "") {

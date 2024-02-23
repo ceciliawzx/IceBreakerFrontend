@@ -72,13 +72,12 @@ const PictionaryPage = () => {
   };
 
   const handleModalMessage = () => {
-    // Update PresentRoomInfo
-    console.log("updating presentRoomInfo 1 ", {
-      roomCode,
-      field: fieldName,
-      target: targetWord,
-    });
     if (fieldName) {
+      // Update PresentRoomInfo
+      console.log("updating presentRoomInfo ", {
+        roomCode,
+        field: fieldName,
+      });
       updatePresentRoomInfo({ roomCode, field: fieldName });
     }
     // Show the modal
@@ -117,7 +116,18 @@ const PictionaryPage = () => {
     const socketUrl = `${serverPort}/chat?userId=${userID}`;
     const websocketUrl = `${websocketPort}/chat?userId=${userID}`;
     const topic = `/topic/room/${roomCode}/drawing`;
-    connect(socketUrl, websocketUrl, topic, handleReceivedDrawing, setRender);
+
+    // Store the cleanup function returned by connect
+    const cleanup = connect(
+      socketUrl,
+      websocketUrl,
+      topic,
+      handleReceivedDrawing,
+      setRender
+    );
+
+    // Return the cleanup function from useEffect
+    return cleanup; // This will be called when the component unmounts
   }, []);
 
   // Send DrawingMessage to server
@@ -220,7 +230,9 @@ const PictionaryPage = () => {
         />
       )}
     </div>
-  ) : <></>;
+  ) : (
+    <></>
+  );
 };
 
 export default PictionaryPage;
