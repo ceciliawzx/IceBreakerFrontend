@@ -364,7 +364,6 @@ const WaitRoomPage = () => {
       const data = await response.json();
       setNotPresented(data.notPresentedPeople || []);
       setHasPresented(!notPresented.some((npUser) => npUser.userID === userID));
-      console.log("not presented people:", notPresented);
 
       if (!response.ok) {
         throw new Error("Room cannot be found");

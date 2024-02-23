@@ -6,8 +6,6 @@ import { TimerMessage } from "../type/Timer";
 import { RoomStatus } from "../type/RoomStatus";
 import "../css/Timer.css";
 
-// roomStatus: when timer stops, what status should the room go to
-// defaultTime: set the timer to defaultTime at beginning
 export const Timer = ({
   user,
   roomCode,
@@ -20,9 +18,11 @@ export const Timer = ({
   defaultTime: number;
 }) => {
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
-  // Use a string state to handle the input directly
   const [inputValue, setInputValue] = useState<string>(defaultTime.toString());
   const userID = user.userID;
+
+  // New state to track if the timer has started
+  const [isTimerStarted, setIsTimerStarted] = useState<boolean>(false);
 
   const socketUrl = `${serverPort}/chat?userId=${userID}`;
   const websocketUrl = `${websocketPort}/chat?userId=${userID}`;
@@ -33,13 +33,23 @@ export const Timer = ({
     setTimeLeft(msg);
   }, []);
 
+  // Connect to websokect
   useEffect(() => {
-    // Connect to WebSocket and set up subscription
     const topic = `/topic/room/${roomCode}/timer`;
-    connect(socketUrl, websocketUrl, topic, onTimerMessageReceived, setRender);
-    setInputValue(defaultTime.toString());
+    const cleanup = connect(
+      socketUrl,
+      websocketUrl,
+      topic,
+      onTimerMessageReceived,
+      setRender
+    );
+    return cleanup;
   }, []);
-  
+
+  // Set input time value
+  useEffect(() => {
+    setInputValue(defaultTime.toString());
+  }, [defaultTime]);
 
   const startTimer = useCallback(() => {
     const seconds = inputValue.trim() === "" ? defaultTime : Number(inputValue);
@@ -50,10 +60,12 @@ export const Timer = ({
       seconds,
     };
     sendMsg(destination, timerMessage);
+    setIsTimerStarted(true); // Set the timer as started
   }, [roomCode, roomStatus, inputValue, defaultTime]);
 
-  // Function to send a message to modify the timer
+  // Ensure the functions modifyTimer and stopTimer also respect the isTimerStarted state if needed
   const modifyTimer = (seconds: number) => {
+    if (!isTimerStarted) return; // Prevent modification if timer hasn't started
     const destination = `/app/room/${roomCode}/modifyTimer`;
     const timerMessage: TimerMessage = {
       roomCode: roomCode,
@@ -63,22 +75,22 @@ export const Timer = ({
     sendMsg(destination, timerMessage);
   };
 
-  // Function to send a message to stop the timer
   const stopTimer = () => {
+    if (!isTimerStarted) return; // Prevent stopping if timer hasn't started
     const destination = `/app/room/${roomCode}/stopTimer`;
     const timerMessage: TimerMessage = {
       roomCode: roomCode,
       roomStatus: roomStatus,
       seconds: 0,
     };
+    setIsTimerStarted(false); // reset the timer start state
     sendMsg(destination, timerMessage);
   };
 
   return render ? (
     <div className="timerContainer">
       <div>
-        Time Left:{" "}
-        {timeLeft !== null ? `${timeLeft}s` : "Waiting for timer..."}
+        Time Left: {timeLeft !== null ? `${timeLeft}s` : "Waiting for timer..."}
       </div>
       {user.isAdmin && (
         <div
@@ -90,16 +102,24 @@ export const Timer = ({
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Set time"
-              style={{maxWidth: '80%'}}
+              style={{ maxWidth: "80%" }}
             />
           </div>
-          <div style={{ display: "flex", flexDirection: "column", rowGap: "2px" }}>
+          <div
+            style={{ display: "flex", flexDirection: "column", rowGap: "2px" }}
+          >
             <button onClick={startTimer}>Start Timer</button>
-            <button onClick={() => modifyTimer(20)}>Add 20 Seconds</button>
-            <button onClick={stopTimer}>Skip Timer</button>
+            <button onClick={() => modifyTimer(20)} disabled={!isTimerStarted}>
+              Add 20 Seconds
+            </button>
+            <button onClick={stopTimer} disabled={!isTimerStarted}>
+              Skip Timer
+            </button>
           </div>
         </div>
       )}
     </div>
-  ) : <></>;
+  ) : (
+    <></>
+  );
 };

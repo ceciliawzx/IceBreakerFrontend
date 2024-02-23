@@ -111,7 +111,13 @@ const HangmanPage = () => {
     };
 
     // Initialize web socket
-    connect(socketUrl, websocketUrl, topic, onMessageReceived, setRender);
+    const cleanup = connect(
+      socketUrl,
+      websocketUrl,
+      topic,
+      onMessageReceived,
+      setRender
+    );
 
     // fetch target word
     fetchWordLength();
@@ -120,6 +126,9 @@ const HangmanPage = () => {
     // fetch player status
     checkPlayers();
     checkNotPresented();
+
+    // disconnect from the websocket when components unmount
+    return cleanup;
   }, []);
 
   // When submit, change player
@@ -260,7 +269,9 @@ const HangmanPage = () => {
   // Show modal
   const handleModalMessage = () => {
     // Update PresentRoomInfo
-    updatePresentRoomInfo({ roomCode, field: fieldName });
+    if (fieldName) {
+      updatePresentRoomInfo({ roomCode, field: fieldName });
+    }
     // Show the modal
     setShowModal(true);
   };
@@ -641,7 +652,9 @@ const HangmanPage = () => {
         />
       )}
     </div>
-  ) : <></>;
+  ) : (
+    <></>
+  );
 };
 
 export default HangmanPage;

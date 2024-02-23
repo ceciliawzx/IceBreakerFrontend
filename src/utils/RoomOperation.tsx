@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import { serverPort } from "../macro/MacroServer";
 import { PresentRoomInfo } from "../type/PresentRoomInfo";
 
@@ -18,7 +18,6 @@ export const checkRoomStatus = async ({ roomCode }: { roomCode: string }) => {
   }
 };
 
-
 // To reveal information in PresentPage when returning from a game
 export const updatePresentRoomInfo = async ({
   roomCode,
@@ -27,6 +26,7 @@ export const updatePresentRoomInfo = async ({
   roomCode: string;
   field: keyof PresentRoomInfo;
 }) => {
+  if (!roomCode || !field) return;
   const url = `${serverPort}/setPresentRoomInfo?roomCode=${roomCode}&field=${field}`;
   try {
     const response = await fetch(url, {
@@ -36,4 +36,3 @@ export const updatePresentRoomInfo = async ({
     console.error("Error setting presentRoomInfo in backend: ", error);
   }
 };
-

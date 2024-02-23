@@ -112,7 +112,7 @@ const PresentPage = () => {
     }
   }, [presenter]);
 
-  // Update the RoomStatus list every interval
+  // Update the RoomStatus every interval
   useEffect(() => {
     // Define an IIFE to handle async operation
     (async () => {
@@ -160,7 +160,12 @@ const PresentPage = () => {
         console.error("Error checking notPresented:", error);
       }
     }, refreshTime);
+    // Clear timer and count again
+    return () => clearInterval(intervalId);
+  }, []);
 
+  // Navigate based on RoomStatus
+  useEffect(() => {
     // Navigate to ShareBoard
     if (roomStatus === RoomStatus.SHAREBOARD) {
       navigate("/PictionaryRoomPage", {
@@ -238,9 +243,6 @@ const PresentPage = () => {
         state: { user, admin },
       });
     }
-    // Clear timer and count again
-    return () => clearInterval(intervalId);
-    // Add other navigation conditions if needed
   }, [roomStatus, user, presenter, allPresented]);
 
   // Fetch presenterInfo
@@ -275,7 +277,7 @@ const PresentPage = () => {
             <>
               <button
                 className="button small-common-button"
-                style={{margin:"0px"}}
+                style={{ margin: "0px" }}
                 onClick={() => toggleGameSelector(fieldName)}
               >
                 Select Game
