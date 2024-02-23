@@ -3,6 +3,7 @@ import { UserProfile } from "../type/UserProfile";
 import exp from "constants";
 
 const exportUserProfileAsPDF = (userProfile: UserProfile) => {
+  console.log("exporting user profile as PDF: ", userProfile.displayName);
   const doc = new jsPDF();
 
   const lineHeight = 10;

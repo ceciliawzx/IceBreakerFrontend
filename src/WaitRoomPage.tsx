@@ -117,8 +117,23 @@ const WaitRoomPage = () => {
       }
     }
   };
+
   const handleFinishPresent = () => {
     setShowFinishPopup(true);
+  };
+
+  // When sure to force finish
+  const handleForceFinish = async () => {
+    const response = await fetch(
+      `${serverPort}/forceBackToAllPresentedRoom?roomCode=${roomCode}`,
+      {
+        method: "POST",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
   };
 
   const handleChangePresenter = () => {
@@ -791,11 +806,7 @@ const WaitRoomPage = () => {
 
               <button
                 className="button admin-only-button"
-                onClick={() =>
-                  navigate("/AllPresentedPage", {
-                    state: { user, admin, presenter, guests },
-                  })
-                }
+                onClick={() => handleForceFinish()}
               >
                 Finish Presenting
               </button>
