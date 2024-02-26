@@ -192,7 +192,7 @@ const AllPresentedPage: React.FC = () => {
 
                   <p>{guest.displayName}</p>
                   <button
-                    onClick={() => handleViewProfile(user)}
+                    onClick={() => handleViewProfile(guest)}
                     className="button common-button"
                   >
                     View Profile
