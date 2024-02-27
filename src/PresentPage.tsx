@@ -3,16 +3,20 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { UserProfile } from "./type/UserProfile";
 import { serverPort } from "./macro/MacroServer";
 import { PresentRoomInfo } from "./type/PresentRoomInfo";
-import { refreshTime } from "./macro/MacroConst";
 import { GameType } from "./type/GameType";
 import { RoomStatus } from "./type/RoomStatus";
 import { User } from "./type/User";
-import { checkRoomStatus } from "./utils/RoomOperation";
 import { updatePresentRoomInfo } from "./utils/RoomOperation";
 import "./css/PresentPage.css";
 import blackBoard from "./assets/BlackBoard.png";
 import { disableScroll } from "./utils/CssOperation";
 import { isSameUser } from "./utils/CommonCompare";
+import {
+  connect,
+  sendMsg,
+  socketUrl,
+  websocketUrl,
+} from "./utils/WebSocketService";
 
 const PresentPage = () => {
   const location = useLocation();
@@ -56,41 +60,56 @@ const PresentPage = () => {
     favActivity: [],
   });
 
+  // fetch users info and roomStatus
+  const checkPlayers = async () => {
+    try {
+      const response = await fetch(
+        `${serverPort}/getPlayers?roomCode=${roomCode}`
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json();
+      if (data && data.admin) {
+        setAdmin(data.admin);
+      }
+      if (data && data.presenter) {
+        setPresenter(data.presenter);
+        setIsPresenter(data.presenter.userID === userID);
+      }
+      if (data && data.roomStatus) {
+        setRoomStatus(data.roomStatus);
+      }
+    } catch (error) {
+      console.error("Failed to fetch presenter's info:", error);
+    }
+  };
+
+  const onMessageReceived = (msg: any) => {
+    checkPlayers();
+    checkPresentRoomInfo();
+  };
+
   // disable scroll for this page
   useEffect(disableScroll, []);
 
-  // Fetch the presenter info when mount
+  // Initial pull
   useEffect(() => {
-    // Define an IIFE to handle async operation
-    (async () => {
-      try {
-        const response = await fetch(
-          `${serverPort}/getPlayers?roomCode=${roomCode}`
-        );
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        const data = await response.json();
-        if (data && data.admin) {
-          setAdmin(data.admin);
-        }
-
-        if (data && data.presenter) {
-          setPresenter(data.presenter);
-          setIsPresenter(data.presenter.userID === userID);
-        }
-      } catch (error) {
-        console.error("Failed to fetch presenter's info:", error);
-      }
-    })();
+    checkPresentRoomInfo();
+    checkPlayers();
   }, []);
 
-  // Check what fields of presentRoomInfo are revealed every interval
+  // Connect to refetch websokect
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      checkPresentRoomInfo();
-    }, refreshTime);
-    return () => clearInterval(intervalId);
+    const topic = `/topic/room/${roomCode}/wait`;
+    const cleanup = connect(
+      socketUrl,
+      websocketUrl,
+      topic,
+      onMessageReceived,
+      setRender
+    );
+    return cleanup;
   }, []);
 
   // Fetch presenterInfo
@@ -111,58 +130,6 @@ const PresentPage = () => {
       setRender(true);
     }
   }, [presenter]);
-
-  // Update the RoomStatus every interval
-  useEffect(() => {
-    // Define an IIFE to handle async operation
-    (async () => {
-      try {
-        const data = await checkRoomStatus({ roomCode });
-        if (data && data.roomStatus) {
-          setRoomStatus(data.roomStatus);
-        }
-      } catch (error) {
-        console.error("Error fetching getPlayers:", error);
-      }
-    })();
-
-    // Setup the interval for refreshing the data
-    const intervalId = setInterval(async () => {
-      try {
-        const data = await checkRoomStatus({ roomCode });
-        if (data && data.roomStatus) {
-          setRoomStatus(data.roomStatus);
-        }
-      } catch (error) {
-        console.error("Error fetching getPlayers on interval:", error);
-      }
-
-      // check if all fields revealed
-      try {
-        const response = await fetch(
-          `${serverPort}/getPresentRoomInfo?roomCode=${roomCode}`,
-          {
-            method: "GET",
-          }
-        );
-
-        const data = await response.json();
-        const fieldList = Object.values(data.presentRoomInfo);
-
-        const fieldsToCheck = fieldList.slice(2);
-        const allFieldsPresented = fieldsToCheck.every((value: any) => value);
-        setAllPresented(allFieldsPresented);
-
-        if (!response.ok) {
-          throw new Error("Failed to get allPresented info");
-        }
-      } catch (error) {
-        console.error("Error checking notPresented:", error);
-      }
-    }, refreshTime);
-    // Clear timer and count again
-    return () => clearInterval(intervalId);
-  }, []);
 
   // Navigate based on RoomStatus
   useEffect(() => {
@@ -384,9 +351,19 @@ const PresentPage = () => {
     try {
       const response = await fetch(url);
       const data = await response.json();
+
       setPresentRoomInfo(data.presentRoomInfo);
+
+      const fieldList = Object.values(data.presentRoomInfo);
+      const fieldsToCheck = fieldList.slice(2);
+      const allFieldsPresented = fieldsToCheck.every((value: any) => value);
+      setAllPresented(allFieldsPresented);
+
+      if (!response.ok) {
+        throw new Error("Failed to get allPresented info");
+      }
     } catch (error) {
-      console.error("Error fetching presentRoomInfo:", error);
+      console.error("Error checking notPresented:", error);
     }
   };
 
