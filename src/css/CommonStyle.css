@@ -208,23 +208,28 @@
 }
 
 .input-status-indicator {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  background-color: #1cc313; /* Green background or any color you prefer */
-  color: rgb(159, 17, 17);
   border-radius: 50%;
+  background-image: url("../assets/RedRose.png");
+  background-size: cover;
   padding: 5px;
-  font-size: 15px;
+  width: 10%; 
+  height: auto;
+  padding: 20px;
 }
 
 .presented-status-indicator {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  background-color: #1382c3; /* Green background or any color you prefer */
-  color: rgb(159, 17, 17);
   border-radius: 50%;
+  background-image: url("../assets/BlueRose.png");
+  background-size: cover;
   padding: 5px;
-  font-size: 15px;
+  width: 10%; 
+  height: auto;
+  padding: 20px;
+}
+
+.instruction-button-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 10px; /* Adjust as needed for spacing */
 }
