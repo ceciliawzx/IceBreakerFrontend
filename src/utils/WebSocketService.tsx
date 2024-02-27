@@ -1,5 +1,6 @@
 import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
+import { serverPort, websocketPort } from "../macro/MacroServer";
 
 let client: Client | null = null;
 
@@ -86,4 +87,7 @@ const sendMsg = (destination: string, msg: any) => {
   }
 };
 
-export { connect, sendMsg };
+const socketUrl = `${serverPort}/chat`;
+const websocketUrl = `${websocketPort}/chat`;
+
+export { connect, sendMsg, socketUrl, websocketUrl };

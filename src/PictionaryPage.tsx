@@ -3,7 +3,12 @@ import DrawingCanvas from "./pictionary/DrawingCanvas";
 import ChatRoom from "./ChatRoomPage";
 import { useLocation, useNavigate } from "react-router-dom";
 import { DrawingData, DrawingMessage } from "./type/DrawingCanvas";
-import { connect, sendMsg } from "./utils/WebSocketService";
+import {
+  connect,
+  sendMsg,
+  socketUrl,
+  websocketUrl,
+} from "./utils/WebSocketService";
 import { serverPort, websocketPort } from "./macro/MacroServer";
 import "./css/PictionaryPage.css";
 import { User } from "./type/User";
@@ -55,8 +60,6 @@ const PictionaryPage = () => {
     // set target word
     fetchTargetWord();
     // connect to drawing websocket
-    const socketUrl = `${serverPort}/chat?userId=${userID}`;
-    const websocketUrl = `${websocketPort}/chat?userId=${userID}`;
     const topic = `/topic/room/${roomCode}/drawing`;
 
     // Store the cleanup function returned by connect

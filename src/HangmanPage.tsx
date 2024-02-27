@@ -4,7 +4,12 @@ import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { User } from "./type/User";
 import { UserProfile } from "./type/UserProfile";
-import { connect, sendMsg } from "./utils/WebSocketService";
+import {
+  connect,
+  sendMsg,
+  socketUrl,
+  websocketUrl,
+} from "./utils/WebSocketService";
 import hangmanStages from "./HangmanStage";
 import { LetterStatus } from "./type/WordleLetter";
 import { updatePresentRoomInfo } from "./utils/RoomOperation";
@@ -61,8 +66,6 @@ const HangmanPage = () => {
   const [showModal, setShowModal] = useState(false);
 
   /* Web socket url */
-  const socketUrl = `${serverPort}/chat`;
-  const websocketUrl = `${websocketPort}/chat`;
   const topic = `/topic/room/${roomCode}/hangman`;
   const destination = `/app/room/${roomCode}/hangman`;
 
