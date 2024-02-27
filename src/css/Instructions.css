@@ -39,9 +39,11 @@
   padding: 20px;
   border-radius: 10px;
   text-align: center;
-  max-width: 80vw; /* Maximum width to 80% of the viewport width */
-  max-height: 80vh; /* Maximum height to 80% of the viewport height */
-  overflow: auto; /* Enable scrolling if content is larger than max dimensions */
+  width: auto; /* Adjust based on your needs */
+  height: auto; /* Adjust based on your needs */
+  /* max-width: 80vw; 
+  max-height: 80vh; 
+  overflow: auto;  */
 }
 
 .instruction-navigation button {
@@ -68,10 +70,11 @@
 }
 
 .instruction-content img {
-  max-width: 100%; /* Ensure the image is not wider than the container */
-  height: auto; /* Maintain the aspect ratio */
-  margin-bottom: 20px; /* Space below the image */
-  border: 1px solid black; /* Black line border around the image */
+  margin-bottom: 20px;
+  border: 1px solid black;
+  max-width: 100%;
+  max-height: 60vh;
+  height: auto; 
 }
 
 .instruction-content p {
@@ -87,8 +90,4 @@
   z-index: 3001;
 }
 
-/* Scrollable content area */
-.scrollable-content {
-  max-height: 70vh; /* Adjust based on your design */
-  overflow-y: auto; /* Enable vertical scrolling */
-}
+
