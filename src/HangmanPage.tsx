@@ -40,6 +40,7 @@ interface HangmanMsg {
   isFinished: boolean;
   roomCode: string;
   currentWrongGuesses: number;
+  currentGuesses: number;
 }
 
 const HangmanPage = () => {
@@ -74,7 +75,7 @@ const HangmanPage = () => {
   const [correct, setCorrect] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
 
-  const [currentGuesserId, setCurrentGuesserId] = useState(0);
+  const [currentGuesses, setCurrentGuesses] = useState(0);
   const [currentGuesser, setCurrentGuesser] = useState<User | null>(null);
   const [targetWord, setTargetWord] = useState<string>("");
 
@@ -91,41 +92,18 @@ const HangmanPage = () => {
 
   // When launch
   useEffect(() => {
-    // Initialize web socket
-    const onMessageReceived = (
-      msg: HangmanMsg | BackMessage | ModalMessage
-    ) => {
-      receiveMessage(msg);
-    };
-
-    // Initialize web socket
-    const cleanup = connect(
-      socketUrl,
-      websocketUrl,
-      topic,
-      onMessageReceived,
-      setRender
-    );
-
-    // fetch target word
-    fetchWordLength();
-    fetchTargetWord();
-
-    // fetch player status
-    checkPlayers();
-    checkNotPresented();
-
-    // disconnect from the websocket when components unmount
-    return cleanup;
+    initializeGame();
   }, []);
 
   // When submit, change player
   useEffect(() => {
-    const nextGuesser = guests[currentGuesserId % guests.length];
+    console.log("Change with current guesses: ", currentGuesses);
+    const nextGuesser = guests[currentGuesses % guests.length];
 
+    console.log(nextGuesser?.displayName, " is next guesser");
     // Change to next guesser
     setCurrentGuesser(nextGuesser);
-  }, [currentGuesserId]);
+  }, [currentGuesses]);
 
   // Show modal when guessed correct
   useEffect(() => {
@@ -200,11 +178,36 @@ const HangmanPage = () => {
       setCurrentPositions(msg.correctPositions);
       setAllLetterStatus(msg.allLetterStat);
       setMistakes(msg.currentWrongGuesses);
-
-      setCurrentGuesserId((currentGuesserId) => currentGuesserId + 1);
+      setCurrentGuesses(msg.currentGuesses);
     } catch (error) {
       console.error("Error parsing:", error);
     }
+  };
+
+  const initializeGame = async () => {
+    const onMessageReceived = (msg: HangmanMsg | BackMessage | ModalMessage) => {
+      receiveMessage(msg);
+    };
+
+    // Initialize web socket
+    const cleanup = connect(
+      socketUrl,
+      websocketUrl,
+      topic,
+      onMessageReceived,
+      setRender
+    );
+
+    // get player status
+    await checkPlayers();
+    await checkNotPresented();
+    await getHangmanStatus();
+
+    // fetch target word
+    await fetchWordLength();
+    await fetchTargetWord();
+
+    return cleanup;
   };
 
   // Fetch target word length
@@ -393,6 +396,31 @@ const HangmanPage = () => {
             "--light-grey-background"
           ),
         };
+    }
+  };
+
+  // Get player info when start
+  const getHangmanStatus = async () => {
+    const url = `${serverPort}/getHangmanGameStatus?roomCode=${roomCode}`;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error("Room cannot be found");
+      }
+
+      const data = await response.json();
+
+      const message = data.hangmanmessage;
+
+      // If not first launch, fetch status and update
+      if (data != null) {
+        setCurrentGuesses(message.currentGuesses);
+        setCurrentStages(message.currentStages);
+        setAllLetterStatus(message.allLetterStat);
+        setMistakes(message.currentWrongGuesses);
+      }
+    } catch (error) {
+      console.error("Error fetching hangman status:", error);
     }
   };
 

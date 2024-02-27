@@ -565,14 +565,6 @@ const WaitRoomPage = () => {
                       alt={`${guest}'s avatar`}
                       className="avatar"
                     />
-                    {guest.completed && (
-                      <div className="input-status-indicator">✓</div>
-                    )}
-
-                    {/* Show presented indicator */}
-                    {!notPresented.some((npUser) =>
-                      isSameUser(npUser, guest)
-                    ) && <div className="presented-status-indicator">6</div>}
                   </div>
                   <p>{guest.displayName}</p>
                 </div>
