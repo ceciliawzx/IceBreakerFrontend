@@ -10,25 +10,8 @@ import { RoomStatus } from "./type/RoomStatus";
 import exportUserProfileAsPDF from "./utils/ExportPDF";
 import blackBoard from "./assets/BlackBoard.png";
 import { isSameUser } from "./utils/CommonCompare";
-import { connect, sendMsg } from "./utils/WebSocketService";
+import { connect, sendMsg, socketUrl, websocketUrl } from "./utils/WebSocketService";
 
-import Instructions from "./Instructions";
-import adminInst1 from "./instructions/waitroom/admin-1.png";
-import userInst1 from "./instructions/waitroom/user-1.png";
-
-const adminInstructions = [
-  {
-    img: adminInst1,
-    text: "As a moderator, you'll have a few more buttons that others.",
-  },
-];
-
-const usersInstructions = [
-  {
-    img: userInst1,
-    text: "As a normal user, you'll have the fowllowing buttons.",
-  },
-];
 const WaitRoomPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -56,10 +39,6 @@ const WaitRoomPage = () => {
   const [roomStatus, setRoomStatus] = useState<RoomStatus>(RoomStatus.WAITING);
   const [showRingPopUp, setShowRingPopUp] = useState(false);
   const [showFinishPopUp, setShowFinishPopup] = useState(false);
-
-  const socketUrl = `${serverPort}/chat?userId=${userID}`;
-  const websocketUrl = `${websocketPort}/chat?userId=${userID}`;
-
   const [render, setRender] = useState(false);
 
   // Initial pull
@@ -156,24 +135,11 @@ const WaitRoomPage = () => {
     }
   }, [admin]);
 
-  // TODO: use websocket
-  useEffect(() => {
-    checkRing();
-
-    const intervalId = setInterval(() => {
-      checkRing();
-    }, refreshTime);
-
-    return () => clearInterval(intervalId);
-  }, [showRingPopUp]);
-
-
   const onMessageReceived = (msg: any) => {
     checkPlayers();
     checkKickOut();
     checkNotPresented();
-    // TODO
-    // checkRing();
+    checkRing();
   };
 
   const handleStartRoom = async () => {
@@ -505,19 +471,6 @@ const WaitRoomPage = () => {
       <h1>
         Welcome to Wait Room {roomCode}, {displayName}!
       </h1>
-      {isAdmin && (
-        <div className="instruction-button-container">
-          <Instructions instructionPics={adminInstructions} />
-        </div>
-      )}
-      {!isAdmin && (
-        <div className="instruction-button-container">
-          <Instructions instructionPics={usersInstructions} />
-        </div>
-      )}
-      {/* <div className="left-panel">
-        <img src = {userInst1} />
-      </div> */}
       <div className="blackboard-container">
         <img src={blackBoard} alt="BlackBoard" className="blackBoard" />
         <div className="row-container presenter-on-blackboard">
@@ -547,23 +500,22 @@ const WaitRoomPage = () => {
           </div>
 
           <div className="column-container">
-            <div className="row-container">
-              <div className="avatar-container" style={{ color: "white" }}>
-                <h2>Presenter:</h2>
-                <img
-                  src={`${presenter?.profileImage}`}
-                  alt={`${presenter?.displayName}'s avatar`}
-                  className="avatar"
-                />
-              </div>
-              <div className="colomn-container">
-                {presenter?.completed && (
-                  <div className="input-status-indicator"></div>
-                )}
-                {!notPresented.some((npUser) =>
-                  isSameUser(npUser, presenter)
-                ) && <div className="presented-status-indicator"></div>}
-              </div>
+            <div className="avatar-container" style={{ color: "white" }}>
+              <h2>Presenter:</h2>
+              <img
+                src={`${presenter?.profileImage}`}
+                alt={`${presenter?.displayName}'s avatar`}
+                className="avatar"
+              />
+
+              {presenter?.completed && (
+                <div className="input-status-indicator">✓</div>
+              )}
+
+              {/* Show presented indicator */}
+              {!notPresented.some((npUser) =>
+                isSameUser(npUser, presenter)
+              ) && <div className="presented-status-indicator">6</div>}
             </div>
 
             <div style={{ color: "white" }}>
@@ -661,14 +613,6 @@ const WaitRoomPage = () => {
                   >
                     View Profile
                   </button>
-                  <div className="indicators-container">
-                    {guest.completed && (
-                      <div className="input-status-indicator"></div>
-                    )}
-                    {!notPresented.some(
-                      (npUser) => npUser.userID === guest.userID
-                    ) && <div className="presented-status-indicator"></div>}
-                  </div>
                 </div>
               </div>
             </div>

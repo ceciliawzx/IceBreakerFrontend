@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
-import { connect, sendMsg } from "./utils/WebSocketService";
-import { serverPort, websocketPort } from "./macro/MacroServer";
+import {
+  connect,
+  sendMsg,
+  socketUrl,
+  websocketUrl,
+} from "./utils/WebSocketService";
 import "./css/ChatRoomPage.css";
 
 interface ChatMessage {
@@ -23,19 +26,22 @@ const ChatRoom: React.FC = () => {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [render, setRender] = useState(false);
 
-  const socketUrl = `${serverPort}/chat?userId=${userID}`;
-  const websocketUrl = `${websocketPort}/chat?userId=${userID}`;
   const topic = `/topic/room/${roomCode}`;
   const destination = `/app/room/${roomCode}/sendMessage`;
 
   useEffect(() => {
     const onMessageReceived = (msg: ChatMessage) => {
-        setChatHistory((prevHistory) => [...prevHistory, msg])};
-    const cleanup = connect(socketUrl, websocketUrl, topic, onMessageReceived, setRender);
+      setChatHistory((prevHistory) => [...prevHistory, msg]);
+    };
+    const cleanup = connect(
+      socketUrl,
+      websocketUrl,
+      topic,
+      onMessageReceived,
+      setRender
+    );
     return cleanup;
   }, []);
-
-
 
   const handleSendMessage = () => {
     if (message.trim() !== "") {
@@ -101,7 +107,10 @@ const ChatRoom: React.FC = () => {
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Type a message..."
           />
-          <button className="button small-common-button" onClick={handleSendMessage}>
+          <button
+            className="button small-common-button"
+            onClick={handleSendMessage}
+          >
             Send
           </button>
         </div>

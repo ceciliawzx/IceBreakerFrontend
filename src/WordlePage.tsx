@@ -6,7 +6,12 @@ import { User } from "./type/User";
 import { UserProfile } from "./type/UserProfile";
 import { serverPort, websocketPort } from "./macro/MacroServer";
 import { LetterStatus, WordleLetter } from "./type/WordleLetter";
-import { connect, sendMsg } from "./utils/WebSocketService";
+import {
+  connect,
+  sendMsg,
+  socketUrl,
+  websocketUrl,
+} from "./utils/WebSocketService";
 import { updatePresentRoomInfo } from "./utils/RoomOperation";
 import { PresentRoomInfo } from "./type/PresentRoomInfo";
 import { BackMessage } from "./type/BackMessage";
@@ -58,8 +63,6 @@ const Wordle = () => {
   const [showModal, setShowModal] = useState(false);
 
   /* Web socket url */
-  const socketUrl = `${serverPort}/chat`;
-  const websocketUrl = `${websocketPort}/chat`;
   const topic = `/topic/room/${roomCode}/wordle`;
   const destination = `/app/room/${roomCode}/wordle`;
 

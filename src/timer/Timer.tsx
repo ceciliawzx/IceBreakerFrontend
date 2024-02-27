@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { connect, sendMsg } from "../utils/WebSocketService";
-import { serverPort, websocketPort } from "../macro/MacroServer";
+import {
+  connect,
+  sendMsg,
+  socketUrl,
+  websocketUrl,
+} from "../utils/WebSocketService";
 import { User } from "../type/User";
 import { TimerMessage } from "../type/Timer";
 import { RoomStatus } from "../type/RoomStatus";
@@ -20,13 +24,8 @@ export const Timer = ({
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [inputValue, setInputValue] = useState<string>(defaultTime.toString());
   const userID = user.userID;
-
   // New state to track if the timer has started
   const [isTimerStarted, setIsTimerStarted] = useState<boolean>(false);
-
-  const socketUrl = `${serverPort}/chat?userId=${userID}`;
-  const websocketUrl = `${websocketPort}/chat?userId=${userID}`;
-
   const [render, setRender] = useState(false);
 
   const onTimerMessageReceived = useCallback((msg: number) => {
