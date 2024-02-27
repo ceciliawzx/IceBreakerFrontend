@@ -3,7 +3,6 @@ import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import "./css/WaitRoomPage.css";
 import { serverPort, websocketPort } from "./macro/MacroServer";
-import { refreshTime } from "./macro/MacroConst";
 import { User } from "./type/User";
 import { UserProfile } from "./type/UserProfile";
 import { RoomStatus } from "./type/RoomStatus";
@@ -156,6 +155,7 @@ const WaitRoomPage = () => {
   }, [admin]);
 
   const onMessageReceived = (msg: any) => {
+    console.log("here");
     checkPlayers();
     checkKickOut();
     checkNotPresented();
@@ -165,7 +165,7 @@ const WaitRoomPage = () => {
   const handleStartRoom = async () => {
     // Tell server that to start room
     const response = await fetch(
-      `${serverPort}/startInput?roomCode=${roomCode}`,
+      `${serverPort}/startPresenting?roomCode=${roomCode}`,
       {
         method: "POST",
       }
@@ -461,12 +461,9 @@ const WaitRoomPage = () => {
       const response = await fetch(
         `${serverPort}/notPresentedPeople?roomCode=${roomCode}`
       );
-
       const data = await response.json();
       setNotPresented(data.notPresentedPeople || []);
-      setHasPresented(
-        !data.notPresentedPeople.some((npUser: any) => isSameUser(npUser, user))
-      );
+      setHasPresented(!(data.notPresentedPeople.some((npUser:any) => isSameUser(npUser, user))));
 
       if (!response.ok) {
         throw new Error("Room cannot be found");
@@ -533,23 +530,22 @@ const WaitRoomPage = () => {
           </div>
 
           <div className="column-container">
-            <div className="row-container">
-              <div className="avatar-container" style={{ color: "white" }}>
-                <h2>Presenter:</h2>
-                <img
-                  src={`${presenter?.profileImage}`}
-                  alt={`${presenter?.displayName}'s avatar`}
-                  className="avatar"
-                />
-              </div>
-              <div className="colomn-container">
-                {presenter?.completed && (
-                  <div className="input-status-indicator"></div>
-                )}
-                {!notPresented.some((npUser) =>
-                  isSameUser(npUser, presenter)
-                ) && <div className="presented-status-indicator"></div>}
-              </div>
+            <div className="avatar-container" style={{ color: "white" }}>
+              <h2>Presenter:</h2>
+              <img
+                src={`${presenter?.profileImage}`}
+                alt={`${presenter?.displayName}'s avatar`}
+                className="avatar"
+              />
+
+              {presenter?.completed && (
+                <div className="input-status-indicator">✓</div>
+              )}
+
+              {/* Show presented indicator */}
+              {!notPresented.some((npUser) =>
+                isSameUser(npUser, presenter)
+              ) && <div className="presented-status-indicator">6</div>}
             </div>
 
             <div style={{ color: "white" }}>
@@ -639,14 +635,6 @@ const WaitRoomPage = () => {
                   >
                     View Profile
                   </button>
-                  <div className="indicators-container">
-                    {guest.completed && (
-                      <div className="input-status-indicator"></div>
-                    )}
-                    {!notPresented.some(
-                      (npUser) => npUser.userID === guest.userID
-                    ) && <div className="presented-status-indicator"></div>}
-                  </div>
                 </div>
               </div>
             </div>

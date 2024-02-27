@@ -3,7 +3,6 @@ import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { UserProfile } from "./type/UserProfile";
 import { serverPort } from "./macro/MacroServer";
-import { refreshTime } from "./macro/MacroConst";
 import {
   connect,
   sendMsg,
