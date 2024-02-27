@@ -484,6 +484,93 @@ const WaitRoomPage = () => {
     }
   }, [presenter, notPresented]);
 
+  useEffect(() => {
+    // Check whether the user is admin
+    checkAdminStatus();
+
+    // Check if all guests and presenter have completed
+    const allCompleted =
+      (guests.every((guest: User) => guest?.completed) &&
+        presenter?.completed) ||
+      false;
+    setAllGuestsCompleted(allCompleted);
+
+    // If the RoomStatus is PRESENTING, navigate all users to the PresentPage
+    if (roomStatus === RoomStatus.PRESENTING) {
+      navigate("/PresentPage", {
+        state: { user, admin, presenter, guests },
+      });
+    }
+
+    // If the RoomStatus is ALL_FINISHED, navigate all users to the AllPresentedPage
+    if (roomStatus === RoomStatus.All_PRESENTED) {
+      navigate("/AllPresentedPage", {
+        state: { user, admin, presenter, guests },
+      });
+    }
+  }, [roomStatus, user, admin, presenter, guests]);
+
+  useEffect(() => {
+    const notifyServerOnUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+  
+      const confirmationMessage = 'Are you sure you want to leave?';
+      event.returnValue = confirmationMessage;
+      return confirmationMessage;
+    };
+  
+    window.addEventListener("beforeunload", notifyServerOnUnload);
+  
+    return () => {
+      window.removeEventListener("beforeunload", notifyServerOnUnload);
+    };
+  }, []);
+
+  useEffect(() => {
+    const notifyServerOnUnload = () => {
+      handleKickUser(userID);
+    };
+
+    window.addEventListener("unload", notifyServerOnUnload);
+
+    return () => {
+      window.removeEventListener("unload", notifyServerOnUnload);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (admin?.userID && presenter?.userID) {
+      if (presenter.userID === userID) {
+        const notifyServerOnUnload = () => {
+          handleChangePresenterAfterQuitting(admin!.userID);
+        };
+
+        window.addEventListener("unload", notifyServerOnUnload);
+
+        return () => {
+          window.removeEventListener("unload", notifyServerOnUnload);
+        };
+      }
+    }
+  }, [admin, presenter]);
+
+  useEffect(() => {
+    if (admin?.userID) {
+      if (admin.userID === userID) {
+        const notifyServerOnUnload = () => {
+          handleLeaveRoom();
+        };
+
+        window.addEventListener("unload", notifyServerOnUnload);
+
+        return () => {
+          window.removeEventListener("unload", notifyServerOnUnload);
+        };
+      }
+    }
+  }, [admin]);
+
   // main render
   return render ? (
     <div className="page">
