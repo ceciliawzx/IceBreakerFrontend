@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import "./css/WaitRoomPage.css";
-import { serverPort } from "./macro/MacroServer";
+import { serverPort, websocketPort } from "./macro/MacroServer";
 import { refreshTime } from "./macro/MacroConst";
 import { User } from "./type/User";
 import { UserProfile } from "./type/UserProfile";
@@ -10,6 +10,7 @@ import { RoomStatus } from "./type/RoomStatus";
 import exportUserProfileAsPDF from "./utils/ExportPDF";
 import blackBoard from "./assets/BlackBoard.png";
 import { isSameUser } from "./utils/CommonCompare";
+import { connect, sendMsg } from "./utils/WebSocketService";
 
 const WaitRoomPage = () => {
   const location = useLocation();
@@ -38,6 +39,125 @@ const WaitRoomPage = () => {
   const [roomStatus, setRoomStatus] = useState<RoomStatus>(RoomStatus.WAITING);
   const [showRingPopUp, setShowRingPopUp] = useState(false);
   const [showFinishPopUp, setShowFinishPopup] = useState(false);
+
+  const socketUrl = `${serverPort}/chat?userId=${userID}`;
+  const websocketUrl = `${websocketPort}/chat?userId=${userID}`;
+
+  const [render, setRender] = useState(false);
+
+  // Initial pull
+  useEffect(() => {
+    checkPlayers();
+    checkKickOut();
+    checkNotPresented();
+    checkRing();
+  }, []);
+
+
+  // Connect to waitroom websokect
+  useEffect(() => {
+    const topic = `/topic/room/${roomCode}/wait`;
+    const cleanup = connect(
+      socketUrl,
+      websocketUrl,
+      topic,
+      onMessageReceived,
+      setRender
+    );
+    return cleanup;
+  }, []);
+
+
+  useEffect(() => {
+    // Check whether the user is admin
+    checkAdminStatus();
+
+    // Check if all guests and presenter have completed
+    const allCompleted =
+      (guests.every((guest: User) => guest?.completed) &&
+        presenter?.completed) ||
+      false;
+    setAllGuestsCompleted(allCompleted);
+
+    // If the RoomStatus is PRESENTING, navigate all users to the PresentPage
+    if (roomStatus === RoomStatus.PRESENTING) {
+      navigate("/PresentPage", {
+        state: { user },
+      });
+    }
+
+    // If the RoomStatus is ALL_FINISHED, navigate all users to the AllPresentedPage
+    if (roomStatus === RoomStatus.All_PRESENTED) {
+      navigate("/AllPresentedPage", {
+        state: { user },
+      });
+    }
+  }, [roomStatus, user, admin, presenter, guests]);
+
+  
+  useEffect(() => {
+    const notifyServerOnUnload = () => {
+      handleKickUser(userID);
+    };
+
+    window.addEventListener("unload", notifyServerOnUnload);
+
+    return () => {
+      window.removeEventListener("unload", notifyServerOnUnload);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (admin?.userID && presenter?.userID) {
+      if (isSameUser(presenter, user)) {
+        const notifyServerOnUnload = () => {
+          handleChangePresenterAfterQuitting(admin!.userID);
+        };
+
+        window.addEventListener("unload", notifyServerOnUnload);
+
+        return () => {
+          window.removeEventListener("unload", notifyServerOnUnload);
+        };
+      }
+    }
+  }, [admin, presenter]);
+
+  useEffect(() => {
+    if (admin?.userID) {
+      if (isSameUser(admin, user)) {
+        const notifyServerOnUnload = () => {
+          handleLeaveRoom();
+        };
+
+        window.addEventListener("unload", notifyServerOnUnload);
+
+        return () => {
+          window.removeEventListener("unload", notifyServerOnUnload);
+        };
+      }
+    }
+  }, [admin]);
+
+  // TODO: use websocket
+  useEffect(() => {
+    checkRing();
+
+    const intervalId = setInterval(() => {
+      checkRing();
+    }, refreshTime);
+
+    return () => clearInterval(intervalId);
+  }, [showRingPopUp]);
+
+
+  const onMessageReceived = (msg: any) => {
+    checkPlayers();
+    checkKickOut();
+    checkNotPresented();
+    // TODO
+    // checkRing();
+  };
 
   const handleStartRoom = async () => {
     // Tell server that to start room
@@ -336,15 +456,12 @@ const WaitRoomPage = () => {
   const checkNotPresented = async () => {
     try {
       const response = await fetch(
-        `${serverPort}/notPresentedPeople?roomCode=${roomCode}`,
-        {
-          method: "GET",
-        }
+        `${serverPort}/notPresentedPeople?roomCode=${roomCode}`
       );
 
       const data = await response.json();
       setNotPresented(data.notPresentedPeople || []);
-      setHasPresented(!notPresented.some((npUser) => isSameUser(npUser, user)));
+      setHasPresented(!data.notPresentedPeople.some((npUser:any) => isSameUser(npUser, user)));
 
       if (!response.ok) {
         throw new Error("Room cannot be found");
@@ -365,101 +482,8 @@ const WaitRoomPage = () => {
     }
   }, [presenter, notPresented]);
 
-  useEffect(() => {
-    // Check whether the user is admin
-    checkAdminStatus();
-
-    // Check if all guests and presenter have completed
-    const allCompleted =
-      (guests.every((guest: User) => guest?.completed) &&
-        presenter?.completed) ||
-      false;
-    setAllGuestsCompleted(allCompleted);
-
-    // If the RoomStatus is PRESENTING, navigate all users to the PresentPage
-    if (roomStatus === RoomStatus.PRESENTING) {
-      navigate("/PresentPage", {
-        state: { user },
-      });
-    }
-
-    // If the RoomStatus is ALL_FINISHED, navigate all users to the AllPresentedPage
-    if (roomStatus === RoomStatus.All_PRESENTED) {
-      navigate("/AllPresentedPage", {
-        state: { user },
-      });
-    }
-  }, [roomStatus, user, admin, presenter, guests]);
-
-  // Every refreshtime
-  useEffect(() => {
-    // Update the player list every interval
-    const intervalId = setInterval(() => {
-      checkPlayers();
-      checkKickOut();
-      checkNotPresented();
-    }, refreshTime);
-
-    // Clear timer and count again
-    return () => clearInterval(intervalId);
-  }, [notPresented]);
-
-  useEffect(() => {
-    const notifyServerOnUnload = () => {
-      handleKickUser(userID);
-    };
-
-    window.addEventListener("unload", notifyServerOnUnload);
-
-    return () => {
-      window.removeEventListener("unload", notifyServerOnUnload);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (admin?.userID && presenter?.userID) {
-      if (isSameUser(presenter, user)) {
-        const notifyServerOnUnload = () => {
-          handleChangePresenterAfterQuitting(admin!.userID);
-        };
-
-        window.addEventListener("unload", notifyServerOnUnload);
-
-        return () => {
-          window.removeEventListener("unload", notifyServerOnUnload);
-        };
-      }
-    }
-  }, [admin, presenter]);
-
-  useEffect(() => {
-    if (admin?.userID) {
-      if (admin.userID === userID) {
-        const notifyServerOnUnload = () => {
-          handleLeaveRoom();
-        };
-
-        window.addEventListener("unload", notifyServerOnUnload);
-
-        return () => {
-          window.removeEventListener("unload", notifyServerOnUnload);
-        };
-      }
-    }
-  }, [admin]);
-
-  useEffect(() => {
-    checkRing();
-
-    const intervalId = setInterval(() => {
-      checkRing();
-    }, refreshTime);
-
-    return () => clearInterval(intervalId);
-  }, [showRingPopUp]);
-
   // main render
-  return (
+  return render ? (
     <div className="page">
       <h1>
         Welcome to Wait Room {roomCode}, {displayName}!
@@ -790,6 +814,8 @@ const WaitRoomPage = () => {
         </div>
       )}
     </div>
+  ) : (
+    <></>
   );
 };
 
