@@ -91,6 +91,48 @@ const Wordle = () => {
 
   // When launch
   useEffect(() => {
+    initializeGame();
+  }, []);
+
+  // When got target word, initialize grid
+  useEffect(() => {
+    if (targetCharNum > 0) {
+      // If first launch, set intial guess; if refresh page, does not change
+      if (currentGuess.length == 0) {
+        // Initialize currentGuess
+        const initialGuess = Array.from({ length: totalAttempts }, () =>
+          Array(targetCharNum).fill(
+            new WordleLetter("", LetterStatus.UNCHECKED)
+          )
+        );
+        setCurrentGuess(initialGuess);
+      }
+
+      setInitialized(true);
+    }
+  }, [targetCharNum]);
+
+  // When grid initialized, select guesser and change cursor
+  useEffect(() => {
+    changeGuesser();
+  }, [initialized]);
+
+  // When submit guess
+  useEffect(() => {
+    // Change guesser
+    changeGuesser();
+    // Set is finished
+    setIsFinished(currentAttempt >= totalAttempts || correct);
+  }, [currentAttempt]);
+
+  // When isFinished update
+  useEffect(() => {
+    if (isFinished) {
+      handleModalMessage();
+    }
+  }, [isFinished]);
+
+  const initializeGame = async () => {
     const onMessageReceived = (msg: WordleMsg | BackMessage | ModalMessage) => {
       receiveMessage(msg);
     };
@@ -104,58 +146,17 @@ const Wordle = () => {
       setRender
     );
 
-    // fetch target word
-    fetchWordLength();
-    fetchTargetWord();
-
     // get player status
-    checkPlayers();
-    checkNotPresented();
+    await getWordleStatus();
+    await checkPlayers();
+    await checkNotPresented();
+
+    // fetch target word
+    await fetchWordLength();
+    await fetchTargetWord();
 
     return cleanup;
-  }, []);
-
-  // When got target word, initialize grid
-  useEffect(() => {
-    if (targetCharNum > 0) {
-      // Initialize currentGuess
-      const initialGuess = Array.from({ length: totalAttempts }, () =>
-        Array(targetCharNum).fill(new WordleLetter("", LetterStatus.UNCHECKED))
-      );
-      setCurrentGuess(initialGuess);
-      setInitialized(true);
-    }
-  }, [targetCharNum]);
-
-  // When grid initialized, focus cursor
-  useEffect(() => {
-    if (isSameUser(user, currentGuesser)) {
-      document.getElementById("input-0-0")?.focus();
-    }
-  }, [initialized]);
-
-  // When submit guess
-  useEffect(() => {
-    const nextGuesser = guests[currentAttempt % guests.length];
-
-    // Change to next guesser
-    setCurrentGuesser(nextGuesser);
-
-    // Move cursor to the first grid next row
-    if (isSameUser(user, nextGuesser)) {
-      document.getElementById(`input-${currentAttempt}-0`)?.focus();
-    }
-
-    // Set is finished
-    setIsFinished(currentAttempt >= totalAttempts || correct);
-  }, [currentAttempt]);
-
-  // When isFinished update
-  useEffect(() => {
-    if (isFinished) {
-      handleModalMessage();
-    }
-  }, [isFinished]);
+  };
 
   // Fetch target word length
   const fetchWordLength = async () => {
@@ -197,7 +198,7 @@ const Wordle = () => {
 
       const data = await response.json();
 
-      if (data != "Error") {
+      if (data !== "Error") {
         setSelectedField(data.target.fieldName);
         setTargetWord(data.target.targetWord);
       } else {
@@ -219,7 +220,6 @@ const Wordle = () => {
 
       const data = await response.json();
       setNotPresented(data.notPresentedPeople || []);
-      console.log("check who has not presenter", notPresented);
 
       if (!response.ok) {
         throw new Error("Room cannot be found");
@@ -231,13 +231,13 @@ const Wordle = () => {
 
   // Send message via websocket
   const sendWordleMessage = (
-    icCheck: boolean,
+    isCheck: boolean,
     updatedGuess: WordleLetter[][]
   ) => {
     sendMsg(destination, {
       currentAttempt: currentAttempt,
       totalAttempt: totalAttempts,
-      isCheck: icCheck,
+      isCheck: isCheck,
       letters: updatedGuess,
       roomCode: roomCode,
       isCorrect: null,
@@ -271,7 +271,7 @@ const Wordle = () => {
 
     if (msg.isCheck) {
       setCorrect(msg.isCorrect);
-      setCurrentAttempt((prevAttempt) => prevAttempt + 1);
+      setCurrentAttempt(msg.currentAttempt + 1);
     }
 
     setAllLetterStatus(msg.allLetterStat);
@@ -509,6 +509,43 @@ const Wordle = () => {
     }
   };
 
+  const changeGuesser = () => {
+    const nextGuesser = guests[currentAttempt % guests.length];
+
+    // Change to next guesser
+    setCurrentGuesser(nextGuesser);
+
+    // Move cursor to the first grid next row
+    if (isSameUser(user, nextGuesser)) {
+      document.getElementById(`input-${currentAttempt}-0`)?.focus();
+    }
+  };
+
+  // Get player info when start
+  const getWordleStatus = async () => {
+    const url = `${serverPort}/getWordleGameStatus?roomCode=${roomCode}`;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error("Room cannot be found");
+      }
+
+      const data = await response.json();
+      const message = data.wordlemessage;
+
+      // If not first launch, fetch status and update
+      if (data != null) {
+        setCurrentAttempt(
+          message.isCheck ? message.currentAttempt + 1 : message.currentAttempt
+        );
+        setCurrentGuess(message.letters);
+        setAllLetterStatus(message.allLetterStat);
+      }
+    } catch (error) {
+      console.error("Error fetching wordle status:", error);
+    }
+  };
+
   // Get player info when start
   const checkPlayers = async () => {
     const url = `${serverPort}/getPlayers?roomCode=${roomCode}`;
@@ -540,7 +577,6 @@ const Wordle = () => {
             )
         );
         setGuests(updatedGuests);
-        setCurrentGuesser(updatedGuests[0]);
       }
     } catch (error) {
       console.error("Error fetching players:", error);
