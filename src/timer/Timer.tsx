@@ -11,6 +11,7 @@ import { RoomStatus } from "../type/RoomStatus";
 import "../css/Timer.css";
 import { TimerModal } from "../utils/Modal";
 import { TimerModalMessage } from "../type/TimerModalMessage";
+import { websocketPort, serverPort } from "../macro/MacroServer";
 
 export const Timer = ({
   user,
@@ -29,13 +30,30 @@ export const Timer = ({
   // Track if the timer has started
   const [isTimerStarted, setIsTimerStarted] = useState<boolean>(false);
   const [render, setRender] = useState<boolean>(false);
-  // Show TimerModal initially
-  const [showTimerModal, setShowTimerModal] = useState<boolean>(true);
+  const [showTimerModal, setShowTimerModal] = useState<boolean>();
+
+  // Initially check for showTimerModal
+  useEffect(() => {
+    checkShowTimerModal();
+  }, [render]);
+
+  const checkShowTimerModal = async () => {
+    const url = `${serverPort}/getShowTimerModal?roomCode=${roomCode}`;
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      if (data) {
+        setShowTimerModal(data.showTimerModal);
+      }
+    } catch (error) {
+      console.error("Error fetching player:", error);
+    }
+  };
 
   const onTimerMessageReceived = useCallback(
     (msg: TimerMessage | TimerModalMessage) => {
       if ("show" in msg) {
-        setShowTimerModal(msg.show);
+        checkShowTimerModal();
       } else {
         setTimeLeft(msg.seconds);
       }
