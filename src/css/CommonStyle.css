@@ -207,24 +207,47 @@
   border-color: transparent transparent transparent var(--admin-button); /* Adjust the arrow color */
 }
 
-.input-status-indicator {
+.indicator {
   border-radius: 50%;
-  background-image: url("../assets/RedRose.png");
-  background-size: cover;
-  padding: 5px;
-  width: 10%; 
-  height: auto;
-  padding: 20px;
+  width: 20px; /* Set a fixed width */
+  height: 20px; /* Set a fixed height */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white; /* Set text color to white */
+  font-weight: bold; /* Make the text bold */
+}
+
+.indicator:hover {
+  opacity: 0.8;
+}
+
+.indicator:hover::before {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.9); /* Half-transparent background */
+  padding: 10px;
+  border-radius: 5px;
+  color: white;
+  display: block;
+  text-align: center;
+}
+
+.input-status-indicator {
+  background-color: var(--common-button);
+}
+
+.input-status-indicator:hover::before {
+  content: "Information completed";
 }
 
 .presented-status-indicator {
-  border-radius: 50%;
-  background-image: url("../assets/BlueRose.png");
-  background-size: cover;
-  padding: 5px;
-  width: 10%; 
-  height: auto;
-  padding: 20px;
+  background-color: var(--admin-button);
+}
+
+.presented-status-indicator:hover::before {
+  content: "Presented";
 }
 
 .instruction-button-container {
