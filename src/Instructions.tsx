@@ -26,7 +26,7 @@ const Instructions: React.FC<InstructionsProps> = ({ instructionPics }) => {
   };
 
   return (
-    <div>
+    <div style={{ zIndex: "var(--instruction-overlay-index)" }}>
       {/* Instruction Button */}
       <button
         className="instruction-button"

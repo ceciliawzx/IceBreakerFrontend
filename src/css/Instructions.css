@@ -5,7 +5,6 @@
   width: 40px;
   height: 40px;
   margin: 10px;
-  z-index: 1000;
 
   border: 3px solid var(--common-button);
   border-radius: 50%;
@@ -30,7 +29,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2000; /* Above other fixed elements */
 }
 
 .instruction-content {
@@ -41,9 +39,6 @@
   text-align: center;
   width: auto; /* Adjust based on your needs */
   height: auto; /* Adjust based on your needs */
-  /* max-width: 80vw; 
-  max-height: 80vh; 
-  overflow: auto;  */
 }
 
 .instruction-navigation button {
@@ -66,7 +61,6 @@
   cursor: pointer;
   padding: 0;
   line-height: 1;
-  z-index: 3000;
 }
 
 .instruction-content img {
@@ -74,7 +68,7 @@
   border: 1px solid black;
   max-width: 100%;
   max-height: 60vh;
-  height: auto; 
+  height: auto;
 }
 
 .instruction-content p {
@@ -87,7 +81,4 @@
   position: absolute;
   bottom: 10px;
   right: 10px;
-  z-index: 3001;
 }
-
-

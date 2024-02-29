@@ -18,6 +18,10 @@
   --chat-self: rgb(21, 159, 21);
   --chat-other: #da7414;
   --pictionary-background: rgb(248, 223, 194);
+
+  --overlay-index: 1000;
+  --above-overlay-index: 1001;
+  --instruction-overlay-index: 2000;
 }
 
 .no-scroll {
@@ -166,7 +170,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000; /* Ensure it's above other content */
+  z-index: var(--overlay-index); /* Ensure it's above other content */
 }
 
 .popup {

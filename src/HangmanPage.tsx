@@ -570,6 +570,7 @@ const HangmanPage = () => {
           <button
             className="button admin-only-button"
             onClick={handleBackButton}
+            style={{zIndex:"var(--above-overlay-index)"}}
           >
             Back to Present Room
           </button>

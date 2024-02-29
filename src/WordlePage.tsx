@@ -596,7 +596,6 @@ const Wordle = () => {
               defaultTime={60}
             />
           </div>
-
           <Instructions instructionPics={wordleInstructions} />
         </div>
 
@@ -722,6 +721,7 @@ const Wordle = () => {
         {isAdmin && (
           <button
             className="button admin-only-button"
+            style={{ zIndex: "var(--above-overlay-index)" }}
             onClick={handleBackButton}
           >
             Back to Present Room
@@ -785,6 +785,7 @@ const Wordle = () => {
           </button>
         </div>
       )}
+
       {/* Modal */}
       {showModal && (
         <Modal
