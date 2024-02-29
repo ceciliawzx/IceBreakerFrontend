@@ -20,13 +20,13 @@ import { Timer } from "./timer/Timer";
 import { RoomStatus } from "./type/RoomStatus";
 import { ModalMessage } from "./type/ModalMessage";
 import Instructions from "./Instructions";
-import Inst1 from "./instructions/wordle/1.png";
+import wordleInstruction from "./instructions/wordle/WordleInstruction.png";
 import { isSameUser } from "./utils/CommonCompare";
 
 const wordleInstructions = [
   {
-    img: Inst1,
-    text: "In this game you will take turns to guess the word, cooporate with your teamates and find the answer!",
+    img: wordleInstruction,
+    text: "",
   },
 ];
 
