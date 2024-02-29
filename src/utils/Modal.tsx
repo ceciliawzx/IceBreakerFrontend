@@ -31,3 +31,46 @@ export const Modal = ({
     </div>
   </div>
 );
+
+
+// TimerModal as a separate component
+export const TimerModal = ({
+  isAdmin,
+  inputValue,
+  setInputValue,
+  startTimer,
+}: {
+  isAdmin: boolean,
+  inputValue: string,
+  setInputValue: any,
+  startTimer: any
+}) => {
+  return (
+    <div className="overlay-popup">
+      <div className="modal">
+        {isAdmin && (
+          <>
+            <div>
+              <input
+                type="number"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="Set time"
+                style={{ maxWidth: "80%" }}
+              />
+            </div>
+            <div>
+              <button
+                className="button admin-only-button"
+                onClick={startTimer}
+              >
+                Start Timer
+              </button>
+            </div>
+          </>
+        )}
+        {!isAdmin && <h2>Waiting for the Timer</h2>}
+      </div>
+    </div>
+  );
+};

@@ -9,6 +9,8 @@ import { User } from "../type/User";
 import { TimerMessage } from "../type/Timer";
 import { RoomStatus } from "../type/RoomStatus";
 import "../css/Timer.css";
+import { TimerModal } from "../utils/Modal";
+import { TimerModalMessage } from "../type/TimerModalMessage";
 
 export const Timer = ({
   user,
@@ -24,15 +26,24 @@ export const Timer = ({
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [inputValue, setInputValue] = useState<string>(defaultTime.toString());
   const userID = user.userID;
-  // New state to track if the timer has started
+  // Track if the timer has started
   const [isTimerStarted, setIsTimerStarted] = useState<boolean>(false);
-  const [render, setRender] = useState(false);
+  const [render, setRender] = useState<boolean>(false);
+  // Show TimerModal initially
+  const [showTimerModal, setShowTimerModal] = useState<boolean>(true);
 
-  const onTimerMessageReceived = useCallback((msg: number) => {
-    setTimeLeft(msg);
-  }, []);
+  const onTimerMessageReceived = useCallback(
+    (msg: TimerMessage | TimerModalMessage) => {
+      if ("show" in msg) {
+        setShowTimerModal(msg.show);
+      } else {
+        setTimeLeft(msg.seconds);
+      }
+    },
+    []
+  );
 
-  // Connect to websokect
+  // Connect to Timer websokect
   useEffect(() => {
     const topic = `/topic/room/${roomCode}/timer`;
     const cleanup = connect(
@@ -87,36 +98,45 @@ export const Timer = ({
   };
 
   return (
-    <div className="timerContainer">
-      <div>
-        Time Left: {timeLeft !== null ? `${timeLeft}s` : "Waiting for timer..."}
-      </div>
-      {user.isAdmin && (
-        <div
-          style={{ display: "flex", flexDirection: "column", rowGap: "5px" }}
-        >
-          <div>
-            <input
-              type="number"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Set time"
-              style={{ maxWidth: "80%" }}
-            />
-          </div>
-          <div
-            style={{ display: "flex", flexDirection: "column", rowGap: "2px" }}
-          >
-            <button onClick={startTimer}>Start Timer</button>
-            <button onClick={() => modifyTimer(20)} disabled={!isTimerStarted}>
-              Add 20 Seconds
-            </button>
-            <button onClick={stopTimer} disabled={!isTimerStarted}>
-              Skip Timer
-            </button>
-          </div>
-        </div>
+    <>
+      {showTimerModal && (
+        <TimerModal
+          isAdmin={user.isAdmin}
+          inputValue={inputValue}
+          setInputValue={setInputValue}
+          startTimer={startTimer}
+        />
       )}
-    </div>
+      <div className="timerContainer">
+        <div>
+          Time Left:{" "}
+          {timeLeft !== null ? `${timeLeft}s` : "Waiting for timer..."}
+        </div>
+        {user.isAdmin && (
+          <div
+            style={{ display: "flex", flexDirection: "column", rowGap: "5px" }}
+          >
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                rowGap: "2px",
+              }}
+            >
+              {/* <button onClick={startTimer}>Start Timer</button> */}
+              <button
+                onClick={() => modifyTimer(20)}
+                disabled={!isTimerStarted}
+              >
+                Add 20 Seconds
+              </button>
+              <button onClick={stopTimer} disabled={!isTimerStarted}>
+                Skip Timer
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   );
 };
