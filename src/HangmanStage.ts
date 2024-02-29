@@ -57,7 +57,7 @@ const hangmanStages: string[] = [
      |    /|\\
     |    / 
     |      
-    |       
+    |      
   _______
   `,
   `
@@ -66,8 +66,8 @@ const hangmanStages: string[] = [
     |     O
     |    /|\\
     |    / \\
-    |   
-    |    
+    |      
+    |      
   _______ 
   `,
 ];

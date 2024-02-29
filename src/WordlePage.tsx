@@ -647,7 +647,6 @@ const Wordle = () => {
         </div>
       </div>
       <div className="main-column" onKeyDown={handleKeyPress}>
-        <h1>Welcome to Wordle, {user.displayName}!</h1>
         <h1>
           We are guessing: {presenter?.displayName}'s {selectedField}!
         </h1>
