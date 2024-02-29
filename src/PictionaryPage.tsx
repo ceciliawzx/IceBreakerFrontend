@@ -227,7 +227,7 @@ const PictionaryPage = () => {
         </div>
         <div className="column-container down-row">
           <div className="chat-room-container">
-            <ChatRoom />
+            <ChatRoom isPresenter={isSameUser(presenter, user)}/>
           </div>
         </div>
       </div>

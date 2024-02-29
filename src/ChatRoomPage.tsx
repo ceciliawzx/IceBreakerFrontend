@@ -7,6 +7,7 @@ import {
   websocketUrl,
 } from "./utils/WebSocketService";
 import "./css/ChatRoomPage.css";
+import { websocketPort, serverPort } from "./macro/MacroServer";
 
 interface ChatMessage {
   roomNumber: number;
@@ -16,14 +17,19 @@ interface ChatMessage {
   senderId: string;
 }
 
-const ChatRoom: React.FC = () => {
+interface ChatMessageExtended extends ChatMessage {
+  decisionMade?: boolean;
+}
+
+const ChatRoom = ({ isPresenter }: { isPresenter: boolean }) => {
   const location = useLocation();
   const user = location.state?.user;
   const userID = user.userID;
   const displayName = user.displayName;
   const roomCode = user.roomCode;
   const [message, setMessage] = useState<string>("");
-  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [chatHistory, setChatHistory] = useState<ChatMessageExtended[]>([]);
+
   const [render, setRender] = useState(false);
 
   const topic = `/topic/room/${roomCode}`;
@@ -31,8 +37,12 @@ const ChatRoom: React.FC = () => {
 
   useEffect(() => {
     const onMessageReceived = (msg: ChatMessage) => {
-      setChatHistory((prevHistory) => [...prevHistory, msg]);
+      setChatHistory((prevHistory) => [
+        ...prevHistory,
+        { ...msg, decisionMade: false },
+      ]);
     };
+
     const cleanup = connect(
       socketUrl,
       websocketUrl,
@@ -74,6 +84,42 @@ const ChatRoom: React.FC = () => {
     }
   };
 
+  const handleGuessDecision = async ({
+    message,
+    guessedCorrect,
+  }: {
+    message: ChatMessage;
+    guessedCorrect: boolean;
+  }) => {
+    if (guessedCorrect) {
+      try {
+        const response = await fetch(
+          `${serverPort}/guessedCorrect?roomCode=${roomCode}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(message),
+          }
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`); // Error message
+        }
+      } catch (error) {
+        console.error("Error decising guess message:", error);
+      }
+    }
+    // Update the decisionMade property for the message
+    setChatHistory((currentHistory) =>
+      currentHistory.map((msg) =>
+        msg.timestamp === message.timestamp
+          ? { ...msg, decisionMade: true }
+          : msg
+      )
+    );
+  };
+
   return (
     <div className={`chat-room-page`}>
       <div className="chat-room-bar">
@@ -87,16 +133,49 @@ const ChatRoom: React.FC = () => {
         </div>
         <div className="message-display">
           {chatHistory.map((msg, index) => (
-            <div key={index} className="message">
+            <div
+              key={index}
+              className={msg.sender === "System" ? "system-message" : "message"}
+            >
               <span
                 className={
                   msg.sender === displayName ? "green-sender" : "yellow-sender"
                 }
               >
-                {msg.sender}:
+                {msg.sender}: {""}
               </span>
-
               <span>{extractMessage(msg.content)}</span>
+              {isPresenter &&
+                msg.sender !== "System" &&
+                msg.sender !== displayName &&
+                !msg.decisionMade && (
+                  <div>
+                    <button
+                      className="button small-common-button"
+                      onClick={() =>
+                        handleGuessDecision({
+                          message: msg,
+                          guessedCorrect: true,
+                        })
+                      }
+                      title="Correct"
+                    >
+                      ✓
+                    </button>
+                    <button
+                      className="button small-common-button"
+                      onClick={() =>
+                        handleGuessDecision({
+                          message: msg,
+                          guessedCorrect: false,
+                        })
+                      }
+                      title="Incorrect"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
             </div>
           ))}
         </div>

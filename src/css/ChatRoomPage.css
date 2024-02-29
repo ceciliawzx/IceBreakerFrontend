@@ -43,10 +43,18 @@
   border-radius: 6px;
 }
 
+.system-message {
+  background-color: var(--chat-system);
+  margin-bottom: 8px;
+  padding: 8px;
+  border-radius: 6px;
+}
+
 .input-container {
   display: flex;
   padding: 10px;
   flex-direction: row;
+  background-color: rgb(255, 234, 204);
 }
 
 input {
