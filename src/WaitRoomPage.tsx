@@ -63,13 +63,13 @@ const WaitRoomPage = () => {
   const [showFinishPopUp, setShowFinishPopup] = useState(false);
   const [render, setRender] = useState(false);
 
-  // Initial pull
+  // Refetch pull
   useEffect(() => {
     checkPlayers();
     checkKickOut();
     checkNotPresented();
     checkRing();
-  }, []);
+  }, [render]);
 
   // Connect to waitroom websokect
   useEffect(() => {
@@ -155,7 +155,6 @@ const WaitRoomPage = () => {
   }, [admin]);
 
   const onMessageReceived = (msg: any) => {
-    console.log("here");
     checkPlayers();
     checkKickOut();
     checkNotPresented();
@@ -355,9 +354,6 @@ const WaitRoomPage = () => {
         console.error(`HTTP error! Status: ${response.status}`);
         return;
       }
-
-      // Update local state if necessary (e.g., set new presenter, update notPresented list)
-      setPresenter(notPresented[0]);
     } else {
       console.log("No more users to present");
     }
@@ -432,7 +428,6 @@ const WaitRoomPage = () => {
         throw new Error("Room cannot be found");
       }
       if (data) {
-        console.log("Notification received!");
         setShowRingPopUp(true);
       }
     } catch (error) {

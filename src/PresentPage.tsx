@@ -97,7 +97,7 @@ const PresentPage = () => {
   useEffect(() => {
     checkPresentRoomInfo();
     checkPlayers();
-  }, []);
+  }, [render]);
 
   // Connect to refetch websokect
   useEffect(() => {
