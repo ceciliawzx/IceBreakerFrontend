@@ -463,7 +463,9 @@ const WaitRoomPage = () => {
       );
       const data = await response.json();
       setNotPresented(data.notPresentedPeople || []);
-      setHasPresented(!(data.notPresentedPeople.some((npUser:any) => isSameUser(npUser, user))));
+      setHasPresented(
+        !data.notPresentedPeople.some((npUser: any) => isSameUser(npUser, user))
+      );
 
       if (!response.ok) {
         throw new Error("Room cannot be found");
@@ -513,15 +515,15 @@ const WaitRoomPage = () => {
   useEffect(() => {
     const notifyServerOnUnload = (event: BeforeUnloadEvent) => {
       event.preventDefault();
-      event.returnValue = '';
-  
-      const confirmationMessage = 'Are you sure you want to leave?';
+      event.returnValue = "";
+
+      const confirmationMessage = "Are you sure you want to leave?";
       event.returnValue = confirmationMessage;
       return confirmationMessage;
     };
-  
+
     window.addEventListener("beforeunload", notifyServerOnUnload);
-  
+
     return () => {
       window.removeEventListener("beforeunload", notifyServerOnUnload);
     };
@@ -592,14 +594,30 @@ const WaitRoomPage = () => {
         <img src={blackBoard} alt="BlackBoard" className="blackBoard" />
         <div className="row-container presenter-on-blackboard">
           {/* Moderator */}
-          <div className="avatar-container" style={{ color: "white" }}>
-            <h2>Moderator:</h2>
-            <img
-              src={`${admin?.profileImage}`} // {admin.profileImage}
-              alt="Moderator's Image"
-              className="avatar"
-            />
-            <p>{admin?.displayName}</p>
+
+          <div className="column-container">
+            <div className="row-container">
+              <div className="avatar-container" style={{ color: "white" }}>
+                <h2>Moderator:</h2>
+                <img
+                  src={`${admin?.profileImage}`} // {admin.profileImage}
+                  alt="Moderator's Image"
+                  className="avatar"
+                />
+              </div>
+              <div className="column-container" style={{ gap: "10px" }}>
+                {admin?.completed && (
+                  <div className="indicator input-status-indicator"></div>
+                )}
+                {!notPresented.some((npUser) => isSameUser(npUser, admin)) && (
+                  <div className="indicator presented-status-indicator"></div>
+                )}
+              </div>
+            </div>
+
+            <div style={{ color: "white" }}>
+              <p>{admin?.displayName}</p>
+            </div>
 
             {
               <button
@@ -616,23 +634,27 @@ const WaitRoomPage = () => {
             }
           </div>
 
+          {/* Presenter */}
           <div className="column-container">
-            <div className="avatar-container" style={{ color: "white" }}>
-              <h2>Presenter:</h2>
-              <img
-                src={`${presenter?.profileImage}`}
-                alt={`${presenter?.displayName}'s avatar`}
-                className="avatar"
-              />
-
-              {presenter?.completed && (
-                <div className="input-status-indicator">✓</div>
-              )}
-
-              {/* Show presented indicator */}
-              {!notPresented.some((npUser) =>
-                isSameUser(npUser, presenter)
-              ) && <div className="presented-status-indicator">6</div>}
+            <div className="row-container">
+              <div className="avatar-container" style={{ color: "white" }}>
+                <h2>Presenter:</h2>
+                <img
+                  src={`${presenter?.profileImage}`}
+                  alt={`${presenter?.displayName}'s avatar`}
+                  className="avatar"
+                />
+              </div>
+              <div className="column-container">
+                {presenter?.completed && (
+                  <div className="indicator input-status-indicator"></div>
+                )}
+                {!notPresented.some((npUser) =>
+                  isSameUser(npUser, presenter)
+                ) && (
+                  <div className="indicator presented-status-indicator"></div>
+                )}
+              </div>
             </div>
 
             <div style={{ color: "white" }}>
@@ -665,7 +687,6 @@ const WaitRoomPage = () => {
               </button>
             )}
           </div>
-          {/* Presenter on the blackboard */}
         </div>
       </div>
 
@@ -722,6 +743,17 @@ const WaitRoomPage = () => {
                   >
                     View Profile
                   </button>
+
+                  <div className="indicators-container">
+                    {guest.completed && (
+                      <div className="indicator input-status-indicator"></div>
+                    )}
+                    {!notPresented.some(
+                      (npUser) => npUser.userID === guest.userID
+                    ) && (
+                      <div className="indicator presented-status-indicator"></div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
