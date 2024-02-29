@@ -587,15 +587,6 @@ const Wordle = () => {
     <div className="row-page">
       <div className="left-column">
         <div className="row-container up-row">
-          {/* Timer */}
-          <div>
-            <Timer
-              user={user}
-              roomCode={roomCode}
-              roomStatus={RoomStatus.PRESENTING}
-              defaultTime={60}
-            />
-          </div>
           <Instructions instructionPics={wordleInstructions} />
         </div>
 
@@ -645,10 +636,20 @@ const Wordle = () => {
           </div>
         </div>
       </div>
+
+      <Timer
+        user={user}
+        roomCode={roomCode}
+        roomStatus={RoomStatus.PRESENTING}
+        defaultTime={60}
+        useFloatTimer={true}
+      />
+
       <div className="main-column" onKeyDown={handleKeyPress}>
         <h1>
           We are guessing: {presenter?.displayName}'s {selectedField}!
         </h1>
+
         <h2>Current guesser is: {currentGuesser?.displayName}</h2>
         <div className="wordle-input">
           {currentGuess.map((_, rowIndex) => (
@@ -699,7 +700,6 @@ const Wordle = () => {
             </div>
           ))}
         </div>
-
         <div className="row-container">
           <button
             className="button common-button"
@@ -724,7 +724,7 @@ const Wordle = () => {
             style={{ zIndex: "var(--above-overlay-index)" }}
             onClick={handleBackButton}
           >
-            Back to Present Room
+            Choose Another Game
           </button>
         )}
       </div>

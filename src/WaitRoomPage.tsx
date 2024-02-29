@@ -923,7 +923,7 @@ const WaitRoomPage = () => {
               </button>
 
               <button
-                className="button admin-only-button"
+                className="button red-button"
                 onClick={() => handleForceFinish()}
               >
                 Finish Presenting

@@ -27,8 +27,8 @@ import hangmanInstruction from "./instructions/hangman/HangmanInstruction.png";
 const hangmanInstructions = [
   {
     img: hangmanInstruction,
-    text: ""
-  }
+    text: "",
+  },
 ];
 
 interface HangmanMsg {
@@ -185,7 +185,9 @@ const HangmanPage = () => {
   };
 
   const initializeGame = async () => {
-    const onMessageReceived = (msg: HangmanMsg | BackMessage | ModalMessage) => {
+    const onMessageReceived = (
+      msg: HangmanMsg | BackMessage | ModalMessage
+    ) => {
       receiveMessage(msg);
     };
 
@@ -466,16 +468,6 @@ const HangmanPage = () => {
     <div className="row-page">
       <div className="left-column">
         <div className="row-container up-row">
-          {/* Timer */}
-          <div>
-            <Timer
-              user={user}
-              roomCode={roomCode}
-              roomStatus={RoomStatus.PRESENTING}
-              defaultTime={60}
-            />
-          </div>
-
           <Instructions instructionPics={hangmanInstructions} />
         </div>
         <div className="column-container down-row">
@@ -527,13 +519,21 @@ const HangmanPage = () => {
         </div>
       </div>
 
+      <Timer
+        user={user}
+        roomCode={roomCode}
+        roomStatus={RoomStatus.PRESENTING}
+        defaultTime={60}
+        useFloatTimer={true}
+      />
+
       <div className="main-column">
         <h1>
           We are guessing: {presenter?.displayName}'s {selectedField}!
         </h1>
         <h2>Current guesser is: {currentGuesser?.displayName}</h2>
-        <div className="column-container" >
-          <pre id="hangman-ascii" style={{fontSize: "20px"}}>
+        <div className="column-container">
+          <pre id="hangman-ascii" style={{ fontSize: "20px" }}>
             <p>{`Chances: ${6 - mistakes}`}</p>
             <div>{hangmanStages[mistakes]}</div>
           </pre>
@@ -570,9 +570,9 @@ const HangmanPage = () => {
           <button
             className="button admin-only-button"
             onClick={handleBackButton}
-            style={{zIndex:"var(--above-overlay-index)"}}
+            style={{ zIndex: "var(--above-overlay-index)" }}
           >
-            Back to Present Room
+            Choose Another Game
           </button>
         )}
       </div>

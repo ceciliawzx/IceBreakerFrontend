@@ -142,6 +142,11 @@
   cursor: not-allowed; /* Change cursor to indicate the button is not clickable */
 }
 
+.small-button {
+  padding: 10px 10px;
+  font-size: 0.8rem;
+}
+
 .admin-only-button {
   background-image: url("../assets/AdminButton.png");
 }
@@ -153,12 +158,6 @@
 .red-button {
   min-width: 10px;
   background-image: url("../assets/RedButton.png");
-}
-
-.small-common-button {
-  background-image: url("../assets/CommonButton.png");
-  padding: 10px 10px;
-  font-size: 0.8rem;
 }
 
 .overlay-popup {

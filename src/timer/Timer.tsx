@@ -18,11 +18,13 @@ export const Timer = ({
   roomCode,
   roomStatus,
   defaultTime,
+  useFloatTimer = false,
 }: {
   user: User;
   roomCode: string;
   roomStatus: RoomStatus;
   defaultTime: number;
+  useFloatTimer?: boolean;
 }) => {
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [inputValue, setInputValue] = useState<string>(defaultTime.toString());
@@ -115,20 +117,32 @@ export const Timer = ({
     sendMsg(destination, timerMessage);
   };
 
-  return (
-    <>
-      {showTimerModal && (
-        <TimerModal
-          isAdmin={user.isAdmin}
-          inputValue={inputValue}
-          setInputValue={setInputValue}
-          startTimer={startTimer}
-        />
-      )}
+  const calculateProgress = () => {
+    if (timeLeft === null || timeLeft === 0) return 0;
+    const percentageLeft = (timeLeft / defaultTime) * 100;
+    return Math.min(percentageLeft, 100);
+  };
+
+  // Timer component
+  const TimerContent = () => {
+    return (
       <div className="timerContainer">
         <div>
-          Time Left:{" "}
-          {timeLeft !== null ? `${timeLeft}s` : "Waiting for timer..."}
+          {timeLeft !== null ? (
+            <div>
+              <strong><span>Time Left: {timeLeft}s</span></strong>
+              <div className="progress-bar-container">
+                <div
+                  className="progress-bar"
+                  style={{
+                    width: `${calculateProgress()}%`,
+                  }}
+                ></div>
+              </div>
+            </div>
+          ) : (
+            "Waiting for timer..."
+          )}
         </div>
         {user.isAdmin && (
           <div
@@ -143,18 +157,44 @@ export const Timer = ({
             >
               {/* <button onClick={startTimer}>Start Timer</button> */}
               <button
+                className="button small-button admin-only-button"
                 onClick={() => modifyTimer(20)}
                 disabled={!isTimerStarted}
               >
-                Add 20 Seconds
+                + 20 Seconds
               </button>
-              <button onClick={stopTimer} disabled={!isTimerStarted}>
+              <button
+                className="button small-button admin-only-button"
+                onClick={stopTimer}
+                disabled={!isTimerStarted}
+              >
                 Skip Timer
               </button>
             </div>
           </div>
         )}
       </div>
+    );
+  };
+
+  return (
+    <>
+      {showTimerModal && (
+        <TimerModal
+          isAdmin={user.isAdmin}
+          inputValue={inputValue}
+          setInputValue={setInputValue}
+          startTimer={startTimer}
+        />
+      )}
+
+      {useFloatTimer && (
+        <div className="float-timer">
+          <TimerContent />
+        </div>
+      )}
+
+      {!useFloatTimer && <TimerContent />}
     </>
   );
 };
