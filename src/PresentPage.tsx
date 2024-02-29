@@ -208,7 +208,7 @@ const PresentPage = () => {
           ) : (
             <>
               <button
-                className="button small-common-button"
+                className="button small-button common-button"
                 style={{ margin: "0px" }}
                 onClick={() => toggleGameSelector(fieldName)}
               >
@@ -218,7 +218,7 @@ const PresentPage = () => {
                 <div id="game-selector">
                   {games.map((gameType) => (
                     <button
-                      className="button small-common-button"
+                      className="button small-button common-button"
                       key={gameType}
                       onClick={() => handleGameSelection(gameType, fieldName)}
                     >

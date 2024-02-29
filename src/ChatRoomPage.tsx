@@ -187,7 +187,7 @@ const ChatRoom = ({ isPresenter }: { isPresenter: boolean }) => {
             placeholder="Type a message..."
           />
           <button
-            className="button small-common-button"
+            className="button small-button common-button"
             onClick={handleSendMessage}
           >
             Send

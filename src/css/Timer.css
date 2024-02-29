@@ -2,12 +2,34 @@
   display: flex;
   flex-direction: column;
   margin: 10px 10px;
-  z-index: 1000; /* Ensure it stays on top */
   background-color: white; /* For better visibility */
   padding: 10px;
   border-radius: 5px; /* Styled corners */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Shadow for depth */
   width: auto;
-  max-width: 120px; /* Adjust based on content size */
+  max-width: 120px;
 }
 
+.float-timer {
+  position: absolute;
+  left: 20%; /* Adjust the position as needed */
+  transform: translateX(-50%);
+  margin-top: 2%;
+}
+
+/* Progress bar container */
+.progress-bar-container {
+  width: 100%;
+  height: 10px;
+  background-color: var(--grey-background);
+  border-radius: 5px;
+  margin: 10px 0px;
+}
+
+/* Progress bar */
+.progress-bar {
+  height: 100%;
+  background-color: var(--common-button); /* Color of the progress bar */
+  border-radius: 5px;
+  transition: width 1s linear;
+}

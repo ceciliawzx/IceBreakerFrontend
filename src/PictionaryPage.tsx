@@ -214,6 +214,7 @@ const PictionaryPage = () => {
     <div className="row-page">
       <div className="left-column">
         <div className="row-container up-row">
+          <Instructions instructionPics={pictionaryInstructions} />
           {/* Timer */}
           <div>
             <Timer
@@ -223,7 +224,6 @@ const PictionaryPage = () => {
               defaultTime={60}
             />
           </div>
-          <Instructions instructionPics={pictionaryInstructions} />
         </div>
         <div className="column-container down-row">
           <div className="chat-room-container">
@@ -245,7 +245,7 @@ const PictionaryPage = () => {
               className="button admin-only-button"
               onClick={() => handleBackToPresentRoom()}
             >
-              Back to PresentRoom
+              Choose Another Game
             </button>
           )}
         </div>
