@@ -19,6 +19,7 @@ export const Timer = ({
   roomStatus,
   defaultTime,
   useFloatTimer = false,
+  
 }: {
   user: User;
   roomCode: string;
