@@ -338,9 +338,7 @@ const GeoguesserPage: React.FC = () => {
       checkWinner();
       checkBacktoPresentRoom();
       fetchFieldName();
-      if (geoguesserStatus === GeoguesserStatus.PRE_CHOOSE && !isPret) {
-        setGuestWaitingPopup(true);
-      } else if (geoguesserStatus === GeoguesserStatus.PLAYER_CHOOSE) {
+      if (geoguesserStatus === GeoguesserStatus.PLAYER_CHOOSE) {
         setGuestWaitingPopup(false);
         fetchPresenterLocation();
       } else if (geoguesserStatus === GeoguesserStatus.SUBMITTED) {
