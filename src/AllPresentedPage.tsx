@@ -4,12 +4,15 @@ import { useLocation } from "react-router-dom";
 import { serverPort } from "./macro/MacroServer";
 import { User } from "./type/User";
 import { UserProfile } from "./type/UserProfile";
-import exportUserProfileAsPDF from "./utils/ExportPDF";
+import jsPDF from "jspdf";
+import { exportUserProfileAsPDF, addPDFInfo } from "./utils/ExportPDF";
 import { disableScroll } from "./utils/CssOperation";
+import { isSameUser } from "./utils/CommonCompare";
 import "./css/CommonStyle.css";
 import "./css/AllPresentedPage.css";
 import celebrationLeft from "./assets/CelebrationLeft.png";
 import celebrationRight from "./assets/CelebrationRight.png";
+import { create } from "domain";
 
 const AllPresentedPage: React.FC = () => {
   const location = useLocation();
@@ -31,6 +34,22 @@ const AllPresentedPage: React.FC = () => {
     fetchUsers();
   }, []);
 
+  const createUserProfile = (user: any) => {
+    return new UserProfile(
+      user.displayName,
+      user.roomCode,
+      user.userID,
+      user.profileImage,
+      user.firstName,
+      user.lastName,
+      user.country,
+      user.city,
+      user.feeling,
+      user.favFood,
+      user.favActivity
+    );
+  };
+
   const handleViewProfile = async (user: User | null) => {
     if (user) {
       const url = `${serverPort}/getPlayer?userID=${user.userID}&roomCode=${roomCode}`;
@@ -42,21 +61,7 @@ const AllPresentedPage: React.FC = () => {
 
         const data = await response.json();
 
-        setSelectedUserProfile(
-          new UserProfile(
-            data.userInfo.displayName,
-            data.userInfo.roomCode,
-            data.userInfo.userID,
-            data.userInfo.profileImage,
-            data.userInfo.firstName,
-            data.userInfo.lastName,
-            data.userInfo.country,
-            data.userInfo.city,
-            data.userInfo.feeling,
-            data.userInfo.favFood,
-            data.userInfo.favActivity
-          )
-        );
+        setSelectedUserProfile(createUserProfile(data.userInfo));
 
         setShowProfilePopup(true);
       } catch (error) {
@@ -75,59 +80,21 @@ const AllPresentedPage: React.FC = () => {
 
       const data = await response.json();
       const users = [];
+      console.log("start");
       if (data.admin) {
-        users.push(
-          new UserProfile(
-            data.admin.displayName,
-            data.admin.roomCode,
-            data.admin.userID,
-            data.admin.profileImage,
-            data.admin.firstName,
-            data.admin.lastName,
-            data.admin.country,
-            data.admin.city,
-            data.admin.feeling,
-            data.admin.favFood,
-            data.admin.favActivity
-          )
-        );
+        users.push(createUserProfile(data.admin));
       }
-      if (data.presenter) {
-        users.push(
-          new UserProfile(
-            data.presenter.displayName,
-            data.presenter.roomCode,
-            data.presenter.userID,
-            data.presenter.profileImage,
-            data.presenter.firstName,
-            data.presenter.lastName,
-            data.presenter.country,
-            data.presenter.city,
-            data.presenter.feeling,
-            data.presenter.favFood,
-            data.presenter.favActivity
-          )
-        );
+      console.log("done1");
+      if (data.presenter && !isSameUser(data.admin, data.presenter)) {
+        users.push(createUserProfile(data.presenter));
       }
+      console.log("done2");
       if (data.otherPlayers) {
         data.otherPlayers.forEach((player: UserProfile) => {
-          users.push(
-            new UserProfile(
-              player.displayName,
-              player.roomCode,
-              player.userID,
-              player.profileImage,
-              player.firstName,
-              player.lastName,
-              player.country,
-              player.city,
-              player.feeling,
-              player.favFood,
-              player.favActivity
-            )
-          );
+          users.push(createUserProfile(player));
         });
       }
+      console.log("done3");
       for (const userProfile of users) {
         await new Promise((resolve) => {
           console.log("exporting user profile as PDF: ", userProfile);
@@ -135,6 +102,46 @@ const AllPresentedPage: React.FC = () => {
           setTimeout(resolve, 1000); // Wait for 1 second before proceeding to the next PDF (adjust as needed)
         });
       }
+    } catch (error) {
+      console.error("Error fetching all users:", error);
+    }
+  };
+
+  const exportAllInSinglePDF = async () => {
+    const url = `${serverPort}/getPlayers?roomCode=${roomCode}`;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error("Room cannot be found");
+      }
+
+      const data = await response.json();
+      const users = [];
+      if (data.admin) {
+        users.push(createUserProfile(data.admin));
+      }
+      if (data.presenter && !isSameUser(data.admin, data.presenter)) {
+        users.push(createUserProfile(data.presenter));
+      }
+      if (data.otherPlayers) {
+        data.otherPlayers.forEach((player: UserProfile) => {
+          users.push(createUserProfile(player));
+        });
+      }
+
+      const doc = new jsPDF();
+
+      for (let i = 0; i < users.length; i++) {
+        console.log("exporting user profile as PDF: ", users[i]);
+        addPDFInfo(doc, users[i]);
+
+        // Check if it's not the last iteration
+        if (i < users.length - 1) {
+          doc.addPage(); // Add a new page for the next user (adjust as needed)
+        }
+      }
+
+      doc.save("all_user_profiles.pdf");
     } catch (error) {
       console.error("Error fetching all users:", error);
     }
@@ -150,7 +157,7 @@ const AllPresentedPage: React.FC = () => {
       }
       const data = await response.json();
       let users;
-      if (data.admin.userID === data.presenter.userID) {
+      if (isSameUser(data.admin, data.presenter)) {
         users = [data.admin, ...data.otherPlayers];
       } else {
         users = [...[data.admin], ...[data.presenter], ...data.otherPlayers];
@@ -208,10 +215,18 @@ const AllPresentedPage: React.FC = () => {
         className="button common-button"
         onClick={exportAllUserProfileAsPDF}
       >
-        Export all PDF
+        Export all
       </button>
 
-      <button className="button common-button" onClick={() => navigate("/")}>
+      <button className="button common-button" onClick={exportAllInSinglePDF}>
+        Export in a single PDF
+      </button>
+
+      <button
+        className="button common-button"
+        onClick={() => navigate("/")}
+        style={{ marginTop: "5%" }}
+      >
         Back to HomePage
       </button>
 

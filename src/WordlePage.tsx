@@ -91,7 +91,22 @@ const Wordle = () => {
 
   // When launch
   useEffect(() => {
+    const onMessageReceived = (msg: WordleMsg | BackMessage | ModalMessage) => {
+      receiveMessage(msg);
+    };
+
+    // Initialize web socket
+    const cleanup = connect(
+      socketUrl,
+      websocketUrl,
+      topic,
+      onMessageReceived,
+      setRender
+    );
+
     initializeGame();
+
+    return cleanup;
   }, []);
 
   // When got target word, initialize grid
@@ -133,19 +148,6 @@ const Wordle = () => {
   }, [isFinished]);
 
   const initializeGame = async () => {
-    const onMessageReceived = (msg: WordleMsg | BackMessage | ModalMessage) => {
-      receiveMessage(msg);
-    };
-
-    // Initialize web socket
-    const cleanup = connect(
-      socketUrl,
-      websocketUrl,
-      topic,
-      onMessageReceived,
-      setRender
-    );
-
     // get player status
     await getWordleStatus();
     await checkPlayers();
@@ -154,8 +156,6 @@ const Wordle = () => {
     // fetch target word
     await fetchWordLength();
     await fetchTargetWord();
-
-    return cleanup;
   };
 
   // Fetch target word length
