@@ -24,7 +24,6 @@ import Inst1 from "./instructions/draw&guess/1.png";
 import { isSameUser } from "./utils/CommonCompare";
 import { disableScroll } from "./utils/CssOperation";
 
-
 const pictionaryInstructions = [
   {
     img: Inst1,
