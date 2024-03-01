@@ -22,6 +22,8 @@ import { PresentRoomInfo } from "./type/PresentRoomInfo";
 import Instructions from "./Instructions";
 import Inst1 from "./instructions/draw&guess/1.png";
 import { isSameUser } from "./utils/CommonCompare";
+import { disableScroll } from "./utils/CssOperation";
+
 
 const pictionaryInstructions = [
   {
@@ -50,6 +52,9 @@ const PictionaryPage = () => {
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
   const [render, setRender] = useState(false);
+
+  // disable scroll for this page
+  useEffect(disableScroll, []);
 
   useEffect(() => {
     // get player status
@@ -227,7 +232,7 @@ const PictionaryPage = () => {
         </div>
         <div className="column-container down-row">
           <div className="chat-room-container">
-            <ChatRoom isPresenter={isSameUser(presenter, user)}/>
+            <ChatRoom isPresenter={isSameUser(presenter, user)} />
           </div>
         </div>
       </div>
