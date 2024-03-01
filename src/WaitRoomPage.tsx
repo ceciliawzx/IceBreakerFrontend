@@ -103,18 +103,6 @@ const WaitRoomPage = () => {
   }, [roomStatus, user, admin, presenter, guests]);
 
   useEffect(() => {
-    const notifyServerOnUnload = () => {
-      handleKickUser(userID);
-    };
-
-    window.addEventListener("unload", notifyServerOnUnload);
-
-    return () => {
-      window.removeEventListener("unload", notifyServerOnUnload);
-    };
-  }, []);
-
-  useEffect(() => {
     if (admin?.userID && presenter?.userID) {
       if (isSameUser(presenter, user)) {
         const notifyServerOnUnload = () => {
