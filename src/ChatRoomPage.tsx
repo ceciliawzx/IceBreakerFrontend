@@ -151,7 +151,7 @@ const ChatRoom = ({ isPresenter }: { isPresenter: boolean }) => {
                 !msg.decisionMade && (
                   <div>
                     <button
-                      className="button small-common-button"
+                      className="button small-button common-button"
                       onClick={() =>
                         handleGuessDecision({
                           message: msg,
@@ -163,7 +163,7 @@ const ChatRoom = ({ isPresenter }: { isPresenter: boolean }) => {
                       ✓
                     </button>
                     <button
-                      className="button small-common-button"
+                      className="button small-button common-button"
                       onClick={() =>
                         handleGuessDecision({
                           message: msg,
