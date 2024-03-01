@@ -32,12 +32,12 @@ const connect = (
               `Subscribing to topic ${topic} with sessionId ${sessionId}`
             );
             subscription = client.subscribe(topic, (message) => {
-              console.log(
-                "receiving message ",
-                message.body,
-                " from sessionId: ",
-                sessionId
-              );
+              // console.log(
+              //   "receiving message ",
+              //   message.body,
+              //   " from sessionId: ",
+              //   sessionId
+              // );
               onMessageReceived(JSON.parse(message.body));
             });
           } else {
