@@ -299,10 +299,7 @@ const Wordle = () => {
      1. User is not the current guesser
      2. Has got the correct answer
   */
-    if (
-      // !isSameUser(user, currentGuesser) ||
-      isFinished
-    ) {
+    if (isFinished) {
       return;
     }
 
@@ -340,7 +337,7 @@ const Wordle = () => {
        3. Has got the correct answer
     */
     if (
-      // !isSameUser(user, currentGuesser) ||
+      !isSameUser(user, currentGuesser) ||
       !/^[a-zA-Z]$/.test(value) ||
       isFinished
     ) {
