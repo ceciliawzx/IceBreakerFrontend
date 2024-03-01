@@ -10,12 +10,17 @@ import {
   websocketUrl,
 } from "./utils/WebSocketService";
 import "./css/UserProfilePage.css";
+import { User } from "./type/User";
 
 const UserProfilePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const user = location.state?.user;
   const userID = user.userID;
+
+  const [admin, setAdmin] = useState<User | null>(null);
+  const [presenter, setPresenter] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const roomCode = user.roomCode;
   const displayName = user.displayName;
@@ -35,15 +40,18 @@ const UserProfilePage = () => {
   const [image, setImage] = useState("");
   const [showKickPopup, setShowKickPopup] = useState(false);
   const [showRingPopUp, setShowRingPopUp] = useState(false);
+  const [showDismissPopup, setShowDismissPopup] = useState(false);
   const [render, setRender] = useState(false);
 
   // Initial pull
   useEffect(() => {
+    checkPlayers();
     checkKickOut();
     checkRing();
   }, []);
 
   const onMessageReceived = () => {
+    checkPlayers();
     checkKickOut();
     checkRing();
   };
@@ -89,6 +97,137 @@ const UserProfilePage = () => {
 
     fetchUserData();
   }, [user.userID, user.roomCode]);
+
+  useEffect(() => {
+    const notifyServerOnUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+
+      const confirmationMessage = "Are you sure you want to leave?";
+      event.returnValue = confirmationMessage;
+      return confirmationMessage;
+    };
+
+    window.addEventListener("beforeunload", notifyServerOnUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", notifyServerOnUnload);
+    };
+  }, []);
+
+  useEffect(() => {
+    const notifyServerOnUnload = () => {
+      handleKickUser(userID);
+    };
+
+    window.addEventListener("unload", notifyServerOnUnload);
+
+    return () => {
+      window.removeEventListener("unload", notifyServerOnUnload);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (admin?.userID && presenter?.userID) {
+      if (presenter.userID === userID) {
+        const notifyServerOnUnload = () => {
+          handleChangePresenterAfterQuitting(admin!.userID);
+        };
+
+        window.addEventListener("unload", notifyServerOnUnload);
+
+        return () => {
+          window.removeEventListener("unload", notifyServerOnUnload);
+        };
+      }
+    }
+  }, [admin, presenter]);
+
+  useEffect(() => {
+    if (admin?.userID) {
+      if (admin.userID === userID) {
+        const notifyServerOnUnload = () => {
+          handleLeaveRoom();
+        };
+
+        window.addEventListener("unload", notifyServerOnUnload);
+
+        return () => {
+          window.removeEventListener("unload", notifyServerOnUnload);
+        };
+      }
+    }
+  }, [admin]);
+
+  const handleLeaveRoom = async () => {
+    // If admin leaves, send http request to delete room and all user should be kicked out
+    const response = await fetch(
+      `${serverPort}/destroyRoom?roomCode=${roomCode}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+  };
+  
+  const handleChangePresenterAfterQuitting = async (userID: string) => {
+    const response = await fetch(
+      `${serverPort}/changePresenter?roomCode=${roomCode}&userID=${userID}`,
+      {
+        method: "POST",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+  };
+
+  const handleKickUser = async (userID: string) => {
+    // kick this user
+    const response = await fetch(
+      `${serverPort}/kickPerson?roomCode=${roomCode}&userID=${userID}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+  };
+
+  const checkPlayers = async () => {
+    const url = `${serverPort}/getPlayers?roomCode=${roomCode}`;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error("Room cannot be found");
+      }
+
+      const data = await response.json();
+
+      // Check if room dismissed
+      Object.values(data).some((value) => {
+        if (typeof value === "string" && value.includes("Room Not Found")) {
+          setShowDismissPopup(true);
+          return;
+        }
+      });
+
+      if (data.admin) {
+        setAdmin(data.admin);
+      }
+      if (data.presenter) {
+        setPresenter(data.presenter);
+      }
+    } catch (error) {
+      console.error("Error fetching players:", error);
+    }
+  };
 
   const startCamera = () => {
     setShowCameraPopup(true);
@@ -396,6 +535,24 @@ const UserProfilePage = () => {
             <button
               className="button common-button"
               onClick={() => handleReceiveNotification()}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showDismissPopup && (
+        <div className="overlay-popup">
+          <div className="popup">
+            <p>
+              Room {roomCode} dismissed by moderator.
+              <br />
+              Returning to homepage.
+            </p>
+            <button
+              className="button common-button"
+              onClick={() => navigate("/")}
             >
               OK
             </button>

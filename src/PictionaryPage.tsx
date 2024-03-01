@@ -79,6 +79,23 @@ const PictionaryPage = () => {
     return cleanup; // This will be called when the component unmounts
   }, []);
 
+  useEffect(() => {
+    const notifyServerOnUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+
+      const confirmationMessage = "Are you sure you want to leave?";
+      event.returnValue = confirmationMessage;
+      return confirmationMessage;
+    };
+
+    window.addEventListener("beforeunload", notifyServerOnUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", notifyServerOnUnload);
+    };
+  }, []);
+
   // Fetch targetWord
   const fetchTargetWord = async () => {
     const response = await fetch(
