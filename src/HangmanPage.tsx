@@ -92,7 +92,24 @@ const HangmanPage = () => {
 
   // When launch
   useEffect(() => {
+    const onMessageReceived = (
+      msg: HangmanMsg | BackMessage | ModalMessage
+    ) => {
+      receiveMessage(msg);
+    };
+
+    // Initialize web socket
+    const cleanup = connect(
+      socketUrl,
+      websocketUrl,
+      topic,
+      onMessageReceived,
+      setRender
+    );
+
     initializeGame();
+
+    return cleanup;
   }, []);
 
   // When submit, change player
@@ -185,21 +202,6 @@ const HangmanPage = () => {
   };
 
   const initializeGame = async () => {
-    const onMessageReceived = (
-      msg: HangmanMsg | BackMessage | ModalMessage
-    ) => {
-      receiveMessage(msg);
-    };
-
-    // Initialize web socket
-    const cleanup = connect(
-      socketUrl,
-      websocketUrl,
-      topic,
-      onMessageReceived,
-      setRender
-    );
-
     // get player status
     await checkPlayers();
     await checkNotPresented();
@@ -208,8 +210,6 @@ const HangmanPage = () => {
     // fetch target word
     await fetchWordLength();
     await fetchTargetWord();
-
-    return cleanup;
   };
 
   // Fetch target word length
