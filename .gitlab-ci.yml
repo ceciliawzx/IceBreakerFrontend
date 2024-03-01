@@ -37,22 +37,6 @@ master_deploy:
   only:
     - master
 
-dev_deploy:
-  stage: deploy_dev
-  before_script:
-    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
-    - eval $(ssh-agent -s)
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-    - mkdir -p ~/.ssh
-    - 'echo -e "Host texel01\n\tHostName shell2.doc.ic.ac.uk\n\tUser zw4021\n\tRequestTTY yes\n\tIdentityFile ~/.ssh/id_rsa\n\tRemoteCommand ssh texel01" > ~/.ssh/config'
-    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
-  script:
-    - rm -f zw4021@texel01:/vol/project/2023/60021/g236002112/dev/*
-    - scp -r build/* zw4021@texel01:/vol/project/2023/60021/g236002112/dev
-  except:
-    - master
-
-
 user_test_deploy:
   stage: deploy_test
   before_script:
@@ -67,4 +51,19 @@ user_test_deploy:
     - scp -r build/* zw4021@texel01:/vol/project/2023/60021/g236002112/test
   only:
     - test
-  
+
+dev_deploy:
+  stage: deploy_dev
+  before_script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - 'echo -e "Host texel01\n\tHostName shell2.doc.ic.ac.uk\n\tUser zw4021\n\tRequestTTY yes\n\tIdentityFile ~/.ssh/id_rsa\n\tRemoteCommand ssh texel01" > ~/.ssh/config'
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+  script:
+    - rm -f zw4021@texel01:/vol/project/2023/60021/g236002112/dev/*
+    - scp -r build/* zw4021@texel01:/vol/project/2023/60021/g236002112/dev
+  except:
+    - master
+    - test
