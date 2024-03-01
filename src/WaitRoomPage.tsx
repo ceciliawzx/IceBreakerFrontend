@@ -17,20 +17,12 @@ import {
 } from "./utils/WebSocketService";
 
 import Instructions from "./Instructions";
-import adminInst1 from "./instructions/waitroom/admin-1.png";
-import userInst1 from "./instructions/waitroom/user-1.png";
+import waitroomInstruction from "./instructions/waitroom/WaitroomInstruction.png";
 
-const adminInstructions = [
+const waitroomInstructions = [
   {
-    img: adminInst1,
-    text: "As a moderator, you'll have a few more buttons that others.",
-  },
-];
-
-const usersInstructions = [
-  {
-    img: userInst1,
-    text: "As a normal user, you'll have the fowllowing buttons.",
+    img: waitroomInstruction,
+    text: "",
   },
 ];
 
@@ -574,16 +566,9 @@ const WaitRoomPage = () => {
       <h1>
         Welcome to Wait Room {roomCode}, {displayName}!
       </h1>
-      {isAdmin && (
-        <div className="instruction-button-container">
-          <Instructions instructionPics={adminInstructions} />
-        </div>
-      )}
-      {!isAdmin && (
-        <div className="instruction-button-container">
-          <Instructions instructionPics={usersInstructions} />
-        </div>
-      )}
+      <div className="instruction-button-container">
+        <Instructions instructionPics={waitroomInstructions} />
+      </div>
 
       <div className="blackboard-container">
         <img src={blackBoard} alt="BlackBoard" className="blackBoard" />
