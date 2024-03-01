@@ -114,13 +114,16 @@ const HangmanPage = () => {
 
   // When submit, change player
   useEffect(() => {
-    console.log("Change with current guesses: ", currentGuesses);
+    changeGuesser();
+  }, [guests, currentGuesses]);
+
+  const changeGuesser = () => {
     const nextGuesser = guests[currentGuesses % guests.length];
 
     console.log(nextGuesser?.displayName, " is next guesser");
     // Change to next guesser
     setCurrentGuesser(nextGuesser);
-  }, [currentGuesses]);
+  };
 
   // Show modal when guessed correct
   useEffect(() => {
@@ -137,8 +140,8 @@ const HangmanPage = () => {
         alphabet.includes(pressedKey) &&
         allLetterStatus[alphabet.indexOf(pressedKey)] ===
           LetterStatus.UNCHECKED &&
-        !isFinished
-        // &&
+        !isFinished &&
+        isSameUser(user, currentGuesser)
       ) {
         // Assuming sendHangmanMessage is your function to handle guesses
         sendHangmanMessage(pressedKey);
@@ -152,7 +155,7 @@ const HangmanPage = () => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [allLetterStatus, isFinished]);
+  }, [allLetterStatus, isFinished, currentGuesser]);
 
   // When receive message from web socket
   const receiveMessage = useCallback(
@@ -179,7 +182,6 @@ const HangmanPage = () => {
     try {
       // Update guess
       setCurrentStages(msg.currentStages);
-      console.log(msg.currentStages);
       const displayWord = msg.currentStages
         .map((letter) =>
           letter
@@ -190,7 +192,6 @@ const HangmanPage = () => {
         )
         .join("\u00A0");
 
-      console.log(displayWord);
       setCorrect(msg.isCorrect);
       setIsFinished(msg.isFinished);
       setCurrentPositions(msg.correctPositions);
@@ -293,7 +294,6 @@ const HangmanPage = () => {
 
   // Send message via web socket
   const sendHangmanMessage = (letter: string) => {
-    console.log(letter);
     sendMsg(destination, {
       guessLetter: letter,
       isCorrect: correct,
@@ -458,7 +458,6 @@ const HangmanPage = () => {
             )
         );
         setGuests(updatedGuests);
-        setCurrentGuesser(updatedGuests[0]);
       }
     } catch (error) {
       console.error("Error fetching players:", error);
@@ -553,7 +552,6 @@ const HangmanPage = () => {
                     className={`alphabet-block`}
                     style={getStatusStyle(allLetterStatus[letterIndex])}
                     onClick={() => sendHangmanMessage(letter)} // Assuming sendWordleMessage is your function to handle guesses
-                    // 114514
                     disabled={
                       !isSameUser(user, currentGuesser) ||
                       allLetterStatus[letterIndex] !== LetterStatus.UNCHECKED ||
