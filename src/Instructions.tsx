@@ -43,7 +43,7 @@ const Instructions: React.FC<InstructionsProps> = ({ instructionPics }) => {
               src={instructionPics[currentInstructionPage].img}
               alt={`Instruction ${currentInstructionPage + 1}`}
             />
-            <p>{instructionPics[currentInstructionPage].text}</p>
+
             <div className="page-indicator">
               {currentInstructionPage + 1} / {instructionPics.length}
             </div>
@@ -68,10 +68,11 @@ const Instructions: React.FC<InstructionsProps> = ({ instructionPics }) => {
               )}
             </div>
             <button
-              className="close-instruction"
+              className="button red-button close-instrution-container"
               onClick={() => setShowInstructions(false)}
+              style={{}}
             >
-              &times; {/* This is the 'X' character */}
+              Close
             </button>
           </div>
         </div>
