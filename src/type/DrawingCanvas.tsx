@@ -6,6 +6,7 @@ export interface DrawingData {
   color: string;
   strokeWidth: number;
   eraser: boolean;
+  clear: boolean;
 }
 
 export interface DrawingMessage {

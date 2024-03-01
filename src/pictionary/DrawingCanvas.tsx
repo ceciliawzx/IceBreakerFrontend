@@ -39,12 +39,23 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   }, []);
 
   useEffect(() => {
-    if (externalDrawing) {
+    if (externalDrawing?.drawingData) {
       console.log("external", externalDrawing.drawingData);
-      // const { x, y, drawing, newLine } = externalDrawing.drawingData;
-      draw(externalDrawing.drawingData);
+      if (externalDrawing.drawingData.clear) {
+        // Clear the canvas
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        ctx.fillStyle = backgroundColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      } else {
+        draw(externalDrawing.drawingData);
+      }
     }
-  }, [externalDrawing]);
+  }, [externalDrawing, externalDrawing?.drawingData]);
 
   const draw = useCallback(
     (drawingData: DrawingData) => {
@@ -91,6 +102,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       color: isEraser ? backgroundColor : selectedColor, // Use background color if eraser is active
       strokeWidth: isEraser ? 20 : 2,
       eraser: isEraser,
+      clear: false,
     };
     console.log("ondraw in mouse move", drawingData);
     // send msg to server
@@ -118,6 +130,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       // TODO
       strokeWidth: isEraser ? 20 : 2,
       eraser: isEraser,
+      clear: false,
     };
 
     // draw(drawingData);
@@ -145,6 +158,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       color: isEraser ? backgroundColor : selectedColor, // Use background color if eraser is active
       strokeWidth: isEraser ? 20 : 2,
       eraser: isEraser,
+      clear: false,
     };
 
     draw(drawingData); // End the current path
@@ -157,7 +171,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
 
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
+
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
@@ -171,8 +185,23 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       color: isEraser ? backgroundColor : selectedColor,
       strokeWidth: isEraser ? 20 : 2,
       eraser: isEraser,
+      clear: false,
     };
     // Optionally send the last part of the trace to the server here
+    onDraw(drawingData);
+  };
+
+  const handleClearCanvas = () => {
+    const drawingData: DrawingData = {
+      x: 0,
+      y: 0,
+      drawing: false,
+      newLine: false,
+      color: backgroundColor,
+      strokeWidth: 0,
+      eraser: isEraser,
+      clear: true,
+    };
     onDraw(drawingData);
   };
 
@@ -187,17 +216,17 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     canvas.addEventListener("mouseup", handleMouseUp);
     canvas.addEventListener("mousemove", handleMouseMove);
     canvas.addEventListener("mouseleave", handleMouseLeave);
-  
+
     return () => {
       canvas.removeEventListener("mousedown", handleMouseDown);
       canvas.removeEventListener("mouseup", handleMouseUp);
       canvas.removeEventListener("mousemove", handleMouseMove);
       canvas.removeEventListener("mouseleave", handleMouseLeave);
     };
-  }, [handleMouseDown, handleMouseUp, handleMouseMove, handleMouseLeave]); 
+  }, [handleMouseDown, handleMouseUp, handleMouseMove, handleMouseLeave]);
 
-   // Change cursor
-   useEffect(() => {
+  // Change cursor
+  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -207,7 +236,6 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       canvas.classList.remove("eraser-cursor");
     }
   }, [isEraser]);
-  
 
   // Placeholder for non-drawer users to maintain layout consistency
   const Placeholder = () => <div style={{ height: "51px" }}></div>;
@@ -239,6 +267,13 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
             onClick={() => setIsEraser(!isEraser)}
           >
             {isEraser ? "Use Pen" : "Use Eraser"}
+          </button>
+          <button
+            className="button common-button"
+            id="clear-canvas"
+            onClick={handleClearCanvas}
+          >
+            Clear Canvas
           </button>
         </div>
       ) : (
