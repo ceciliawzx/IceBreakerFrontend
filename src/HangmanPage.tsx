@@ -23,6 +23,7 @@ import { ModalMessage } from "./type/ModalMessage";
 import { isSameUser } from "./utils/CommonCompare";
 import Instructions from "./Instructions";
 import hangmanInstruction from "./instructions/hangman/HangmanInstruction.png";
+import { TimerMessage } from "./type/Timer";
 
 const hangmanInstructions = [
   {
@@ -88,12 +89,13 @@ const HangmanPage = () => {
     Array.from(alphabet).map((_) => LetterStatus.UNCHECKED)
   );
 
+  const [isTimerStarted, setIsTimerStarted] = useState(false);
   const [render, setRender] = useState(false);
 
   // When launch
   useEffect(() => {
     const onMessageReceived = (
-      msg: HangmanMsg | BackMessage | ModalMessage
+      msg: HangmanMsg | BackMessage | ModalMessage | TimerMessage
     ) => {
       receiveMessage(msg);
     };
@@ -141,6 +143,7 @@ const HangmanPage = () => {
         allLetterStatus[alphabet.indexOf(pressedKey)] ===
           LetterStatus.UNCHECKED &&
         !isFinished &&
+        isTimerStarted &&
         isSameUser(user, currentGuesser)
       ) {
         // Assuming sendHangmanMessage is your function to handle guesses
@@ -155,18 +158,22 @@ const HangmanPage = () => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [allLetterStatus, isFinished, currentGuesser]);
+  }, [isTimerStarted, allLetterStatus, isFinished, currentGuesser]);
 
   // When receive message from web socket
   const receiveMessage = useCallback(
-    (msg: HangmanMsg | BackMessage | ModalMessage) => {
+    (msg: HangmanMsg | BackMessage | ModalMessage | TimerMessage) => {
       try {
-        // If contain letters field, it's WordleMsg
+        console.log("receive msg, ", msg);
         if ("guessLetter" in msg) {
+          // If contain letters field, it's WordleMsg
           handleHangmanMessage(msg as HangmanMsg);
         } else if ("show" in msg) {
           // show modal and update PresentRoomInfo
           handleModalMessage();
+        } // Handle Timer started message
+        else if ("started" in msg && msg.started) {
+          setIsTimerStarted(true);
         } else {
           handleBackMessage();
         }
