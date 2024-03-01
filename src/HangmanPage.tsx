@@ -138,6 +138,7 @@ const HangmanPage = () => {
         allLetterStatus[alphabet.indexOf(pressedKey)] ===
           LetterStatus.UNCHECKED &&
         !isFinished
+        // &&
       ) {
         // Assuming sendHangmanMessage is your function to handle guesses
         sendHangmanMessage(pressedKey);
