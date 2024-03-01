@@ -164,6 +164,7 @@ const PresentPage = () => {
       navigate("/GeoguesserPage", {
         state: {
           user,
+          presenter,
           selectedField,
         },
       });
@@ -343,6 +344,22 @@ const PresentPage = () => {
       };
       if (gameType === GameType.HANGMAN) {
         handleHangman();
+      }
+
+      // Geoguesser
+      const handleGeoguesser = async () => {
+        const response = await fetch(
+          `${serverPort}/startGeoguesser?roomCode=${roomCode}&fieldName=${fieldName}`,
+          {
+            method: "POST",
+          }
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+      };
+      if (gameType === GameType.GEOGUESSER) {
+        handleGeoguesser();
       }
     }
     setActiveGameSelector(null);
