@@ -21,10 +21,13 @@ const AllPresentedPage: React.FC = () => {
   const roomCode = user.roomCode;
   const displayName = user.displayName;
 
-  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [admin, setAdmin] = useState<User | null>(null);
+  const [allUserProfile, setAllUserProfile] = useState<UserProfile[]>([]);
   const [selectedUserProfile, setSelectedUserProfile] =
     useState<UserProfile | null>(null);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
+  const [showDestroyPopUp, setShowDestroyPopUp] = useState(false);
+  const [showDismissPopUp, setShowDismissPopup] = useState(false);
 
   // disable scroll for this page
   useEffect(disableScroll, []);
@@ -50,101 +53,66 @@ const AllPresentedPage: React.FC = () => {
     );
   };
 
-  const handleViewProfile = async (user: User | null) => {
-    if (user) {
-      const url = `${serverPort}/getPlayer?userID=${user.userID}&roomCode=${roomCode}`;
-      try {
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        setSelectedUserProfile(createUserProfile(data.userInfo));
-
-        setShowProfilePopup(true);
-      } catch (error) {
-        console.error("Error fetching user details:", error);
-      }
+  const handleBackToHomePage = async () => {
+    // Normal user, jump back
+    if (!isSameUser(user, admin)) {
+      navigate("/");
+    } else {
+      // If admin, check if dismiss room
+      setShowDestroyPopUp(true);
     }
   };
 
-  const exportAllUserProfileAsPDF = async () => {
-    const url = `${serverPort}/getPlayers?roomCode=${roomCode}`;
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error("Room cannot be found");
+  const handleDestroyRoom = async () => {
+    const response = await fetch(
+      `${serverPort}/destroyRoom?roomCode=${roomCode}`,
+      {
+        method: "DELETE",
       }
+    );
 
-      const data = await response.json();
-      const users = [];
-      console.log("start");
-      if (data.admin) {
-        users.push(createUserProfile(data.admin));
-      }
-      console.log("done1");
-      if (data.presenter && !isSameUser(data.admin, data.presenter)) {
-        users.push(createUserProfile(data.presenter));
-      }
-      console.log("done2");
-      if (data.otherPlayers) {
-        data.otherPlayers.forEach((player: UserProfile) => {
-          users.push(createUserProfile(player));
-        });
-      }
-      console.log("done3");
-      for (const userProfile of users) {
-        await new Promise((resolve) => {
-          console.log("exporting user profile as PDF: ", userProfile);
-          exportUserProfileAsPDF(userProfile); // Assuming this is synchronous or has a callback
-          setTimeout(resolve, 1000); // Wait for 1 second before proceeding to the next PDF (adjust as needed)
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching all users:", error);
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    } else {
+      navigate("/");
+    }
+  };
+
+  const handleViewProfile = async (selectedUser: UserProfile | null) => {
+    const foundUser =
+      allUserProfile.find(
+        (user) => user && user.userID === selectedUser?.userID
+      ) || null;
+
+    setSelectedUserProfile(foundUser);
+
+    setShowProfilePopup(true);
+  };
+
+  const exportAllUserProfileAsPDF = async () => {
+    for (const userProfile of allUserProfile) {
+      await new Promise((resolve) => {
+        console.log("exporting user profile as PDF: ", userProfile);
+        exportUserProfileAsPDF(userProfile); // Assuming this is synchronous or has a callback
+        setTimeout(resolve, 1000); // Wait for 1 second before proceeding to the next PDF (adjust as needed)
+      });
     }
   };
 
   const exportAllInSinglePDF = async () => {
-    const url = `${serverPort}/getPlayers?roomCode=${roomCode}`;
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error("Room cannot be found");
-      }
+    const doc = new jsPDF();
 
-      const data = await response.json();
-      const users = [];
-      if (data.admin) {
-        users.push(createUserProfile(data.admin));
-      }
-      if (data.presenter && !isSameUser(data.admin, data.presenter)) {
-        users.push(createUserProfile(data.presenter));
-      }
-      if (data.otherPlayers) {
-        data.otherPlayers.forEach((player: UserProfile) => {
-          users.push(createUserProfile(player));
-        });
-      }
+    for (let i = 0; i < allUserProfile.length; i++) {
+      console.log("exporting user profile as PDF: ", allUserProfile[i]);
+      addPDFInfo(doc, allUserProfile[i]);
 
-      const doc = new jsPDF();
-
-      for (let i = 0; i < users.length; i++) {
-        console.log("exporting user profile as PDF: ", users[i]);
-        addPDFInfo(doc, users[i]);
-
-        // Check if it's not the last iteration
-        if (i < users.length - 1) {
-          doc.addPage(); // Add a new page for the next user (adjust as needed)
-        }
+      // Check if it's not the last iteration
+      if (i < allUserProfile.length - 1) {
+        doc.addPage(); // Add a new page for the next user (adjust as needed)
       }
-
-      doc.save("all_user_profiles.pdf");
-    } catch (error) {
-      console.error("Error fetching all users:", error);
     }
+
+    doc.save("all_user_profiles.pdf");
   };
 
   const fetchUsers = async () => {
@@ -156,13 +124,20 @@ const AllPresentedPage: React.FC = () => {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
       const data = await response.json();
-      let users;
+
+      let userProfiles;
       if (isSameUser(data.admin, data.presenter)) {
-        users = [data.admin, ...data.otherPlayers];
+        userProfiles = [data.admin, ...data.otherPlayers];
       } else {
-        users = [...[data.admin], ...[data.presenter], ...data.otherPlayers];
+        userProfiles = [
+          ...[data.admin],
+          ...[data.presenter],
+          ...data.otherPlayers,
+        ];
       }
-      setAllUsers(users);
+
+      setAllUserProfile(userProfiles);
+      setAdmin(data.admin);
     } catch (error) {
       console.error("Error fetching all users:", error);
     }
@@ -183,7 +158,7 @@ const AllPresentedPage: React.FC = () => {
       <h1>Congratulations, {displayName}! </h1>
       <h1>You have finished the Icebreaker!</h1>
       <div className="row-container">
-        {allUsers.map((guest, index) => (
+        {allUserProfile.map((guest, index) => (
           <div key={index}>
             <div
               className="row-container"
@@ -224,7 +199,7 @@ const AllPresentedPage: React.FC = () => {
 
       <button
         className="button common-button"
-        onClick={() => navigate("/")}
+        onClick={handleBackToHomePage}
         style={{ marginTop: "5%" }}
       >
         Back to HomePage
@@ -252,6 +227,53 @@ const AllPresentedPage: React.FC = () => {
               onClick={() => exportUserProfileAsPDF(selectedUserProfile)}
             >
               Export as PDF
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Admin destroy room popup */}
+      {showDestroyPopUp && (
+        <div className="overlay-popup">
+          <div className="popup">
+            <div>
+              <p>If you leave, the room will be dismissed.</p>
+              <p>Do you really want to dismiss the room?</p>
+            </div>
+
+            <div className="column-container">
+              <button
+                className="button admin-only-button"
+                onClick={() => setShowDestroyPopUp(false)}
+              >
+                Stay in the room
+              </button>
+
+              <button
+                className="button red-button"
+                onClick={() => handleDestroyRoom()}
+              >
+                Dismiss room
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dimissed popup */}
+      {showDismissPopUp && (
+        <div className="overlay-popup">
+          <div className="popup">
+            <p>
+              Room {roomCode} dismissed by moderator.
+              <br />
+              Returning to homepage.
+            </p>
+            <button
+              className="button common-button"
+              onClick={() => navigate("/")}
+            >
+              OK
             </button>
           </div>
         </div>
