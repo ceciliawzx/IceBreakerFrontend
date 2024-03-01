@@ -44,6 +44,25 @@ export const TimerModal = ({
   setInputValue: any;
   startTimer: any;
 }) => {
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+  
+    // Allow clearing the input
+    if (newValue.trim() === '') {
+      setInputValue('');
+      return;
+    }
+  
+    // Check if the newValue is strictly a positive integer using regex
+    if (/^\d+$/.test(newValue)) { // \d matches any digit [0-9]
+      setInputValue(newValue);
+    } else {
+      alert("Please enter a valid positive integer.");
+    }
+  };
+  
+
   return (
     <div className="overlay-popup">
       <div className="modal">
@@ -53,11 +72,12 @@ export const TimerModal = ({
             <div style={{ marginBottom: "10px" }}></div>
             <div>
               <input
-                type="number"
+                type="text"
                 value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
+                onChange={e => handleInputChange(e)}
                 placeholder="Set time"
                 style={{ maxWidth: "25%" }}
+                min={1}
               />
               <span style={{ marginLeft: "5px" }}>seconds</span>
             </div>

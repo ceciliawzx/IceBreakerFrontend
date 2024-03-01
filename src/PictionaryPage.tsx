@@ -183,7 +183,11 @@ const PictionaryPage = () => {
               We are guessing {presenter?.displayName}'s {seletedField}: {"  "}
             </div>
             <span className="underscore-display">
-              {"_ ".repeat(targetWord.length).trim()}
+              {targetWord
+                .split("")
+                .map((char) => (/[a-zA-Z]/.test(char) ? "_" : `${char + " "}`))
+                .join("")
+                .trim()}
             </span>
           </div>
         )}
