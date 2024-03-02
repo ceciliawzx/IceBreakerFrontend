@@ -75,9 +75,12 @@ const ChatRoom = ({ isPresenter }: { isPresenter: boolean }) => {
   const extractMessage = (fullMessage: string) => {
     if (fullMessage.includes("Server has received your message")) {
       const parts = fullMessage.split(":");
-      if (parts.length === 2) {
-        const message = parts[1].trim();
-        return `${message}`;
+      if (parts.length > 1) {
+        // Remove the first part ("Server has received your message")
+        parts.shift();
+        // Rejoin the remaining parts with ":" to restore the original message content
+        const message = parts.join(":").trim();
+        return message;
       }
     } else {
       return fullMessage;
