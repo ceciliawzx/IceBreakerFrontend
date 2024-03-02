@@ -505,7 +505,7 @@ const PresentPage = () => {
             className="button admin-only-button"
             onClick={() => handleRevealAll()}
           >
-            Reveal All
+            Reveal All Fields
           </button>
         )}
       </div>
