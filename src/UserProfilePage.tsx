@@ -33,7 +33,9 @@ const UserProfilePage = () => {
   const [favFood, setFavFood] = useState("");
   const [favActivity, setfavActivity] = useState("");
   const [selfieBase64, setSelfieBase64] = useState("");
+
   const [showCameraPopup, setShowCameraPopup] = useState(false);
+  const [imageCaptured, setImageCaptured] = useState(false);
   const streamRef = useRef<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -172,7 +174,7 @@ const UserProfilePage = () => {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
   };
-  
+
   const handleChangePresenterAfterQuitting = async (userID: string) => {
     const response = await fetch(
       `${serverPort}/changePresenter?roomCode=${roomCode}&userID=${userID}`,
@@ -268,6 +270,7 @@ const UserProfilePage = () => {
         const imageData = canvas.toDataURL("image/png");
         setImage(imageData); // This is the image in base64 format
         setSelfieBase64(imageData);
+        setImageCaptured(true);
       }
     }
   };
@@ -488,19 +491,20 @@ const UserProfilePage = () => {
       {showCameraPopup && (
         <div className="camera-popup">
           <div className="column-container">
-            <video ref={videoRef} width="640" height="480" />
+            <video ref={videoRef} width="400" height="300" />
             <div className="row-container">
               <button className="button common-button" onClick={captureImage}>
-                Capture Image
+                {imageCaptured ? "Recapture Image" : "Capture Image"}
               </button>
               <button className="button common-button" onClick={closeCamera}>
-                Confirm
+                {imageCaptured ? "Confirm" : "Cancel"}
               </button>
             </div>
+            <strong>Preview:</strong>
             <canvas
               ref={canvasRef}
-              width="640"
-              height="480"
+              width="400"
+              height="300"
               style={{ display: "none" }}
             />
             {image && <img src={image} alt="Captured" />}
