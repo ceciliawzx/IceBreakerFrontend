@@ -14,6 +14,17 @@ const Homepage: React.FC = () => {
   // disable scroll for this page
   useEffect(disableScroll, []);
 
+  // clear local storage
+  useEffect(() => {
+    localStorage.setItem("waitRoomVisited", "false");
+    localStorage.setItem("presentRoomVisited", "false");
+    localStorage.setItem("wordleVisited", "false");
+    localStorage.setItem("hangmanVisited", "false");
+    localStorage.setItem("pictionaryVisited", "false");
+    localStorage.setItem("shareboardVisited", "false");
+    localStorage.setItem("geoguesserVisited", "false");
+  }, []);
+
   const handleCreateRoom = () => {
     setLog("Create Room clicked");
     navigate("/CreateRoomPage");

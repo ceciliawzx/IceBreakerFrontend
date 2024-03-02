@@ -40,7 +40,7 @@
   text-align: center;
   width: 70%; /* Adjust based on your needs for a larger modal */
   height: 80%; /* Adjust based on your needs for a larger modal */
-  max-width: 1000px; /* Ensures content does not become too wide on larger screens */
+  max-width: 800px; /* Ensures content does not become too wide on larger screens */
   max-height: 800px; /* Ensures content does not become too tall */
   display: flex;
   flex-direction: column;
@@ -56,41 +56,11 @@
   background-color: rgba(255, 255, 255, 0.694);
 }
 
-
-.close-instrution-container {
+.close-instruction-container {
   position: absolute;
   top: 0;
   right: 0;
   padding: 10px;
-}
-
-.close-instruction {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  background: #d51212;
-  border: 1px solid #ccc;
-  font-size: 2rem;
-  color: #333;
-  cursor: pointer;
-  padding: 10px;
-  line-height: 1;
-  border-radius: 50%; /* Optional: makes the button circular */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  width: 40px; /* Equal width and height for a perfect circle */
-  height: 40px;
-  display: flex;
-  justify-content: center; /* Centers content horizontally */
-  align-items: center; /* Centers content vertically */
-  box-sizing: border-box; /* Includes padding and border in the element's dimensions */
-
-
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.close-instruction:hover {
-  background: #e6e6e6; /* Slightly darker background on hover for feedback */
-  color: #000; /* Optional: change color on hover for better visibility */
 }
 
 .instruction-content img {

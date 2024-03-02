@@ -17,11 +17,11 @@ import {
 } from "./utils/WebSocketService";
 
 import Instructions from "./Instructions";
-import waitroomInstruction from "./instructions/waitroom/WaitroomInstruction.png";
+import waitRoomInstruction from "./instructions/waitroom/WaitroomInstruction.png";
 
-const waitroomInstructions = [
+const waitRoomInstructions = [
   {
-    img: waitroomInstruction,
+    img: waitRoomInstruction,
     text: "",
   },
 ];
@@ -51,8 +51,9 @@ const WaitRoomPage = () => {
     useState<UserProfile | null>(null);
   const [allGuestsCompleted, setAllGuestsCompleted] = useState(false);
   const [roomStatus, setRoomStatus] = useState<RoomStatus>(RoomStatus.WAITING);
-  const [showRingPopUp, setShowRingPopUp] = useState(false);
-  const [showFinishPopUp, setShowFinishPopup] = useState(false);
+  const [showRingPopup, setShowRingPopup] = useState(false);
+  const [showFinishPopup, setShowFinishPopup] = useState(false);
+  const [instructionPopup, setInstructionPopup] = useState(false);
   const [render, setRender] = useState(false);
 
   // Refetch pull
@@ -74,6 +75,19 @@ const WaitRoomPage = () => {
       setRender
     );
     return cleanup;
+  }, []);
+
+  // If first time in wait room, pop up instruction
+  useEffect(() => {
+    // Check if the user has visited the page before
+    const pageVisited = localStorage.getItem("waitRoomVisited");
+
+    if (pageVisited !== "true") {
+      setInstructionPopup(true);
+
+      // Mark the user as visited to prevent showing the popup again
+      localStorage.setItem("waitRoomVisited", "true");
+    }
   }, []);
 
   useEffect(() => {
@@ -290,7 +304,7 @@ const WaitRoomPage = () => {
   };
 
   const handleReceiveNotification = async () => {
-    setShowRingPopUp(false);
+    setShowRingPopup(false);
   };
 
   const confirmChangePresenter = () => {
@@ -408,7 +422,7 @@ const WaitRoomPage = () => {
         throw new Error("Room cannot be found");
       }
       if (data) {
-        setShowRingPopUp(true);
+        setShowRingPopup(true);
       }
     } catch (error) {
       console.error("Error fetching ring:", error);
@@ -555,7 +569,7 @@ const WaitRoomPage = () => {
         Welcome to Wait Room {roomCode}, {displayName}!
       </h1>
       <div className="instruction-button-container">
-        <Instructions instructionPics={waitroomInstructions} />
+        <Instructions instructionPics={waitRoomInstructions} />
       </div>
 
       <div className="blackboard-container">
@@ -804,7 +818,7 @@ const WaitRoomPage = () => {
       )}
 
       {/* Ring popup */}
-      {showRingPopUp && (
+      {showRingPopup && (
         <div className="overlay-popup">
           <div className="popup">
             <p>Please wrap it up.</p>
@@ -876,7 +890,7 @@ const WaitRoomPage = () => {
       )}
 
       {/* Finish presenting popup */}
-      {showFinishPopUp && (
+      {showFinishPopup && (
         <div className="overlay-popup">
           <div className="popup">
             <div>
@@ -904,6 +918,15 @@ const WaitRoomPage = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* First time instruction popup */}
+      {instructionPopup && (
+        <Instructions
+          instructionPics={waitRoomInstructions}
+          onlyShowPopup={true}
+          closeButtonFunction={() => setInstructionPopup(false)}
+        />
       )}
     </div>
   ) : (

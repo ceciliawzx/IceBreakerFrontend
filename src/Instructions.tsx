@@ -9,9 +9,15 @@ type InstructionPic = {
 
 type InstructionsProps = {
   instructionPics: InstructionPic[];
+  onlyShowPopup?: boolean;
+  closeButtonFunction?: any;
 };
 
-const Instructions: React.FC<InstructionsProps> = ({ instructionPics }) => {
+const Instructions: React.FC<InstructionsProps> = ({
+  instructionPics,
+  onlyShowPopup = false,
+  closeButtonFunction = null,
+}) => {
   const [showInstructions, setShowInstructions] = useState(false);
   const [currentInstructionPage, setCurrentInstructionPage] = useState(0);
 
@@ -25,18 +31,10 @@ const Instructions: React.FC<InstructionsProps> = ({ instructionPics }) => {
     );
   };
 
-  return (
-    <div style={{ zIndex: "var(--instruction-overlay-index)" }}>
-      {/* Instruction Button */}
-      <button
-        className="instruction-button"
-        onClick={() => setShowInstructions(true)}
-      >
-        i
-      </button>
-
-      {/* Instruction Popup */}
-      {showInstructions && (
+  const InstructionPopup = () => {
+    return (
+      <div>
+        {/* Instruction Popup */}
         <div className="instruction-modal">
           <div className="instruction-content">
             <img
@@ -68,16 +66,40 @@ const Instructions: React.FC<InstructionsProps> = ({ instructionPics }) => {
               )}
             </div>
             <button
-              className="button red-button close-instrution-container"
-              onClick={() => setShowInstructions(false)}
+              className="button red-button close-instruction-container"
+              onClick={() =>
+                closeButtonFunction !== null
+                  ? closeButtonFunction()
+                  : setShowInstructions(false)
+              }
               style={{}}
             >
               Close
             </button>
           </div>
         </div>
+      </div>
+    );
+  };
+
+  return (
+    <>
+      {onlyShowPopup ? (
+        <InstructionPopup />
+      ) : (
+        <div style={{ zIndex: "var(--instruction-overlay-index)" }}>
+          {/* Instruction Button */}
+          <button
+            className="instruction-button"
+            onClick={() => setShowInstructions(true)}
+          >
+            i
+          </button>
+          {/* Instruction Popup */}
+          {showInstructions && <InstructionPopup />}
+        </div>
       )}
-    </div>
+    </>
   );
 };
 

@@ -91,6 +91,7 @@ const HangmanPage = () => {
 
   const [isTimerStarted, setIsTimerStarted] = useState(false);
   const [render, setRender] = useState(false);
+  const [instructionPopup, setInstructionPopup] = useState(false);
 
   // When launch
   useEffect(() => {
@@ -112,6 +113,18 @@ const HangmanPage = () => {
     initializeGame();
 
     return cleanup;
+  }, []);
+
+  // If first time to this page, pop up instruction
+  useEffect(() => {
+    const pageVisited = localStorage.getItem("hangmanVisited");
+
+    if (pageVisited !== "true") {
+      setInstructionPopup(true);
+
+      // Mark the user as visited to prevent showing the popup again
+      localStorage.setItem("hangmanVisited", "true");
+    }
   }, []);
 
   // When submit, change player
@@ -649,6 +662,15 @@ const HangmanPage = () => {
           targetWord={targetWord}
           userID={userID}
           adminID={admin?.userID || "Cannot find admin"}
+        />
+      )}
+
+      {/* First time instruction popup */}
+      {instructionPopup && (
+        <Instructions
+          instructionPics={hangmanInstructions}
+          onlyShowPopup={true}
+          closeButtonFunction={() => setInstructionPopup(false)}
         />
       )}
     </div>

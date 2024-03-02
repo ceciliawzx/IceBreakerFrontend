@@ -18,7 +18,7 @@ import {
 } from "./utils/WebSocketService";
 import { Timer } from "./timer/Timer";
 import Instructions from "./Instructions";
-import wordleInstruction from "./instructions/wordle/WordleInstruction.png";
+import geoguesserInstruction from "./instructions/wordle/WordleInstruction.png";
 import { updatePresentRoomInfo } from "./utils/RoomOperation";
 
 enum GeoguesserStatus {
@@ -27,9 +27,9 @@ enum GeoguesserStatus {
   SUBMITTED = "SUBMITTED",
 }
 
-const wordleInstructions = [
+const geoguesserInstructions = [
   {
-    img: wordleInstruction,
+    img: geoguesserInstruction,
     text: "",
   },
 ];
@@ -86,6 +86,20 @@ const GeoguesserPage: React.FC = () => {
   const isPret = pretID === userID;
   const isAdmin = user.isAdmin;
   const fieldName = location.state?.selectedField;
+
+  const [instructionPopup, setInstructionPopup] = useState(false);
+
+  // If first time to this page, pop up instruction
+  useEffect(() => {
+    const pageVisited = localStorage.getItem("geoguesserVisited");
+
+    if (pageVisited !== "true") {
+      setInstructionPopup(true);
+
+      // Mark the user as visited to prevent showing the popup again
+      localStorage.setItem("geoguesserVisited", "true");
+    }
+  }, []);
 
   const handleApiLoaded = (map: google.maps.Map, maps: typeof google.maps) => {
     setMap(map);
@@ -516,7 +530,7 @@ const GeoguesserPage: React.FC = () => {
       >
         <div className="row-container top-left" style={{ marginLeft: "5%" }}>
           {/* Timer */}
-          <Instructions instructionPics={wordleInstructions} />
+          <Instructions instructionPics={geoguesserInstructions} />
           <div>
             <Timer
               user={user}
@@ -591,28 +605,28 @@ const GeoguesserPage: React.FC = () => {
       {/* AllPlayers Submitted popup */}
       {showAllSubmitPopup && (
         <div className="popup">
-            <h3>All finished!</h3>
-            <h3>The results are:</h3>
-            <ul>
-              {winner.map((winnerProfile, index) => {
-                const distance = winnerDistance[index].toFixed(2);
-                return (
-                  <li key={index}>
-                    {winnerProfile.displayName} : {distance}km away
-                  </li>
-                );
-              })}
-            </ul>
-            {isAdmin && (
-              <button
-                className="button admin-only-button"
-                onClick={handleBackButton}
-                style={{ zIndex: "var(--above-overlay-index)" }}
-              >
-                Back to Present Room
-              </button>
-            )}
-          </div>
+          <h3>All finished!</h3>
+          <h3>The results are:</h3>
+          <ul>
+            {winner.map((winnerProfile, index) => {
+              const distance = winnerDistance[index].toFixed(2);
+              return (
+                <li key={index}>
+                  {winnerProfile.displayName} : {distance}km away
+                </li>
+              );
+            })}
+          </ul>
+          {isAdmin && (
+            <button
+              className="button admin-only-button"
+              onClick={handleBackButton}
+              style={{ zIndex: "var(--above-overlay-index)" }}
+            >
+              Back to Present Room
+            </button>
+          )}
+        </div>
       )}
 
       {/* Guests Waiting popup */}
@@ -622,6 +636,15 @@ const GeoguesserPage: React.FC = () => {
             <h3>The presenter is choosing a location, please wait.</h3>
           </div>
         </div>
+      )}
+
+      {/* First time instruction popup */}
+      {instructionPopup && (
+        <Instructions
+          instructionPics={geoguesserInstructions}
+          onlyShowPopup={true}
+          closeButtonFunction={() => setInstructionPopup(false)}
+        />
       )}
     </div>
   ) : (
