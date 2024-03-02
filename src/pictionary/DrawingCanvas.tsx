@@ -9,7 +9,9 @@ import "../css/DrawingCanvas.css";
 
 const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   onDraw,
+  onPaste,
   externalDrawing,
+  externalPasteImg,
   isDrawer,
   target,
 }) => {
@@ -38,9 +40,9 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     };
   }, []);
 
+  // When receive drawingMessage from the server, draw it on the canvs
   useEffect(() => {
     if (externalDrawing?.drawingData) {
-      console.log("external", externalDrawing.drawingData);
       if (externalDrawing.drawingData.clear) {
         // Clear the canvas
         const canvas = canvasRef.current;
@@ -56,6 +58,70 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       }
     }
   }, [externalDrawing, externalDrawing?.drawingData]);
+
+  // When receives paste image from the server, draw it on the canvas
+  useEffect(() => {
+    if (externalPasteImg?.pasteImgData?.imgUrl) {
+      const img = new Image();
+      img.onload = function () {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        // TODO
+        ctx.drawImage(img, 0, 0);
+      };
+      img.src = externalPasteImg.pasteImgData.imgUrl;
+    }
+  }, [externalPasteImg, externalPasteImg?.pasteImgData]);
+
+  useEffect(() => {
+    const handlePaste = async (event: any) => {
+      if (!isDrawer) return;
+
+      const items = event.clipboardData?.items;
+      if (items) {
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].type.indexOf("image") === 0) {
+            const file = items[i].getAsFile();
+
+            compressImage(file, async (blob: any) => {
+              const formData = new FormData();
+              formData.append("image", blob);
+
+              try {
+                const uploadResponse = await fetch(
+                  "https://api.imgur.com/3/image",
+                  {
+                    method: "POST",
+                    headers: {
+                      Authorization: "Client-ID 8ee4fb7a4c2f78c",
+                    },
+                    body: formData,
+                  }
+                );
+                const uploadResult = await uploadResponse.json();
+
+                if (uploadResult.success) {
+                  const imageUrl = uploadResult.data.link;
+                  onPaste({ imgUrl: imageUrl });
+                } else {
+                  console.error("Imgur upload failed:", uploadResult);
+                }
+              } catch (error) {
+                console.error("Error uploading image to Imgur:", error);
+              }
+            });
+          }
+        }
+      }
+    };
+    window.addEventListener("paste", handlePaste);
+
+    return () => {
+      window.removeEventListener("paste", handlePaste);
+    };
+  }, [isDrawer, onPaste]);
 
   const draw = useCallback(
     (drawingData: DrawingData) => {
@@ -236,6 +302,29 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       canvas.classList.remove("eraser-cursor");
     }
   }, [isEraser]);
+
+  const compressImage = (file: Blob, callback: (blob: Blob | null) => void) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width; // Keep original dimensions
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        ctx.drawImage(img, 0, 0, img.width, img.height);
+
+        // Adjust the quality to reduce file size
+        // Lower the quality for smaller size
+        canvas.toBlob((blob) => callback(blob), "image/jpeg", 0.7); 
+      };
+      if (e.target?.result) {
+        img.src = e.target.result as string;
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Placeholder for non-drawer users to maintain layout consistency
   const Placeholder = () => <div style={{ height: "51px" }}></div>;

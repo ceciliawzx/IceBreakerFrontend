@@ -2,7 +2,7 @@ import React, { useEffect, useCallback, useState } from "react";
 import DrawingCanvas from "./pictionary/DrawingCanvas";
 import ChatRoom from "./ChatRoomPage";
 import { useLocation, useNavigate } from "react-router-dom";
-import { DrawingData, DrawingMessage } from "./type/DrawingCanvas";
+import { DrawingData, DrawingMessage, PasteImgData, PasteImgMessage } from "./type/DrawingCanvas";
 import {
   connect,
   sendMsg,
@@ -42,6 +42,7 @@ const shareBoardInstructions = [
 const PictionaryPage = () => {
   const location = useLocation();
   const [externalDrawing, setExternalDrawing] = useState<DrawingMessage>();
+  const [externalPasteImg, setExternalPasteImg] = useState<PasteImgMessage>();
   const user: User = location.state?.user;
   const userID = user?.userID;
   const roomCode = user?.roomCode;
@@ -166,7 +167,7 @@ const PictionaryPage = () => {
   }; // Add fieldName and any other relevant state to the dependency array
 
   const handleReceivedDrawing = useCallback(
-    (msg: DrawingMessage | BackMessage | ModalMessage) => {
+    (msg: DrawingMessage | PasteImgMessage | BackMessage | ModalMessage) => {
       console.log(
         "Pictionary receives message ",
         msg,
@@ -174,9 +175,11 @@ const PictionaryPage = () => {
         fieldName
       );
       try {
-        // If contain drawer field, is DrawingMessage
+        // If contain drawingData field, is DrawingMessage
         if ("drawer" in msg) {
           setExternalDrawing(msg as DrawingMessage);
+        } else if ("paster" in msg) {
+          setExternalPasteImg(msg as PasteImgMessage);
         } else if ("show" in msg) {
           // show modal and update PresentRoomInfo
           handleModalMessage();
@@ -194,7 +197,7 @@ const PictionaryPage = () => {
   const handleDraw = useCallback(
     (drawingData: DrawingData) => {
       const destination = `/app/room/${roomCode}/sendDrawing`;
-      const drawingMessage = {
+      const drawingMessage: DrawingMessage = {
         roomCode,
         drawingData,
         timestamp: new Date().toISOString(),
@@ -205,6 +208,29 @@ const PictionaryPage = () => {
     },
     [roomCode]
   );
+
+  const handlePaste = useCallback(
+    (pasteImgData: PasteImgData) => {
+      const destination = `/app/room/${roomCode}/sendPasteImg`;
+      
+      const pasteImgMessage: PasteImgMessage = {
+        roomCode,
+        pasteImgData,
+        timestamp: new Date().toISOString(),
+        paster: userID,
+      };
+
+      // const pasteImgMessage: PasteImgMessage = {
+      //   roomCode,
+      //   pasteImgData: {imgUrl: "testImgUrl"},
+      //   timestamp: new Date().toISOString(),
+      //   paster: userID,
+      // };
+      console.log('Sending pasteImgMessage ', pasteImgMessage);
+      sendMsg(destination, pasteImgMessage);
+    },
+    [roomCode]
+  )
 
   // navigate back to presentRoom
   const handleBackToPresentRoom = async () => {
@@ -302,7 +328,9 @@ const PictionaryPage = () => {
         <DrawingCanvas
           isDrawer={isDrawer}
           onDraw={handleDraw}
+          onPaste={handlePaste}
           externalDrawing={externalDrawing}
+          externalPasteImg={externalPasteImg}
           target={target}
         />
         <div>
