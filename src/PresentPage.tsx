@@ -218,7 +218,8 @@ const PresentPage = () => {
     const games = availableGamesForField[fieldName] || [];
     const isRevealed = presentRoomInfo[fieldName];
 
-    if (isPresenter) {
+    // If is presenter, render select game
+    if (isSameUser(presenter, user)) {
       return (
         <>
           {isRevealed ? (
@@ -249,7 +250,27 @@ const PresentPage = () => {
           )}
         </>
       );
+    } else if (isSameUser(admin, user)) {
+      // If admin, render reveal button
+      return (
+        <>
+          {isRevealed ? (
+            info
+          ) : (
+            <>
+              <button
+                className="button small-button admin-only-button"
+                style={{ margin: "0px", textAlign: "center" }}
+                onClick={() => handleToggleReveal(fieldName)}
+              >
+                Reveal
+              </button>
+            </>
+          )}
+        </>
+      );
     } else {
+      // If normal user, render blind info
       return isRevealed ? info : "********";
     }
   };
@@ -402,9 +423,10 @@ const PresentPage = () => {
   };
 
   const handleToggleReveal = (field: keyof PresentRoomInfo) => {
-    if (!isPresenter) return;
-    // Reveal the field directly
-    updatePresentRoomInfo({ roomCode, field });
+    if (isSameUser(user, presenter) || isSameUser(user, admin)) {
+      // Reveal the field directly
+      updatePresentRoomInfo({ roomCode, field });
+    }
   };
 
   const handleBackToWaitRoom = async () => {
@@ -431,9 +453,12 @@ const PresentPage = () => {
 
   return render ? (
     <div className="page" style={{ marginBottom: "0" }}>
-      <div className="present-blackboard-container" style={{ color: "white" }}>
+      <div
+        className="present-page-blackboard-container"
+        style={{ color: "white" }}
+      >
         <img src={blackBoard} alt="BlackBoard" className="blackBoard" />
-        <div className="row-container presenter-on-blackboard">
+        <div className="row-container present-page-presenter-on-blackboard">
           <div className="presenter-avatar-position">
             <img
               src={presenter?.profileImage}
