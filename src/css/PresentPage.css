@@ -1,9 +1,16 @@
-/* Add a class for the blackboard container if not already present */
-.present-blackboard-container {
+.present-page-blackboard-container {
   position: relative;
   text-align: center;
   width: 55%;
   margin-bottom: 2%;
+}
+
+.present-page-presenter-on-blackboard {
+  position: absolute;
+  top: 57%;
+  width: 90%;
+  display: flex;
+  transform: translateY(-50%);
 }
 
 .presenter-avatar-position {
@@ -13,11 +20,13 @@
 
 .presenter-info-container {
   position: absolute;
-  left: 35%;
+  left: 50%;
   display: flex;
+  width: 60%;
   flex-direction: column;
   align-items: center;
   text-align: center;
+  margin: 0%;
 }
 
 .presenter-name {
@@ -26,7 +35,6 @@
 }
 
 .info-columns {
-  margin-left: 30%;
   display: flex;
   flex-wrap: wrap;
   text-align: left;
