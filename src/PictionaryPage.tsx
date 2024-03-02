@@ -241,7 +241,11 @@ const PictionaryPage = () => {
         </div>
       )}
     </div>
-  ) : null;
+  ) : (
+    <div>
+      Showing {presenter?.displayName}'s {seletedField}
+    </div>
+  );
 
   // Get player info when start
   const checkPlayers = async () => {
