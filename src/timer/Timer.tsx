@@ -57,7 +57,11 @@ export const Timer = ({
     (msg: TimerMessage | TimerModalMessage) => {
       if ("show" in msg) {
         checkShowTimerModal();
-      } else {
+      } 
+      else {
+        if (msg.started !== undefined) {
+          setIsTimerStarted(msg.started);
+        }
         setTimeLeft(msg.seconds);
       }
     },
@@ -91,7 +95,6 @@ export const Timer = ({
       seconds,
     };
     sendMsg(destination, timerMessage);
-    setIsTimerStarted(true); // Set the timer as started
   }, [roomCode, roomStatus, inputValue, defaultTime]);
 
   // Ensure the functions modifyTimer and stopTimer also respect the isTimerStarted state if needed
