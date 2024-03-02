@@ -481,7 +481,7 @@ const PresentPage = () => {
         <Instructions instructionPics={presentRoomInstructions} />
       </div>
 
-      <div className="present-blackboard-container" style={{ color: "white" }}>
+      <div className="present-page-blackboard-container" style={{ color: "white" }}>
         <img src={blackBoard} alt="BlackBoard" className="blackBoard" />
         <div className="row-container present-page-presenter-on-blackboard">
           <div className="presenter-avatar-position">
