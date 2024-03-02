@@ -8,7 +8,7 @@ import WaitRoomPage from "./WaitRoomPage";
 import UserProfilePage from "./UserProfilePage";
 import reportWebVitals from "./service/reportWebVitals";
 import CreateRoomPage from "./CreateRoomPage";
-import GeoguesserPage from "./Geoguesser";
+import GeoguesserPage from "./GeoguesserPage";
 import PresentPage from "./PresentPage";
 import PictionaryPage from "./PictionaryPage";
 import JoinMockRoomPage from "./JoinMockRoomPage";

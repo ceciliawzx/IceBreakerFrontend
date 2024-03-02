@@ -21,13 +21,21 @@ import { Modal } from "./utils/Modal";
 import { PresentRoomInfo } from "./type/PresentRoomInfo";
 import Instructions from "./Instructions";
 import Inst1 from "./instructions/draw&guess/1.png";
+import Inst2 from "./instructions/hangman/HangmanInstruction.png";
 import { isSameUser } from "./utils/CommonCompare";
 import { disableScroll } from "./utils/CssOperation";
 
 const pictionaryInstructions = [
   {
     img: Inst1,
-    text: "In this game the presenter will draw their answer for you, and you can compete to guess the correct word. Have fun!",
+    text: "Pictionary",
+  },
+];
+
+const shareBoardInstructions = [
+  {
+    img: Inst2,
+    text: "Shareboard",
   },
 ];
 
@@ -51,6 +59,8 @@ const PictionaryPage = () => {
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
   const [render, setRender] = useState(false);
+  const [wordFetched, setWordFetched] = useState(false);
+  const [instructionPopup, setInstructionPopup] = useState(false);
 
   // disable scroll for this page
   useEffect(disableScroll, []);
@@ -78,6 +88,25 @@ const PictionaryPage = () => {
     // Return the cleanup function from useEffect
     return cleanup; // This will be called when the component unmounts
   }, []);
+
+  // If first time to this page, pop up instruction
+  useEffect(() => {
+    // Check after fetched target word, to distinguish between pictionary and shareboard
+    if (!wordFetched) return;
+
+    const pageItemName = isPictionary()
+      ? "pictionaryVisited"
+      : "shareboardVisited";
+
+    const pageVisited = localStorage.getItem(pageItemName);
+
+    if (pageVisited !== "true") {
+      setInstructionPopup(true);
+
+      // Mark the user as visited to prevent showing the popup again
+      localStorage.setItem(pageItemName, "true");
+    }
+  }, [wordFetched]);
 
   useEffect(() => {
     const notifyServerOnUnload = (event: BeforeUnloadEvent) => {
@@ -107,6 +136,7 @@ const PictionaryPage = () => {
       // setTargetWord(data.toString());
       setSelectedField(data.target.fieldName);
       setTargetWord(data.target.targetWord);
+      setWordFetched(true);
     } else {
       // throw new Error(`HTTP error when getTarget! Status: ${response.status}`);
       console.log("data ", data);
@@ -188,27 +218,30 @@ const PictionaryPage = () => {
     }
   };
 
-  const target: JSX.Element | null =
-    targetWord !== "" ? (
-      <div className="word-display">
-        {isSameUser(presenter, user) || isSameUser(user, admin) ? (
-          <span>Target Word: {targetWord}</span> // Show the target word to the presenter and admin
-        ) : (
+  const isPictionary = () => {
+    return targetWord !== "";
+  };
+
+  const target: JSX.Element | null = isPictionary() ? (
+    <div className="word-display">
+      {isSameUser(presenter, user) || isSameUser(user, admin) ? (
+        <span>Target Word: {targetWord}</span> // Show the target word to the presenter and admin
+      ) : (
+        <div>
           <div>
-            <div>
-              We are guessing {presenter?.displayName}'s {seletedField}: {"  "}
-            </div>
-            <span className="underscore-display">
-              {targetWord
-                .split("")
-                .map((char) => (/[a-zA-Z]/.test(char) ? "_" : `${char + " "}`))
-                .join("")
-                .trim()}
-            </span>
+            We are guessing {presenter?.displayName}'s {seletedField}: {"  "}
           </div>
-        )}
-      </div>
-    ) : null;
+          <span className="underscore-display">
+            {targetWord
+              .split("")
+              .map((char) => (/[a-zA-Z]/.test(char) ? "_" : `${char + " "}`))
+              .join("")
+              .trim()}
+          </span>
+        </div>
+      )}
+    </div>
+  ) : null;
 
   // Get player info when start
   const checkPlayers = async () => {
@@ -239,7 +272,12 @@ const PictionaryPage = () => {
     <div className="row-page">
       <div className="left-column">
         <div className="row-container up-row">
-          <Instructions instructionPics={pictionaryInstructions} />
+          {isPictionary() ? (
+            <Instructions instructionPics={pictionaryInstructions} />
+          ) : (
+            <Instructions instructionPics={shareBoardInstructions} />
+          )}
+
           {/* Timer */}
           <div>
             <Timer
@@ -264,7 +302,7 @@ const PictionaryPage = () => {
           target={target}
         />
         <div>
-          {userID === admin?.userID && (
+          {isSameUser(user, admin) && (
             <button
               id="back-to-presentroom-button"
               className="button admin-only-button"
@@ -285,6 +323,17 @@ const PictionaryPage = () => {
           targetWord={targetWord}
           userID={userID}
           adminID={admin?.userID || "Cannot find admin"}
+        />
+      )}
+
+      {/* First time instruction popup */}
+      {instructionPopup && (
+        <Instructions
+          instructionPics={
+            isPictionary() ? pictionaryInstructions : shareBoardInstructions
+          }
+          onlyShowPopup={true}
+          closeButtonFunction={() => setInstructionPopup(false)}
         />
       )}
     </div>

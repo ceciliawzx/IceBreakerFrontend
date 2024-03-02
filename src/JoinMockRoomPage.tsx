@@ -121,7 +121,10 @@ const JoinMockRoomPage = () => {
           </button>
           {message && <p className="message">{message}</p>}
         </form>
-        <button className="button admin-only-button" onClick={handleResetMockServer}>
+        <button
+          className="button admin-only-button"
+          onClick={handleResetMockServer}
+        >
           Reset mock room
         </button>
       </div>
@@ -129,7 +132,12 @@ const JoinMockRoomPage = () => {
       {showPopup && (
         <div className="popup">
           <p>Please enter userID.</p>
-          <button onClick={() => setShowPopup(false)}>OK</button>
+          <button
+            className="button common-button"
+            onClick={() => setShowPopup(false)}
+          >
+            OK
+          </button>
         </div>
       )}
     </div>

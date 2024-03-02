@@ -88,6 +88,7 @@ const Wordle = () => {
   );
 
   const [render, setRender] = useState(false);
+  const [instructionPopup, setInstructionPopup] = useState(false);
 
   // When launch
   useEffect(() => {
@@ -107,6 +108,18 @@ const Wordle = () => {
     initializeGame();
 
     return cleanup;
+  }, []);
+
+  // If first time to this page, pop up instruction
+  useEffect(() => {
+    const pageVisited = localStorage.getItem("wordleVisited");
+
+    if (pageVisited !== "true") {
+      setInstructionPopup(true);
+
+      // Mark the user as visited to prevent showing the popup again
+      localStorage.setItem("wordleVisited", "true");
+    }
   }, []);
 
   // When got target word, initialize grid
@@ -221,7 +234,7 @@ const Wordle = () => {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
   };
-  
+
   const handleChangePresenterAfterQuitting = async (userID: string) => {
     const response = await fetch(
       `${serverPort}/changePresenter?roomCode=${roomCode}&userID=${userID}`,
@@ -895,6 +908,15 @@ const Wordle = () => {
           targetWord={targetWord}
           userID={userID}
           adminID={admin?.userID || "Cannot find admin"}
+        />
+      )}
+
+      {/* First time instruction popup */}
+      {instructionPopup && (
+        <Instructions
+          instructionPics={wordleInstructions}
+          onlyShowPopup={true}
+          closeButtonFunction={() => setInstructionPopup(false)}
         />
       )}
     </div>

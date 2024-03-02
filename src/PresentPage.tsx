@@ -18,6 +18,16 @@ import {
   websocketUrl,
 } from "./utils/WebSocketService";
 
+import Instructions from "./Instructions";
+import presentRoomInstruction from "./instructions/waitroom/WaitroomInstruction.png";
+
+const presentRoomInstructions = [
+  {
+    img: presentRoomInstruction,
+    text: "",
+  },
+];
+
 const PresentPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -59,6 +69,20 @@ const PresentPage = () => {
     favFood: [],
     favActivity: [],
   });
+
+  const [instructionPopup, setInstructionPopup] = useState(false);
+
+  // If first time to this page, pop up instruction
+  useEffect(() => {
+    const pageVisited = localStorage.getItem("presentRoomVisited");
+
+    if (pageVisited !== "true") {
+      setInstructionPopup(true);
+
+      // Mark the user as visited to prevent showing the popup again
+      localStorage.setItem("presentRoomVisited", "true");
+    }
+  }, []);
 
   // fetch users info and roomStatus
   const checkPlayers = async () => {
@@ -453,10 +477,11 @@ const PresentPage = () => {
 
   return render ? (
     <div className="page" style={{ marginBottom: "0" }}>
-      <div
-        className="present-page-blackboard-container"
-        style={{ color: "white" }}
-      >
+      <div className="instruction-button-container">
+        <Instructions instructionPics={presentRoomInstructions} />
+      </div>
+
+      <div className="present-blackboard-container" style={{ color: "white" }}>
         <img src={blackBoard} alt="BlackBoard" className="blackBoard" />
         <div className="row-container present-page-presenter-on-blackboard">
           <div className="presenter-avatar-position">
@@ -534,6 +559,15 @@ const PresentPage = () => {
           </button>
         )}
       </div>
+
+      {/* First time instruction popup */}
+      {instructionPopup && (
+        <Instructions
+          instructionPics={presentRoomInstructions}
+          onlyShowPopup={true}
+          closeButtonFunction={() => setInstructionPopup(false)}
+        />
+      )}
     </div>
   ) : (
     <></>
