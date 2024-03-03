@@ -219,13 +219,6 @@ const PictionaryPage = () => {
         timestamp: new Date().toISOString(),
         paster: userID,
       };
-
-      // const pasteImgMessage: PasteImgMessage = {
-      //   roomCode,
-      //   pasteImgData: {imgUrl: "testImgUrl"},
-      //   timestamp: new Date().toISOString(),
-      //   paster: userID,
-      // };
       console.log('Sending pasteImgMessage ', pasteImgMessage);
       sendMsg(destination, pasteImgMessage);
     },
