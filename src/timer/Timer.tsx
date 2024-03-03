@@ -59,8 +59,8 @@ export const Timer = ({
         checkShowTimerModal();
       } 
       else {
-        if (msg.started !== undefined) {
-          setIsTimerStarted(msg.started);
+        if (msg.started) {
+          setIsTimerStarted(true);
         }
         setTimeLeft(msg.seconds);
       }

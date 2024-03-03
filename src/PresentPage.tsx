@@ -28,6 +28,14 @@ const presentRoomInstructions = [
   },
 ];
 
+const getGameName = (gameType: GameType) => {
+  switch (gameType) {
+    case GameType.PICTIONARY:
+      return "DRAW&GUESS";
+    default: return gameType
+  }
+}
+
 const PresentPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -262,10 +270,10 @@ const PresentPage = () => {
                   {games.map((gameType) => (
                     <button
                       className="button small-button common-button"
-                      key={gameType}
+                      key={getGameName(gameType)}
                       onClick={() => handleGameSelection(gameType, fieldName)}
                     >
-                      {gameType}
+                      {getGameName(gameType)}
                     </button>
                   ))}
                 </div>
