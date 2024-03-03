@@ -12,7 +12,26 @@ import "./css/CommonStyle.css";
 import "./css/AllPresentedPage.css";
 import celebrationLeft from "./assets/CelebrationLeft.png";
 import celebrationRight from "./assets/CelebrationRight.png";
-import { create } from "domain";
+
+export interface ReportEntry {
+  [userID: string]: string;
+}
+
+export interface SimilarityReports {
+  similar_activities: ReportEntry;
+  similar_cities: ReportEntry;
+  similar_countries: ReportEntry;
+  similar_feelings: ReportEntry;
+  similar_foods: ReportEntry;
+}
+
+const initialReports: SimilarityReports = {
+  similar_activities: {},
+  similar_cities: {},
+  similar_countries: {},
+  similar_feelings: {},
+  similar_foods: {},
+};
 
 const AllPresentedPage: React.FC = () => {
   const location = useLocation();
@@ -28,6 +47,8 @@ const AllPresentedPage: React.FC = () => {
   const [showProfilePopup, setShowProfilePopup] = useState(false);
   const [showDestroyPopUp, setShowDestroyPopUp] = useState(false);
   const [showDismissPopUp, setShowDismissPopup] = useState(false);
+  const [similarityReports, setSimilarityReports] =
+    useState<SimilarityReports>(initialReports);
 
   // disable scroll for this page
   useEffect(disableScroll, []);
@@ -37,21 +58,16 @@ const AllPresentedPage: React.FC = () => {
     fetchUsers();
   }, []);
 
-  const createUserProfile = (user: any) => {
-    return new UserProfile(
-      user.displayName,
-      user.roomCode,
-      user.userID,
-      user.profileImage,
-      user.firstName,
-      user.lastName,
-      user.country,
-      user.city,
-      user.feeling,
-      user.favFood,
-      user.favActivity
-    );
-  };
+  // Fetch Similarity reports
+  useEffect(() => {
+    fetchSimilarityReports();
+  }, []);
+
+  useEffect(() => {
+    if (similarityReports) {
+      console.log("receive reports from server: ", similarityReports);
+    }
+  }, [similarityReports]);
 
   const handleBackToHomePage = async () => {
     // Normal user, jump back
@@ -91,9 +107,13 @@ const AllPresentedPage: React.FC = () => {
 
   const exportAllUserProfileAsPDF = async () => {
     for (const userProfile of allUserProfile) {
+      const similarityReport = findSimilarityRepoirt(userProfile);
       await new Promise((resolve) => {
         console.log("exporting user profile as PDF: ", userProfile);
-        exportUserProfileAsPDF(userProfile); // Assuming this is synchronous or has a callback
+        exportUserProfileAsPDF(
+          userProfile,
+          similarityReport as SimilarityReports
+        ); // Assuming this is synchronous or has a callback
         setTimeout(resolve, 1000); // Wait for 1 second before proceeding to the next PDF (adjust as needed)
       });
     }
@@ -103,8 +123,9 @@ const AllPresentedPage: React.FC = () => {
     const doc = new jsPDF();
 
     for (let i = 0; i < allUserProfile.length; i++) {
+      const similarityReport = findSimilarityRepoirt(allUserProfile[i]);
       console.log("exporting user profile as PDF: ", allUserProfile[i]);
-      addPDFInfo(doc, allUserProfile[i]);
+      addPDFInfo(doc, allUserProfile[i], similarityReport as SimilarityReports);
 
       // Check if it's not the last iteration
       if (i < allUserProfile.length - 1) {
@@ -139,8 +160,85 @@ const AllPresentedPage: React.FC = () => {
       setAllUserProfile(userProfiles);
       setAdmin(data.admin);
     } catch (error) {
-      console.error("Error fetching all users:", error);
+      console.error("Error fetching all users: ", error);
     }
+  };
+
+  const fetchSimilarityReports = async () => {
+    try {
+      const response = await fetch(
+        `${serverPort}/fetchReportsForUser?roomCode=${roomCode}&userID=${user.userID}`
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`);
+      }
+      const data = await response.json();
+      setSimilarityReports(data.reports);
+    } catch (error) {
+      console.error("Error fetching reports for user: ", error);
+    }
+  };
+
+  const findSimilarityRepoirt = (selectedUserProfile: UserProfile) => {
+    let userSpecificReport: Partial<SimilarityReports> = {
+      similar_activities: {},
+      similar_cities: {},
+      similar_countries: {},
+      similar_feelings: {},
+      similar_foods: {},
+    };
+
+    // Iterate over each category in the similarityReports
+    (
+      Object.entries(similarityReports) as [
+        keyof SimilarityReports,
+        ReportEntry
+      ][]
+    ).forEach(([category, reports]) => {
+      // Check if the selected user's ID is mentioned in the current category
+      if (reports[selectedUserProfile.userID]) {
+        // If so, add this report to the userSpecificReport object under the appropriate category
+        userSpecificReport[category] = {
+          [selectedUserProfile.userID]: reports[selectedUserProfile.userID],
+        };
+      }
+    });
+    return userSpecificReport;
+  };
+
+  const exportUserSimilarityReportAsPDF = (
+    userSpecificReport: Partial<SimilarityReports>,
+    selectedUserProfile: UserProfile
+  ) => {
+    // Check if userSpecificReport has any non-empty categories
+    if (
+      Object.values(userSpecificReport).some(
+        (category) => Object.keys(category).length > 0
+      )
+    ) {
+      console.log(
+        "Exporting user profile with specific report: ",
+        selectedUserProfile,
+        userSpecificReport
+      );
+      exportUserProfileAsPDF(
+        selectedUserProfile,
+        userSpecificReport as SimilarityReports
+      );
+    } else {
+      // If no specific reports were found for the selected user, export the profile without them
+      console.log(
+        "Exporting user profile without specific report: ",
+        selectedUserProfile
+      );
+      exportUserProfileAsPDF(selectedUserProfile);
+    }
+  };
+
+  const handleExportUserProfileAsPDF = (selectedUserProfile: UserProfile) => {
+    const userSpecificReport: Partial<SimilarityReports> =
+      findSimilarityRepoirt(selectedUserProfile);
+    exportUserSimilarityReportAsPDF(userSpecificReport, selectedUserProfile);
   };
 
   return (
@@ -224,7 +322,8 @@ const AllPresentedPage: React.FC = () => {
           <div>
             <button
               className="button common-button"
-              onClick={() => exportUserProfileAsPDF(selectedUserProfile)}
+              // onClick={() => exportUserProfileAsPDF(selectedUserProfile)}
+              onClick={() => handleExportUserProfileAsPDF(selectedUserProfile)}
             >
               Export as PDF
             </button>
