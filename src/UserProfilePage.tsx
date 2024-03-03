@@ -381,6 +381,10 @@ const UserProfilePage = () => {
     setShowRingPopUp(false);
   };
 
+  const filterInput = (input: any) => {
+    return input.trim().replace(/[^a-zA-Z0-9\s]/g, "");
+  };
+
   return render ? (
     <div className="center-page">
       <h2>Hi {displayName},please enter your details</h2>
@@ -392,7 +396,7 @@ const UserProfilePage = () => {
           <input
             type="text"
             value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
+            onChange={(e) => setFirstName(filterInput(e.target.value))}
           />
         </div>
         <div className="row-container">
@@ -402,7 +406,7 @@ const UserProfilePage = () => {
           <input
             type="text"
             value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
+            onChange={(e) => setLastName(filterInput(e.target.value))}
           />
         </div>
         <div className="row-container">
@@ -412,7 +416,7 @@ const UserProfilePage = () => {
           <input
             type="text"
             value={city}
-            onChange={(e) => setCity(e.target.value)}
+            onChange={(e) => setCity(filterInput(e.target.value))}
           />
         </div>
         <div className="row-container">
@@ -422,7 +426,7 @@ const UserProfilePage = () => {
           <input
             type="text"
             value={country}
-            onChange={(e) => setCountry(e.target.value)}
+            onChange={(e) => setCountry(filterInput(e.target.value))}
           />
         </div>
         <div className="row-container">
@@ -432,7 +436,7 @@ const UserProfilePage = () => {
           <input
             type="text"
             value={feeling}
-            onChange={(e) => setFeeling(e.target.value)}
+            onChange={(e) => setFeeling(filterInput(e.target.value))}
           />
         </div>
         <div className="row-container">
@@ -442,7 +446,7 @@ const UserProfilePage = () => {
           <input
             type="text"
             value={favFood}
-            onChange={(e) => setFavFood(e.target.value)}
+            onChange={(e) => setFavFood(filterInput(e.target.value))}
           />
         </div>
         <div className="row-container">
@@ -452,7 +456,7 @@ const UserProfilePage = () => {
           <input
             type="text"
             value={favActivity}
-            onChange={(e) => setfavActivity(e.target.value)}
+            onChange={(e) => setfavActivity(filterInput(e.target.value))}
           />
         </div>
         <div className="row-container">
