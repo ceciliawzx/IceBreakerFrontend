@@ -2,12 +2,13 @@ import jsPDF from "jspdf";
 import { UserProfile } from "../type/UserProfile";
 import exp from "constants";
 import backgroundImage from "../assets/PDFBackground.png";
+import { SimilarityReports } from '../AllPresentedPage';
 
-export const exportUserProfileAsPDF = (userProfile: UserProfile) => {
+export const exportUserProfileAsPDF = (userProfile: UserProfile, similarities?: SimilarityReports) => {
   console.log("exporting user profile as PDF: ", userProfile.displayName);
   const doc = new jsPDF();
 
-  addPDFInfo(doc, userProfile);
+  addPDFInfo(doc, userProfile, similarities);
 
   doc.save(`${userProfile.displayName} export.pdf`);
 };
@@ -21,7 +22,7 @@ const printCenteredText = (doc: any, text: string, yPos: number) => {
   doc.text(text, getCenteredX(doc, text), yPos);
 };
 
-export const addPDFInfo = (doc: any, userProfile: UserProfile) => {
+export const addPDFInfo = (doc: any, userProfile: UserProfile, similarities?: SimilarityReports) => {
   // Add background image
   doc.addImage(
     backgroundImage,
@@ -51,6 +52,7 @@ export const addPDFInfo = (doc: any, userProfile: UserProfile) => {
     linePosition += 65; // Adjust based on the size of the image
   }
 
+
   // Name
   doc.setFontSize(24);
   doc.setFont("helvetica", "bold");
@@ -72,6 +74,25 @@ export const addPDFInfo = (doc: any, userProfile: UserProfile) => {
     linePosition
   );
 
+  // Add similarities to the report
+  if (similarities) {
+    linePosition += textHeight; 
+    const tempTextHeight = 5;
+    Object.entries(similarities).forEach(([category, reports]) => {
+      // Only proceed if there are reports in this category
+      if (Object.keys(reports).length > 0) {
+        // Now print each report message
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "normal");
+        Object.values(reports).forEach((message: any) => {
+          printCenteredText(doc, message, linePosition);
+          linePosition += tempTextHeight;
+        });
+      }
+    });
+  }
+
+  doc.setFontSize(20);
   linePosition += textHeight;
   printCenteredText(doc, `City: ${userProfile.city}`, linePosition);
   linePosition += textHeight;
@@ -86,6 +107,8 @@ export const addPDFInfo = (doc: any, userProfile: UserProfile) => {
     `Favorite Activity: ${userProfile.favActivity}`,
     linePosition
   );
+
+
 };
 
 export default exportUserProfileAsPDF;
