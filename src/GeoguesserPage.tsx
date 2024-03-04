@@ -18,8 +18,10 @@ import {
 } from "./utils/WebSocketService";
 import { Timer } from "./timer/Timer";
 import Instructions from "./Instructions";
-import geoguesserInstruction from "./instructions/wordle/WordleInstruction.png";
+
 import { updatePresentRoomInfo } from "./utils/RoomOperation";
+import geoguesserInstructionPic1 from "./instructions/Geoguesser1.png";
+import geoguesserInstructionPic2 from "./instructions/Geoguesser2.png";
 
 enum GeoguesserStatus {
   PRE_CHOOSE = "PRE_CHOOSE",
@@ -29,7 +31,11 @@ enum GeoguesserStatus {
 
 const geoguesserInstructions = [
   {
-    img: geoguesserInstruction,
+    img: geoguesserInstructionPic1,
+    text: "",
+  },
+  {
+    img: geoguesserInstructionPic2,
     text: "",
   },
 ];

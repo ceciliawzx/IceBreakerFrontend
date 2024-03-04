@@ -2,7 +2,12 @@ import React, { useEffect, useCallback, useState } from "react";
 import DrawingCanvas from "./pictionary/DrawingCanvas";
 import ChatRoom from "./ChatRoomPage";
 import { useLocation, useNavigate } from "react-router-dom";
-import { DrawingData, DrawingMessage, PasteImgData, PasteImgMessage } from "./type/DrawingCanvas";
+import {
+  DrawingData,
+  DrawingMessage,
+  PasteImgData,
+  PasteImgMessage,
+} from "./type/DrawingCanvas";
 import {
   connect,
   sendMsg,
@@ -20,21 +25,21 @@ import { ModalMessage } from "./type/ModalMessage";
 import { Modal } from "./utils/Modal";
 import { PresentRoomInfo } from "./type/PresentRoomInfo";
 import Instructions from "./Instructions";
-import Inst1 from "./instructions/draw&guess/1.png";
-import Inst2 from "./instructions/hangman/HangmanInstruction.png";
+import PictionaryInstructionPic from "./instructions/PictionaryInstruction.png";
+import ShareboardInstructionPic from "./instructions/ShareboardInstruction.png";
 import { isSameUser } from "./utils/CommonCompare";
 import { disableScroll } from "./utils/CssOperation";
 
 const pictionaryInstructions = [
   {
-    img: Inst1,
+    img: PictionaryInstructionPic,
     text: "Pictionary",
   },
 ];
 
 const shareBoardInstructions = [
   {
-    img: Inst2,
+    img: ShareboardInstructionPic,
     text: "Shareboard",
   },
 ];
@@ -212,7 +217,7 @@ const PictionaryPage = () => {
   const handlePaste = useCallback(
     (pasteImgData: PasteImgData) => {
       const destination = `/app/room/${roomCode}/sendPasteImg`;
-      
+
       const pasteImgMessage: PasteImgMessage = {
         roomCode,
         pasteImgData,
@@ -223,7 +228,7 @@ const PictionaryPage = () => {
       sendMsg(destination, pasteImgMessage);
     },
     [roomCode]
-  )
+  );
 
   // navigate back to presentRoom
   const handleBackToPresentRoom = async () => {

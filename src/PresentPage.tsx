@@ -19,11 +19,11 @@ import {
 } from "./utils/WebSocketService";
 
 import Instructions from "./Instructions";
-import presentRoomInstruction from "./instructions/waitroom/WaitroomInstruction.png";
+import presentRoomInstructionPic from "./instructions/PresentRoomInstruction.png";
 
 const presentRoomInstructions = [
   {
-    img: presentRoomInstruction,
+    img: presentRoomInstructionPic,
     text: "",
   },
 ];
@@ -555,7 +555,7 @@ const PresentPage = () => {
             onClick={() => handleBackToWaitRoom()}
             disabled={!allPresented}
           >
-            Back to WaitRoom
+            Back to Wait Room
           </button>
         )}
         {isSameUser(user, admin) && (

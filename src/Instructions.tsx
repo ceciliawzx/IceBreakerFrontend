@@ -48,6 +48,7 @@ const Instructions: React.FC<InstructionsProps> = ({
             <div className="instruction-navigation">
               {currentInstructionPage !== 0 && (
                 <button
+                  className="button common-button"
                   onClick={showPrevInstruction}
                   disabled={currentInstructionPage === 0}
                 >
@@ -56,6 +57,7 @@ const Instructions: React.FC<InstructionsProps> = ({
               )}
               {currentInstructionPage !== instructionPics.length - 1 && (
                 <button
+                  className="button common-button"
                   onClick={showNextInstruction}
                   disabled={
                     currentInstructionPage === instructionPics.length - 1

@@ -20,13 +20,13 @@ import { Timer } from "./timer/Timer";
 import { RoomStatus } from "./type/RoomStatus";
 import { ModalMessage } from "./type/ModalMessage";
 import Instructions from "./Instructions";
-import wordleInstruction from "./instructions/wordle/WordleInstruction.png";
+import wordleInstructionPic from "./instructions/WordleInstruction.png";
 import { isSameUser } from "./utils/CommonCompare";
 import { TimerMessage } from "./type/Timer";
 
 const wordleInstructions = [
   {
-    img: wordleInstruction,
+    img: wordleInstructionPic,
     text: "",
   },
 ];

@@ -5,7 +5,7 @@ import { SimilarityReports } from '../type/SimilarityReport';
 
 export const exportUserProfileAsPDF = (userProfile: UserProfile, similarities?: SimilarityReports) => {
   console.log("exporting user profile as PDF: ", userProfile.displayName);
-  const doc = new jsPDF();
+  const doc = new jsPDF('p', 'mm','a4',true);
 
   addPDFInfo(doc, userProfile, similarities);
 
@@ -25,7 +25,7 @@ export const addPDFInfo = (doc: any, userProfile: UserProfile, similarities?: Si
   // Add background image
   doc.addImage(
     backgroundImage,
-    "PNG",
+    "JPEG",
     0,
     0,
     doc.internal.pageSize.width,

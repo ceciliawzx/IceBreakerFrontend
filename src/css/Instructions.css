@@ -39,7 +39,6 @@
   border-radius: 15px;
   text-align: center;
   width: 70%; /* Adjust based on your needs for a larger modal */
-  height: 80%; /* Adjust based on your needs for a larger modal */
   max-width: 800px; /* Ensures content does not become too wide on larger screens */
   max-height: 800px; /* Ensures content does not become too tall */
   display: flex;
