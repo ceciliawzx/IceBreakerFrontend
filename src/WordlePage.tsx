@@ -618,6 +618,17 @@ const Wordle = () => {
     }
   };
 
+  const modalContent = () => {
+    return (
+      <>
+        <h2>Target Word Revealed!</h2>
+        <p>
+          The target word was: <strong>{targetWord}</strong>
+        </p>
+      </>
+    );
+  };
+
   return render ? (
     <div className="row-page">
       <div className="left-column">
@@ -828,9 +839,8 @@ const Wordle = () => {
             setShowModal(false);
             handleBackButton();
           }}
-          targetWord={targetWord}
-          userID={userID}
-          adminID={admin?.userID || "Cannot find admin"}
+          isAdmin={userID === admin?.userID}
+          modalContent={modalContent()}
         />
       )}
 

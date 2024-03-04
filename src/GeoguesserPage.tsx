@@ -20,6 +20,8 @@ import { Timer } from "./timer/Timer";
 import Instructions from "./Instructions";
 
 import { updatePresentRoomInfo } from "./utils/RoomOperation";
+import { ModalMessage } from "./type/ModalMessage";
+import { Modal } from "./utils/Modal";
 import geoguesserInstructionPic1 from "./instructions/Geoguesser1.png";
 import geoguesserInstructionPic2 from "./instructions/Geoguesser2.png";
 
@@ -61,7 +63,7 @@ const GeoguesserPage: React.FC = () => {
   const [isMapInteractive, setIsMapInteractive] = useState(true);
   const [guestWaitingPopup, setGuestWaitingPopup] = useState(false);
   const [geoguesserStatus, setGeoguesserStatus] = useState<GeoguesserStatus>();
-  const [showAllSubmitPopup, setShowAllSubmitPopup] = useState(false);
+  const [allSubmitted, setAllSubmitted] = useState(false);
   const [userSubStatus, setUserSubStatus] = useState(false);
   const [streetViewPanorama, setStreetViewPanorama] =
     useState<google.maps.StreetViewPanorama>();
@@ -84,6 +86,8 @@ const GeoguesserPage: React.FC = () => {
   const [render, setRender] = useState(false);
   const [otherUserMarkers, setOtherUserMarkers] = useState(new Map());
   const [selectedField, setSelectedField] = useState<keyof PresentRoomInfo>();
+  const [instructionPopup, setInstructionPopup] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -96,8 +100,6 @@ const GeoguesserPage: React.FC = () => {
   const isPret = pretID === userID;
   const isAdmin = user.isAdmin;
   const fieldName = location.state?.selectedField;
-
-  const [instructionPopup, setInstructionPopup] = useState(false);
 
   // If first time to this page, pop up instruction
   useEffect(() => {
@@ -288,24 +290,11 @@ const GeoguesserPage: React.FC = () => {
     }
   };
 
-  const checkBacktoPresentRoom = async () => {
-    const url = `${serverPort}/getPlayers?roomCode=${roomCode}`;
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error("Room cannot be found");
-      }
-
-      const data = await response.json();
-
-      if (data.roomStatus === RoomStatus.PRESENTING) {
-        navigate("/PresentPage", {
-          state: { user, presenter },
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching players:", error);
-    }
+  // Back to present page
+  const handleBackMessage = async () => {
+    navigate("/PresentPage", {
+      state: { user, presenter },
+    });
   };
 
   function parseCoordinates(coordString: string) {
@@ -379,12 +368,22 @@ const GeoguesserPage: React.FC = () => {
     }
   };
 
+  // Show modal
+  const handleModalMessage = () => {
+    // Update PresentRoomInfo
+    if (fieldName) {
+      updatePresentRoomInfo({ roomCode, field: fieldName });
+    }
+    // Show the modal
+    setShowModal(true);
+  };
+
   const onMessageReceived = useCallback(
-    (msg: any) => {
+    (msg: boolean) => {
       checkRoomStatus();
       checkUserSubmit();
+
       checkResult();
-      checkBacktoPresentRoom();
       fetchFieldName();
       if (geoguesserStatus === GeoguesserStatus.PLAYER_CHOOSE) {
         setGuestWaitingPopup(false);
@@ -392,75 +391,105 @@ const GeoguesserPage: React.FC = () => {
       } else if (geoguesserStatus === GeoguesserStatus.SUBMITTED) {
         setGuestWaitingPopup(false);
         setShowSubmitPopup(false);
-        setShowAllSubmitPopup(true);
+        setAllSubmitted(true);
         showAnswerLocation();
       }
     },
-    [mapsApi, map, otherUserMarkers, displayName, presenter?.displayName, answerLocation]
+    [
+      mapsApi,
+      map,
+      otherUserMarkers,
+      displayName,
+      presenter?.displayName,
+      answerLocation,
+    ]
   );
 
   const onGeoguesserMessageReceived = useCallback(
-    (msg: GeoguesserMessage) => {
+    (msg: GeoguesserMessage | ModalMessage | BackMessage) => {
       // Prevent updating for the current user or the presenter.
-      if (
-        msg.displayName === displayName ||
-        msg.displayName === presenter?.displayName
-      ) {
-        return;
-      }
-      console.log("GeoguesserMessage received", msg);
+      if ("location" in msg) {
+        if (
+          msg.displayName === displayName ||
+          msg.displayName === presenter?.displayName
+        ) {
+          return;
+        }
+        console.log("GeoguesserMessage received", msg);
 
-      // Parse the latitude and longitude from the received message.
-      const [lat, lng] = msg.location.split(", ").map(Number);
+        // Parse the latitude and longitude from the received message.
+        const [lat, lng] = msg.location.split(", ").map(Number);
 
-      // Ensure the Google Maps API and the map instance are available.
-      if (!mapsApi || !map) {
-        console.error("Google Maps API or map instance is not available.");
-        return;
-      }
+        // Ensure the Google Maps API and the map instance are available.
+        if (!mapsApi || !map) {
+          console.error("Google Maps API or map instance is not available.");
+          return;
+        }
 
-      // Check if a marker for this user already exists.
-      let marker = otherUserMarkers.get(msg.displayName);
-      if (marker) {
-        // Update the existing marker's position.
-        marker.setPosition(new mapsApi.LatLng(lat, lng));
+        // Check if a marker for this user already exists.
+        let marker = otherUserMarkers.get(msg.displayName);
+        if (marker) {
+          // Update the existing marker's position.
+          marker.setPosition(new mapsApi.LatLng(lat, lng));
+        } else {
+          // Create a new marker for this user.
+          marker = new mapsApi.Marker({
+            position: { lat, lng },
+            map: map,
+            title: msg.displayName,
+            icon: {
+              path: "M -2,0 A 2,2 0 1,1 2,0 A 2,2 0 1,1 -2,0", // SVG path for a solid circle
+              fillColor: "#FF0000", // Solid fill color
+              fillOpacity: 1.0, // Solid fill opacity
+              strokeColor: "#FF0000", // Border color of the circle
+              strokeWeight: 1, // Border width of the circle
+              scale: 15, // Scale for the circle size; you might need to adjust this
+            },
+            label: {
+              text: msg.displayName,
+              color: "000000",
+              fontWeight: "bold",
+            },
+          });
+
+          // Store the new marker in the map for future updates.
+          otherUserMarkers.set(msg.displayName, marker);
+        }
+
+        if (geoguesserStatus === GeoguesserStatus.PLAYER_CHOOSE) {
+          setGuestWaitingPopup(false);
+          fetchPresenterLocation();
+        } else if (geoguesserStatus === GeoguesserStatus.SUBMITTED) {
+          setGuestWaitingPopup(false);
+          setShowSubmitPopup(false);
+          setAllSubmitted(true);
+          showAnswerLocation();
+        }
+      } else if ("show" in msg) {
+        // ModalMessage
+        if (msg.show) {
+          handleModalMessage();
+        }
       } else {
-        // Create a new marker for this user.
-        marker = new mapsApi.Marker({
-          position: { lat, lng },
-          map: map,
-          title: msg.displayName,
-          icon: {
-            path: "M -2,0 A 2,2 0 1,1 2,0 A 2,2 0 1,1 -2,0", // SVG path for a solid circle
-            fillColor: "#FF0000", // Solid fill color
-            fillOpacity: 1.0, // Solid fill opacity
-            strokeColor: "#FF0000", // Border color of the circle
-            strokeWeight: 1, // Border width of the circle
-            scale: 15, // Scale for the circle size; you might need to adjust this
-          },
-          label: {
-            text: msg.displayName,
-            color: "000000",
-            fontWeight: "bold",
-          },
-        });
-
-        // Store the new marker in the map for future updates.
-        otherUserMarkers.set(msg.displayName, marker);
-      }
-
-      if (geoguesserStatus === GeoguesserStatus.PLAYER_CHOOSE) {
-        setGuestWaitingPopup(false);
-        fetchPresenterLocation();
-      } else if (geoguesserStatus === GeoguesserStatus.SUBMITTED) {
-        setGuestWaitingPopup(false);
-        setShowSubmitPopup(false);
-        setShowAllSubmitPopup(true);
-        showAnswerLocation();
+        // BackMessage
+        handleBackMessage();
       }
     },
-    [mapsApi, map, otherUserMarkers, displayName, presenter?.displayName, answerLocation]
+    [
+      mapsApi,
+      map,
+      otherUserMarkers,
+      displayName,
+      presenter?.displayName,
+      answerLocation,
+    ]
   );
+
+  useEffect(() => {
+    if (allSubmitted && !showModal) {
+      setShowModal(true);
+    }
+  }, [allSubmitted]);
 
   // Send GeoguesserMessage to server
   const handlePin = useCallback(
@@ -491,7 +520,7 @@ const GeoguesserPage: React.FC = () => {
     } else if (geoguesserStatus === GeoguesserStatus.SUBMITTED) {
       setGuestWaitingPopup(false);
       setShowSubmitPopup(false);
-      setShowAllSubmitPopup(true);
+      setAllSubmitted(true);
       showAnswerLocation();
     }
   }, [geoguesserStatus]);
@@ -576,6 +605,37 @@ const GeoguesserPage: React.FC = () => {
     }
   };
 
+  const modalContent = () => {
+    checkResult();
+    return winnerPlayer? (
+      <>
+        <h2>Winner:</h2>
+          <h2 style={{ color: "orange" }}>
+            {winnerPlayer && (
+              <>
+                {winnerPlayer.displayName}: {winnerDistance.toFixed(2)} km away
+              </>
+            )}
+          </h2>
+          <div style={{ margin: "10%" }}></div>
+
+          <h3>The following results are:</h3>
+
+          {otherPlayers.map((otherPlayer, index) => {
+            const distance = otherDistances[index].toFixed(2);
+
+            return (
+              <div key={index}>
+                {otherPlayer.displayName} : {distance}km away
+              </div>
+            );
+          })}
+</>
+    ) : (
+      <h3>No one has submitted answer!</h3>
+    );
+  };
+
   return render ? (
     <div className="page" style={{ alignItems: "flex-start" }}>
       <div
@@ -638,7 +698,7 @@ const GeoguesserPage: React.FC = () => {
           className="button common-button"
           style={{ justifyContent: "center" }}
           onClick={handleSubmitAnswer}
-          disabled={showSubmitPopup || showAllSubmitPopup}
+          disabled={showSubmitPopup || allSubmitted}
         >
           Submit Answer
         </button>
@@ -662,41 +722,16 @@ const GeoguesserPage: React.FC = () => {
         </div>
       )}
 
-      {/* AllPlayers Submitted popup */}
-      {showAllSubmitPopup && (
-        <div className="popup">
-          <h2>Winner:</h2>
-          <h2 style={{ color: "orange" }}>
-            {winnerPlayer && (
-              <>
-                {winnerPlayer.displayName}: {winnerDistance.toFixed(2)} km away
-              </>
-            )}
-          </h2>
-          <div style={{ margin: "10%" }}></div>
-
-          <h3>The following results are:</h3>
-
-          {otherPlayers.map((otherPlayer, index) => {
-            const distance = otherDistances[index].toFixed(2);
-
-            return (
-              <div key={index}>
-                {otherPlayer.displayName} : {distance}km away
-              </div>
-            );
-          })}
-
-          {isAdmin && (
-            <button
-              className="button admin-only-button"
-              onClick={handleBackButton}
-              style={{ zIndex: "var(--above-overlay-index)", marginTop: "10%" }}
-            >
-              Back to Present Room
-            </button>
-          )}
-        </div>
+      {/* Modal */}
+      {showModal && (
+        <Modal
+          onClose={() => {
+            setShowModal(false);
+            handleBackButton();
+          }}
+          isAdmin={isAdmin}
+          modalContent={modalContent()}
+        />
       )}
 
       {/* Guests Waiting popup */}

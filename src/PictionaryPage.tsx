@@ -296,6 +296,19 @@ const PictionaryPage = () => {
     }
   };
 
+  const modalContent = () => {
+    return targetWord !== "" ? (
+      <>
+        <h2>Target Word Revealed!</h2>
+        <p>
+          The target word was: <strong>{targetWord}</strong>
+        </p>
+      </>
+    ) : (
+      <h2>Back to PresentRoom</h2>
+    );
+  };
+
   return render ? (
     <div className="row-page">
       <div className="left-column">
@@ -350,9 +363,8 @@ const PictionaryPage = () => {
             setShowModal(false);
             handleBackToPresentRoom();
           }}
-          targetWord={targetWord}
-          userID={userID}
-          adminID={admin?.userID || "Cannot find admin"}
+          isAdmin={userID === admin?.userID}
+          modalContent={modalContent()}
         />
       )}
 

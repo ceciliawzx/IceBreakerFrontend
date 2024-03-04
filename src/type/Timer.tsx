@@ -1,8 +1,8 @@
-import { RoomStatus } from './RoomStatus';
+import { RoomStatus } from "./RoomStatus";
 
 export type TimerMessage = {
-    roomCode: string;
-    roomStatus: RoomStatus;
-    seconds: number;
-    started?: boolean;
-}
+  roomCode: string;
+  roomStatus: RoomStatus;
+  seconds: number;
+  started?: boolean;
+};
