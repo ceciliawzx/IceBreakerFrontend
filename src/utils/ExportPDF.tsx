@@ -3,11 +3,11 @@ import { UserProfile } from "../type/UserProfile";
 import backgroundImage from "../assets/PDFBackground.png";
 import { SimilarityReports } from '../type/SimilarityReport';
 
-export const exportUserProfileAsPDF = (userProfile: UserProfile, similarities?: SimilarityReports) => {
+export const exportUserProfileAsPDF = (userProfile: UserProfile) => {
   console.log("exporting user profile as PDF: ", userProfile.displayName);
   const doc = new jsPDF('p', 'mm','a4',true);
 
-  addPDFInfo(doc, userProfile, similarities);
+  addPDFInfo(doc, userProfile);
 
   doc.save(`${userProfile.displayName} export.pdf`);
 };
@@ -21,7 +21,7 @@ const printCenteredText = (doc: any, text: string, yPos: number) => {
   doc.text(text, getCenteredX(doc, text), yPos);
 };
 
-export const addPDFInfo = (doc: any, userProfile: UserProfile, similarities?: SimilarityReports) => {
+export const addPDFInfo = (doc: any, userProfile: UserProfile) => {
   // Add background image
   doc.addImage(
     backgroundImage,
@@ -72,24 +72,6 @@ export const addPDFInfo = (doc: any, userProfile: UserProfile, similarities?: Si
     `Display Name: ${userProfile.displayName}`,
     linePosition
   );
-
-  // Add similarities to the report
-  if (similarities) {
-    linePosition += textHeight; 
-    const tempTextHeight = 5;
-    Object.entries(similarities).forEach(([category, reports]) => {
-      // Only proceed if there are reports in this category
-      if (Object.keys(reports).length > 0) {
-        // Now print each report message
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "normal");
-        Object.values(reports).forEach((message: any) => {
-          printCenteredText(doc, message, linePosition);
-          linePosition += tempTextHeight;
-        });
-      }
-    });
-  }
 
   doc.setFontSize(20);
   linePosition += textHeight;

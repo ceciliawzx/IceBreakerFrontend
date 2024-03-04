@@ -14,7 +14,6 @@ import celebrationLeft from "./assets/CelebrationLeft.png";
 import celebrationRight from "./assets/CelebrationRight.png";
 import { SimilarityReports, ReportEntry } from "./type/SimilarityReport";
 
-
 const AllPresentedPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -32,9 +31,8 @@ const AllPresentedPage: React.FC = () => {
   const [similarityReports, setSimilarityReports] =
     useState<SimilarityReports | null>(null);
   const [render, setRender] = useState(false);
-
-  // disable scroll for this page
-  useEffect(disableScroll, []);
+  const [loadingSimilarityReports, setLoadingSimilarityReports] =
+    useState(true);
 
   // Fetch all users when component mounts
   useEffect(() => {
@@ -43,10 +41,10 @@ const AllPresentedPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (allUserProfile !== null && admin !== null && similarityReports !== null && !render) {
+    if (allUserProfile !== null && admin !== null && !render) {
       setRender(true);
     }
-  }, [allUserProfile, admin, similarityReports]);
+  }, [allUserProfile, admin]);
 
   const handleBackToHomePage = async () => {
     // Normal user, jump back
@@ -86,12 +84,11 @@ const AllPresentedPage: React.FC = () => {
 
   const exportAllUserProfileAsPDF = async () => {
     for (const userProfile of allUserProfile) {
-      const similarityReport = findSimilarityRepoirt(userProfile);
+      const similarityReport = findSimilarityReport(userProfile);
       await new Promise((resolve) => {
         console.log("exporting user profile as PDF: ", userProfile);
         exportUserProfileAsPDF(
           userProfile,
-          similarityReport as SimilarityReports
         ); // Assuming this is synchronous or has a callback
         setTimeout(resolve, 1000); // Wait for 1 second before proceeding to the next PDF (adjust as needed)
       });
@@ -99,12 +96,12 @@ const AllPresentedPage: React.FC = () => {
   };
 
   const exportAllInSinglePDF = async () => {
-    const doc = new jsPDF('p', 'mm','a4',true);
+    const doc = new jsPDF("p", "mm", "a4", true);
 
     for (let i = 0; i < allUserProfile.length; i++) {
-      const similarityReport = findSimilarityRepoirt(allUserProfile[i]);
+      const similarityReport = findSimilarityReport(allUserProfile[i]);
       console.log("exporting user profile as PDF: ", allUserProfile[i]);
-      addPDFInfo(doc, allUserProfile[i], similarityReport as SimilarityReports);
+      addPDFInfo(doc, allUserProfile[i]);
 
       // Check if it's not the last iteration
       if (i < allUserProfile.length - 1) {
@@ -156,10 +153,12 @@ const AllPresentedPage: React.FC = () => {
       console.log("receive reports from server: ", data.reports);
     } catch (error) {
       console.error("Error fetching reports for user: ", error);
+    } finally {
+      setLoadingSimilarityReports(false); // Update loading state regardless of success or failure
     }
   };
 
-  const findSimilarityRepoirt = (selectedUserProfile: UserProfile) => {
+  const findSimilarityReport = (selectedUserProfile: UserProfile) => {
     let userSpecificReport: Partial<SimilarityReports> = {
       similar_activities: {},
       similar_cities: {},
@@ -205,7 +204,6 @@ const AllPresentedPage: React.FC = () => {
       );
       exportUserProfileAsPDF(
         selectedUserProfile,
-        userSpecificReport as SimilarityReports
       );
     } else {
       // If no specific reports were found for the selected user, export the profile without them
@@ -219,8 +217,48 @@ const AllPresentedPage: React.FC = () => {
 
   const handleExportUserProfileAsPDF = (selectedUserProfile: UserProfile) => {
     const userSpecificReport: Partial<SimilarityReports> =
-      findSimilarityRepoirt(selectedUserProfile);
+      findSimilarityReport(selectedUserProfile);
     exportUserSimilarityReportAsPDF(userSpecificReport, selectedUserProfile);
+  };
+
+  const displaySimilarityReports = () => {
+    if (loadingSimilarityReports) {
+      return (
+        <div className="similarity-report">
+          <p>Loading similarity reports...</p>
+        </div>
+      ); // Display a loading message or spinner
+    }
+
+    if (!similarityReports) {
+      return (
+        <div className="similarity-report">
+          <p>You are so unique.</p>;
+        </div>
+      );
+    }
+
+    return (
+      <div className="similarity-report">
+        <h2>Have You noticed that:</h2>
+        {Object.entries(similarityReports).map(([category, report]) => {
+          // Filter out categories with no entries
+          const reportEntries = Object.entries(report);
+          if (reportEntries.length === 0) {
+            return null; // Skip rendering this category
+          }
+
+          return (
+            <div key={category}>
+              <h3>{category.replaceAll("_", " ").toUpperCase()}</h3>
+              {reportEntries.map(([userId, details]) => (
+                <p key={userId}>{JSON.stringify(details)}</p> // Assuming `details` is the text to display
+              ))}
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   return render ? (
@@ -237,6 +275,7 @@ const AllPresentedPage: React.FC = () => {
       />
       <h1>Congratulations, {displayName}! </h1>
       <h1>You have finished the Icebreaker!</h1>
+
       <div className="row-container">
         {allUserProfile.map((guest, index) => (
           <div key={index}>
@@ -266,15 +305,17 @@ const AllPresentedPage: React.FC = () => {
         ))}
       </div>
 
+      {displaySimilarityReports()}
+
       <button
         className="button common-button"
         onClick={exportAllUserProfileAsPDF}
       >
-        Export all
+        Export Each Profile as PDF
       </button>
 
       <button className="button common-button" onClick={exportAllInSinglePDF}>
-        Export in a single PDF
+        Export All Profiles in One PDF
       </button>
 
       <button
