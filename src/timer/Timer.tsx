@@ -10,8 +10,7 @@ import { TimerMessage } from "../type/Timer";
 import { RoomStatus } from "../type/RoomStatus";
 import "../css/Timer.css";
 import { TimerModal } from "../utils/Modal";
-import { TimerModalMessage } from "../type/TimerModalMessage";
-import { websocketPort, serverPort } from "../macro/MacroServer";
+import { serverPort } from "../macro/MacroServer";
 
 export const Timer = ({
   user,
@@ -19,7 +18,6 @@ export const Timer = ({
   roomStatus,
   defaultTime,
   useFloatTimer = false,
-  
 }: {
   user: User;
   roomCode: string;
@@ -34,6 +32,19 @@ export const Timer = ({
   const [isTimerStarted, setIsTimerStarted] = useState<boolean>(false);
   const [render, setRender] = useState<boolean>(false);
   const [showTimerModal, setShowTimerModal] = useState<boolean>();
+
+  // Connect to Timer websokect
+  useEffect(() => {
+    const topic = `/topic/room/${roomCode}/timer`;
+    const cleanup = connect(
+      socketUrl,
+      websocketUrl,
+      topic,
+      onTimerMessageReceived,
+      setRender
+    );
+    return cleanup;
+  }, []);
 
   // Initially check for showTimerModal
   useEffect(() => {
@@ -54,32 +65,15 @@ export const Timer = ({
   };
 
   const onTimerMessageReceived = useCallback(
-    (msg: TimerMessage | TimerModalMessage) => {
-      if ("show" in msg) {
-        checkShowTimerModal();
-      } 
-      else {
-        if (msg.started) {
-          setIsTimerStarted(true);
-        }
-        setTimeLeft(msg.seconds);
+    (msg: TimerMessage) => {
+      if (msg.started) {
+        setShowTimerModal(false);
+        setIsTimerStarted(true);
       }
+      setTimeLeft(msg.seconds);
     },
     []
   );
-
-  // Connect to Timer websokect
-  useEffect(() => {
-    const topic = `/topic/room/${roomCode}/timer`;
-    const cleanup = connect(
-      socketUrl,
-      websocketUrl,
-      topic,
-      onTimerMessageReceived,
-      setRender
-    );
-    return cleanup;
-  }, []);
 
   // Set input time value
   useEffect(() => {
@@ -134,7 +128,9 @@ export const Timer = ({
         <div>
           {timeLeft !== null ? (
             <div>
-              <strong><span>Time Left: {timeLeft}s</span></strong>
+              <strong>
+                <span>Time Left: {timeLeft}s</span>
+              </strong>
               <div className="progress-bar-container">
                 <div
                   className="progress-bar"

@@ -1,8 +1,7 @@
 import jsPDF from "jspdf";
 import { UserProfile } from "../type/UserProfile";
-import exp from "constants";
 import backgroundImage from "../assets/PDFBackground.png";
-import { SimilarityReports } from '../AllPresentedPage';
+import { SimilarityReports } from '../type/SimilarityReport';
 
 export const exportUserProfileAsPDF = (userProfile: UserProfile, similarities?: SimilarityReports) => {
   console.log("exporting user profile as PDF: ", userProfile.displayName);

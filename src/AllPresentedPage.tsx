@@ -12,26 +12,8 @@ import "./css/CommonStyle.css";
 import "./css/AllPresentedPage.css";
 import celebrationLeft from "./assets/CelebrationLeft.png";
 import celebrationRight from "./assets/CelebrationRight.png";
+import { SimilarityReports, ReportEntry } from "./type/SimilarityReport";
 
-export interface ReportEntry {
-  [userID: string]: string;
-}
-
-export interface SimilarityReports {
-  similar_activities: ReportEntry;
-  similar_cities: ReportEntry;
-  similar_countries: ReportEntry;
-  similar_feelings: ReportEntry;
-  similar_foods: ReportEntry;
-}
-
-const initialReports: SimilarityReports = {
-  similar_activities: {},
-  similar_cities: {},
-  similar_countries: {},
-  similar_feelings: {},
-  similar_foods: {},
-};
 
 const AllPresentedPage: React.FC = () => {
   const location = useLocation();
@@ -48,7 +30,8 @@ const AllPresentedPage: React.FC = () => {
   const [showDestroyPopUp, setShowDestroyPopUp] = useState(false);
   const [showDismissPopUp, setShowDismissPopup] = useState(false);
   const [similarityReports, setSimilarityReports] =
-    useState<SimilarityReports>(initialReports);
+    useState<SimilarityReports | null>(null);
+  const [render, setRender] = useState(false);
 
   // disable scroll for this page
   useEffect(disableScroll, []);
@@ -56,18 +39,14 @@ const AllPresentedPage: React.FC = () => {
   // Fetch all users when component mounts
   useEffect(() => {
     fetchUsers();
-  }, []);
-
-  // Fetch Similarity reports
-  useEffect(() => {
     fetchSimilarityReports();
   }, []);
 
   useEffect(() => {
-    if (similarityReports) {
-      console.log("receive reports from server: ", similarityReports);
+    if (allUserProfile !== null && admin !== null && similarityReports !== null && !render) {
+      setRender(true);
     }
-  }, [similarityReports]);
+  }, [allUserProfile, admin, similarityReports]);
 
   const handleBackToHomePage = async () => {
     // Normal user, jump back
@@ -174,6 +153,7 @@ const AllPresentedPage: React.FC = () => {
       }
       const data = await response.json();
       setSimilarityReports(data.reports);
+      console.log("receive reports from server: ", data.reports);
     } catch (error) {
       console.error("Error fetching reports for user: ", error);
     }
@@ -189,20 +169,22 @@ const AllPresentedPage: React.FC = () => {
     };
 
     // Iterate over each category in the similarityReports
-    (
-      Object.entries(similarityReports) as [
-        keyof SimilarityReports,
-        ReportEntry
-      ][]
-    ).forEach(([category, reports]) => {
-      // Check if the selected user's ID is mentioned in the current category
-      if (reports[selectedUserProfile.userID]) {
-        // If so, add this report to the userSpecificReport object under the appropriate category
-        userSpecificReport[category] = {
-          [selectedUserProfile.userID]: reports[selectedUserProfile.userID],
-        };
-      }
-    });
+    if (similarityReports) {
+      (
+        Object.entries(similarityReports) as [
+          keyof SimilarityReports,
+          ReportEntry
+        ][]
+      ).forEach(([category, reports]) => {
+        // Check if the selected user's ID is mentioned in the current category
+        if (reports[selectedUserProfile.userID]) {
+          // If so, add this report to the userSpecificReport object under the appropriate category
+          userSpecificReport[category] = {
+            [selectedUserProfile.userID]: reports[selectedUserProfile.userID],
+          };
+        }
+      });
+    }
     return userSpecificReport;
   };
 
@@ -241,7 +223,7 @@ const AllPresentedPage: React.FC = () => {
     exportUserSimilarityReportAsPDF(userSpecificReport, selectedUserProfile);
   };
 
-  return (
+  return render ? (
     <div className="page">
       <img
         src={celebrationLeft}
@@ -378,6 +360,8 @@ const AllPresentedPage: React.FC = () => {
         </div>
       )}
     </div>
+  ) : (
+    <></>
   );
 };
 
