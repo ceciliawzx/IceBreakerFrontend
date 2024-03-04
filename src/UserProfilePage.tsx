@@ -337,13 +337,13 @@ const UserProfilePage = () => {
       user.roomCode,
       user.userID,
       selfieBase64,
-      firstName,
-      lastName,
-      country,
-      city,
-      feeling,
-      favFood,
-      favActivity
+      firstName.trim(),
+      lastName.trim(),
+      country.trim(),
+      city.trim(),
+      feeling.trim(),
+      favFood.trim(),
+      favActivity.trim()
     );
 
     try {
@@ -382,7 +382,7 @@ const UserProfilePage = () => {
   };
 
   const filterInput = (input: any) => {
-    return input.trim().replace(/[^a-zA-Z0-9\s]/g, "");
+    return input.replace(/[^a-zA-Z0-9\s]/g, "");
   };
 
   return render ? (
@@ -487,13 +487,17 @@ const UserProfilePage = () => {
         type="submit"
         className="button common-button"
         onClick={handleSubmit}
-        disabled={!(firstName &&
-          lastName &&
-          country &&
-          city &&
-          feeling &&
-          favFood &&
-          favActivity)}
+        disabled={
+          !(
+            firstName &&
+            lastName &&
+            country &&
+            city &&
+            feeling &&
+            favFood &&
+            favActivity
+          )
+        }
       >
         Submit
       </button>
