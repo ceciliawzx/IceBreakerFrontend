@@ -256,7 +256,7 @@
 
 .instruction-button-container {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 1.9%;
+  left: 4.5%;
   margin: 10px; /* Adjust as needed for spacing */
 }
