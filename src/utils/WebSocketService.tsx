@@ -5,8 +5,8 @@ import { serverPort, websocketPort } from "../macro/MacroServer";
 let client: Client | null = null;
 
 let reconnectionAttempts = 0;
-const maxReconnectionAttempts = 10; // Maximum reconnection attempts
-const reconnectionDelay = 1000; // Delay in milliseconds (1 seconds)
+const maxReconnectionAttempts = 5; // Maximum reconnection attempts
+const reconnectionDelay = 100; // Delay in milliseconds (0.1 seconds)
 
 const generateUID = () => {
   return window.crypto.randomUUID(); // Generates a UUID (v4)
@@ -54,7 +54,7 @@ const connect = (
                   }`
                 );
                 activateClient(); // Recursive call to reactivate client
-              }, reconnectionDelay * ++reconnectionAttempts); // Increase delay with each attempt
+              }, reconnectionDelay); // Increase delay with each attempt
             }
           }
         }, 100); // Delay of 0.1 second
