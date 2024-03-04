@@ -233,7 +233,8 @@ const AllPresentedPage: React.FC = () => {
     if (!similarityReports) {
       return (
         <div className="similarity-report">
-          <p>You are so unique.</p>;
+          <h2>Have You noticed that:</h2>
+          <h2>You are so unique.</h2>
         </div>
       );
     }
