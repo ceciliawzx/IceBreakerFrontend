@@ -17,11 +17,19 @@ import {
 } from "./utils/WebSocketService";
 
 import Instructions from "./Instructions";
-import waitRoomInstruction from "./instructions/waitroom/WaitroomInstruction.png";
+import waitRoomAdminInstructionPic from "./instructions/WaitRoomAdminInstruction.png";
+import waitRoomNormalInstructionPic from "./instructions/WaitRoomNormalInstruction.png";
 
-const waitRoomInstructions = [
+const waitRoomAdminInstructions = [
   {
-    img: waitRoomInstruction,
+    img: waitRoomAdminInstructionPic,
+    text: "",
+  },
+];
+
+const waitRoomNormalInstructions = [
+  {
+    img: waitRoomNormalInstructionPic,
     text: "",
   },
 ];
@@ -569,7 +577,11 @@ const WaitRoomPage = () => {
         Welcome to Wait Room {roomCode}, {displayName}!
       </h1>
       <div className="instruction-button-container">
-        <Instructions instructionPics={waitRoomInstructions} />
+        {isSameUser(user, admin) ? (
+          <Instructions instructionPics={waitRoomAdminInstructions} />
+        ) : (
+          <Instructions instructionPics={waitRoomNormalInstructions} />
+        )}
       </div>
 
       <div className="blackboard-container">
@@ -921,13 +933,20 @@ const WaitRoomPage = () => {
       )}
 
       {/* First time instruction popup */}
-      {instructionPopup && (
-        <Instructions
-          instructionPics={waitRoomInstructions}
-          onlyShowPopup={true}
-          closeButtonFunction={() => setInstructionPopup(false)}
-        />
-      )}
+      {instructionPopup &&
+        (isSameUser(user, admin) ? (
+          <Instructions
+            instructionPics={waitRoomAdminInstructions}
+            onlyShowPopup={true}
+            closeButtonFunction={() => setInstructionPopup(false)}
+          />
+        ) : (
+          <Instructions
+            instructionPics={waitRoomNormalInstructions}
+            onlyShowPopup={true}
+            closeButtonFunction={() => setInstructionPopup(false)}
+          />
+        ))}
     </div>
   ) : (
     <></>

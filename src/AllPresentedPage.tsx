@@ -99,7 +99,7 @@ const AllPresentedPage: React.FC = () => {
   };
 
   const exportAllInSinglePDF = async () => {
-    const doc = new jsPDF();
+    const doc = new jsPDF('p', 'mm','a4',true);
 
     for (let i = 0; i < allUserProfile.length; i++) {
       const similarityReport = findSimilarityRepoirt(allUserProfile[i]);

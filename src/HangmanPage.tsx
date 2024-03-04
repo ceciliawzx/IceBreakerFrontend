@@ -22,12 +22,12 @@ import { RoomStatus } from "./type/RoomStatus";
 import { ModalMessage } from "./type/ModalMessage";
 import { isSameUser } from "./utils/CommonCompare";
 import Instructions from "./Instructions";
-import hangmanInstruction from "./instructions/hangman/HangmanInstruction.png";
+import hangmanInstructionPic from "./instructions/HangmanInstruction.png";
 import { TimerMessage } from "./type/Timer";
 
 const hangmanInstructions = [
   {
-    img: hangmanInstruction,
+    img: hangmanInstructionPic,
     text: "",
   },
 ];
