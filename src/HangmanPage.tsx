@@ -127,6 +127,7 @@ const HangmanPage = () => {
     }
   }, []);
 
+  // When mount, start handling refresh
   useEffect(() => {
     const notifyServerOnUnload = (event: BeforeUnloadEvent) => {
       event.preventDefault();
@@ -157,7 +158,7 @@ const HangmanPage = () => {
     setCurrentGuesser(nextGuesser);
   };
 
-  // Show modal when guessed correct
+  // When guessed correct, show modal
   useEffect(() => {
     if (isFinished) {
       handleModalMessage();
@@ -168,17 +169,9 @@ const HangmanPage = () => {
   useEffect(() => {
     const handleKeyDown = (event: any) => {
       const pressedKey = event.key.toUpperCase();
-      if (
-        alphabet.includes(pressedKey) &&
-        allLetterStatus[alphabet.indexOf(pressedKey)] ===
-          LetterStatus.UNCHECKED &&
-        !isFinished &&
-        isTimerStarted &&
-        isSameUser(user, currentGuesser)
-      ) {
-        // Assuming sendHangmanMessage is your function to handle guesses
-        sendHangmanMessage(pressedKey);
-      }
+
+      handleKeyPress(pressedKey);
+      debouncedHandleKeyPress(pressedKey);
     };
 
     // Attach the event listener when the component mounts
@@ -187,8 +180,53 @@ const HangmanPage = () => {
     // Detach the event listener when the component unmounts
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
+      clearDebounce();
     };
   }, [isTimerStarted, allLetterStatus, isFinished, currentGuesser]);
+
+  // General debounce counting down
+  const useDebounce = (callback: any, delay: any) => {
+    const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | undefined>(
+      undefined
+    );
+
+    const debounceFunction = (...args: any[]) => {
+      clearTimeout(timeoutId);
+
+      const newTimeoutId = setTimeout(() => {
+        callback(...args);
+      }, delay);
+
+      setTimeoutId(newTimeoutId);
+    };
+
+    const clearDebounce = () => {
+      clearTimeout(timeoutId);
+    };
+
+    return [debounceFunction, clearDebounce];
+  };
+
+  // Handle Press key
+  const handleKeyPress = (pressedKey: any) => {
+    // Only allow: alphabetical & not tried input from currentGuesser
+    if (
+      alphabet.includes(pressedKey) &&
+      allLetterStatus[alphabet.indexOf(pressedKey)] ===
+        LetterStatus.UNCHECKED &&
+      !isFinished &&
+      isTimerStarted &&
+      isSameUser(user, currentGuesser)
+    ) {
+      sendHangmanMessage(pressedKey);
+    }
+  };
+
+  // Disable typing too fast
+  const [debouncedHandleKeyPress, clearDebounce] = useDebounce(
+    handleKeyPress,
+    1000
+  );
 
   // When receive message from web socket
   const receiveMessage = useCallback(
