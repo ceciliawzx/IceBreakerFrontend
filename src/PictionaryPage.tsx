@@ -71,24 +71,24 @@ const PictionaryPage = () => {
     checkPlayers();
   }, []);
 
-  useEffect(() => {
-    // set target word
-    fetchTargetWord();
-    // connect to drawing websocket
-    const topic = `/topic/room/${roomCode}/drawing`;
+  // useEffect(() => {
+  //   // set target word
+  //   fetchTargetWord();
+  //   // connect to drawing websocket
+  //   const topic = `/topic/room/${roomCode}/drawing`;
 
-    // Store the cleanup function returned by connect
-    const cleanup = connect(
-      socketUrl,
-      websocketUrl,
-      topic,
-      handleReceivedDrawing,
-      setRender
-    );
+  //   // Store the cleanup function returned by connect
+  //   const cleanup = connect(
+  //     socketUrl,
+  //     websocketUrl,
+  //     topic,
+  //     handleReceivedDrawing,
+  //     setRender
+  //   );
 
-    // Return the cleanup function from useEffect
-    return cleanup; // This will be called when the component unmounts
-  }, []);
+  //   // Return the cleanup function from useEffect
+  //   return cleanup; // This will be called when the component unmounts
+  // }, []);
 
   // If first time to this page, pop up instruction
   useEffect(() => {
@@ -311,13 +311,13 @@ const PictionaryPage = () => {
             />
           </div>
         </div>
-        <div className="column-container down-row">
+        {/* <div className="column-container down-row">
           <div className="chat-room-container">
             <ChatRoom isPresenter={isSameUser(presenter, user)} />
           </div>
-        </div>
+        </div> */}
       </div>
-      <div className="drawing-canvas-container">
+      {/* <div className="drawing-canvas-container">
         <DrawingCanvas
           isDrawer={isDrawer}
           onDraw={handleDraw}
@@ -337,7 +337,7 @@ const PictionaryPage = () => {
             </button>
           )}
         </div>
-      </div>
+      </div> */}
 
       {showModal && (
         <Modal
