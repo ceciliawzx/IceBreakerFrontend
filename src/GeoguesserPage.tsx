@@ -517,6 +517,22 @@ const GeoguesserPage: React.FC = () => {
     }
   };
 
+  // When click choose another game button
+  const handleChooseAnotherGame = async () => {
+    // Change room status
+    const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+      });
+      if (!response.ok) {
+        console.log(`HTTP error! Status: ${response.status}`);
+      }
+    } catch (error) {
+      console.error("Error returning to PresentRoom:", error);
+    }
+  };
+
   return render ? (
     <div className="page" style={{ alignItems: "flex-start" }}>
       <div
@@ -587,7 +603,7 @@ const GeoguesserPage: React.FC = () => {
           <button
             className="button admin-only-button"
             style={{ zIndex: "var(--above-overlay-index)" }}
-            onClick={handleBackButton}
+            onClick={handleChooseAnotherGame}
           >
             Choose Another Game
           </button>
