@@ -362,7 +362,7 @@ const GeoguesserPage: React.FC = () => {
   };
 
   const showAnswerLocation: any = () => {
-    if (answerLocation && map && mapsApi) {
+    if (answerLocation && map && mapsApi && !isPret) {
       if (answerMarker) {
         answerMarker.setMap(null);
       }
@@ -371,7 +371,7 @@ const GeoguesserPage: React.FC = () => {
         position: answerLocation,
         map: map,
         icon: {
-          url: "http://maps.google.com/mapfiles/ms/icons/green-dot.png",
+          url: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
           scaledSize: new google.maps.Size(40, 40),
         },
       });
