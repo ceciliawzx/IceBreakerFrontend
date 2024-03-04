@@ -101,6 +101,23 @@ const GeoguesserPage: React.FC = () => {
     }
   }, []);
 
+  useEffect(() => {
+    const notifyServerOnUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+
+      const confirmationMessage = "Are you sure you want to leave?";
+      event.returnValue = confirmationMessage;
+      return confirmationMessage;
+    };
+
+    window.addEventListener("beforeunload", notifyServerOnUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", notifyServerOnUnload);
+    };
+  }, []);
+
   const handleApiLoaded = (map: google.maps.Map, maps: typeof google.maps) => {
     setMap(map);
     setMapsApi(maps);
