@@ -4,8 +4,7 @@ import { serverPort, websocketPort } from "../macro/MacroServer";
 
 let client: Client | null = null;
 
-let reconnectionAttempts = 0;
-const maxReconnectionAttempts = 10; // Maximum reconnection attempts
+const maxReconnectionAttempts = 1000; // Maximum reconnection attempts
 const reconnectionDelay = 500; // Delay in milliseconds (0.5 seconds)
 
 const generateUID = () => {
@@ -21,6 +20,7 @@ const connect = (
 ) => {
   let subscription: any = null; // This will hold our subscription object
   let sessionId = generateUID();
+  let reconnectionAttempts = 0;
 
   // Establishes the connection and sets up the subscription
   const activateClient = () => {
