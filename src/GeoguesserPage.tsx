@@ -127,8 +127,8 @@ const GeoguesserPage: React.FC = () => {
 
   const handleSubmitAnswer = async () => {
     if (currentMarker) {
-      const lat = currentMarker?.getPosition()?.lat().toFixed(3);
-      const lng = currentMarker?.getPosition()?.lng().toFixed(3);
+      const lat = currentMarker?.getPosition()?.lat();
+      const lng = currentMarker?.getPosition()?.lng();
       const position = `${lat}, ${lng}`;
 
       try {
@@ -147,7 +147,7 @@ const GeoguesserPage: React.FC = () => {
     }
   };
 
-  const updateStreetViewAndSatelliteImage: any = (lat: any, lng: any) => {
+  const updateStreetViewAndSatelliteImage: any = useCallback((lat: any, lng: any) => {
     if (isMapInteractive && map && mapsApi && streetViewPanorama) {
       new mapsApi.StreetViewService().getPanorama(
         { location: { lat, lng }, radius: 50 },
@@ -164,12 +164,11 @@ const GeoguesserPage: React.FC = () => {
             const imageHeight = Math.floor(window.innerHeight / 2);
             const imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=${zoom}&size=5000x3000&maptype=satellite&key=${GOOGLE_MAPS_API_KEY}`;
             setSatelliteImageUrl(imageUrl);
-            console.log("url is", imageUrl);
           }
         }
       );
     }
-  };
+  }, [mapsApi, streetViewPanorama]);
 
   const handleMapClick = (event: { lat: any; lng: any }) => {
     const { lat, lng } = event;
@@ -185,7 +184,7 @@ const GeoguesserPage: React.FC = () => {
 
       setCurrentMarker(newMarker);
 
-      const location = `${lat.toFixed(3)}, ${lng.toFixed(3)}`;
+      const location = `${lat}, ${lng}`;
 
       handlePin(location);
 
@@ -293,9 +292,11 @@ const GeoguesserPage: React.FC = () => {
       }
 
       const data = await response.text();
+      console.log("presenter location get:", data);
       const [lat, lng] = parseCoordinates(data);
       setAnswerLocation({ lat, lng });
       updateStreetViewAndSatelliteImage(lat, lng);
+      console.log("presenter location set:", { lat, lng });
     } catch (error) {
       console.error("Failed to fetch presenter's location:", error);
     }
@@ -362,7 +363,7 @@ const GeoguesserPage: React.FC = () => {
         showAnswerLocation();
       }
     },
-    [mapsApi, map, otherUserMarkers, displayName, presenter?.displayName]
+    [mapsApi, map, otherUserMarkers, displayName, presenter?.displayName, answerLocation]
   );
 
   const onGeoguesserMessageReceived = useCallback(
@@ -425,7 +426,7 @@ const GeoguesserPage: React.FC = () => {
         showAnswerLocation();
       }
     },
-    [mapsApi, map, otherUserMarkers, displayName, presenter?.displayName]
+    [mapsApi, map, otherUserMarkers, displayName, presenter?.displayName, answerLocation]
   );
 
   // Send GeoguesserMessage to server
@@ -443,6 +444,7 @@ const GeoguesserPage: React.FC = () => {
     [roomCode, displayName]
   );
 
+  // check user sub status
   useEffect(() => {
     checkRoomStatus();
     checkUserSubmit();
@@ -495,6 +497,14 @@ const GeoguesserPage: React.FC = () => {
       return cleanup;
     }
   }, [mapsApi, map]);
+
+  // set presenter location
+  useEffect(() => {
+    if (answerLocation) {
+      updateStreetViewAndSatelliteImage(answerLocation.lat, answerLocation.lng);
+      console.log("streetview set");
+    }
+  }, [answerLocation, updateStreetViewAndSatelliteImage]);
 
   // When click back to presenet room button
   const handleBackButton = async () => {
