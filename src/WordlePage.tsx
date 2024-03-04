@@ -651,7 +651,10 @@ const Wordle = () => {
                 onClick={() => handleViewProfile(presenter)}
                 disabled={
                   !isAdmin &&
-                  notPresented.some((npUser) => isSameUser(npUser, presenter))
+                  notPresented.some((npUser) =>
+                    isSameUser(npUser, presenter)
+                  ) &&
+                  !isSameUser(user, presenter)
                 }
               >
                 View Profile
