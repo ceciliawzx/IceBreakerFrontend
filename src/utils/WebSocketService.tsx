@@ -4,7 +4,6 @@ import { serverPort, websocketPort } from "../macro/MacroServer";
 
 let client: Client | null = null;
 
-const maxReconnectionAttempts = 1000; // Maximum reconnection attempts
 const reconnectionDelay = 500; // Delay in milliseconds (0.5 seconds)
 
 const generateUID = () => {
@@ -46,31 +45,25 @@ const connect = (
             });
           } else {
             console.error("STOMP client is not connected");
-            if (reconnectionAttempts < maxReconnectionAttempts) {
-              setTimeout(() => {
-                console.log(
-                  `Attempting to reconnect... Attempt ${
-                    reconnectionAttempts + 1
-                  }`
-                );
-                activateClient(); // Recursive call to reactivate client
-              }, reconnectionDelay); // Increase delay with each attempt
+            setTimeout(() => {
+              console.log(
+                `Attempting to reconnect... Attempt ${reconnectionAttempts + 1}`
+              );
               reconnectionAttempts++;
-            }
+              activateClient(); // Recursive call to reactivate client
+            }, reconnectionDelay);
           }
         }, 100); // Delay of 0.1 second
       },
       onStompError: (frame) => {
         console.error("Broker reported error: " + frame.headers["message"]);
-        if (reconnectionAttempts < maxReconnectionAttempts) {
           setTimeout(() => {
             console.log(
               `Attempting to reconnect... Attempt ${reconnectionAttempts + 1}`
             );
+            reconnectionAttempts++;
             activateClient(); // Recursive call to reactivate client
           }, reconnectionDelay); // Increase delay with each attempt
-          reconnectionAttempts++;
-        }
       },
     });
     client.activate();
