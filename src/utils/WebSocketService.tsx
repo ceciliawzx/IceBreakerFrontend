@@ -67,7 +67,7 @@ const connect = (
               `Attempting to reconnect... Attempt ${reconnectionAttempts + 1}`
             );
             activateClient(); // Recursive call to reactivate client
-          }, reconnectionDelay * ++reconnectionAttempts); // Increase delay with each attempt
+          }, reconnectionDelay); // Increase delay with each attempt
         }
       },
     });
