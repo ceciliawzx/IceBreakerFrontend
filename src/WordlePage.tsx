@@ -22,6 +22,7 @@ import { ModalMessage } from "./type/ModalMessage";
 import Instructions from "./Instructions";
 import wordleInstruction from "./instructions/wordle/WordleInstruction.png";
 import { isSameUser } from "./utils/CommonCompare";
+import { TimerMessage } from "./type/Timer";
 
 const wordleInstructions = [
   {
@@ -87,12 +88,15 @@ const Wordle = () => {
     Array.from(alphabet).map((_) => LetterStatus.UNCHECKED)
   );
 
+  const [isTimerStarted, setIsTimerStarted] = useState(false);
   const [render, setRender] = useState(false);
   const [instructionPopup, setInstructionPopup] = useState(false);
 
   // When launch
   useEffect(() => {
-    const onMessageReceived = (msg: WordleMsg | BackMessage | ModalMessage) => {
+    const onMessageReceived = (
+      msg: WordleMsg | BackMessage | ModalMessage | TimerMessage
+    ) => {
       receiveMessage(msg);
     };
 
@@ -362,7 +366,7 @@ const Wordle = () => {
 
   // Receive message from websocket
   const receiveMessage = useCallback(
-    (msg: WordleMsg | BackMessage | ModalMessage) => {
+    (msg: WordleMsg | BackMessage | ModalMessage | TimerMessage) => {
       try {
         // If contain letters field, it's WordleMsg
         if ("letters" in msg) {
@@ -370,6 +374,9 @@ const Wordle = () => {
         } else if ("show" in msg) {
           // show modal and update PresentRoomInfo
           handleModalMessage();
+        } else if ("started" in msg && msg.started) {
+          console.log("receive TimerMessage in wordle: ", msg);
+          setIsTimerStarted(true);
         } else {
           handleBackMessage();
         }
@@ -454,7 +461,8 @@ const Wordle = () => {
     if (
       !isSameUser(user, currentGuesser) ||
       !/^[a-zA-Z]$/.test(value) ||
-      isFinished
+      isFinished ||
+      !isTimerStarted
     ) {
       return;
     }

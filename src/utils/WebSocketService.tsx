@@ -4,6 +4,10 @@ import { serverPort, websocketPort } from "../macro/MacroServer";
 
 let client: Client | null = null;
 
+let reconnectionAttempts = 0;
+const maxReconnectionAttempts = 10; // Maximum reconnection attempts
+const reconnectionDelay = 1000; // Delay in milliseconds (1 seconds)
+
 const generateUID = () => {
   return window.crypto.randomUUID(); // Generates a UUID (v4)
 };
@@ -42,11 +46,29 @@ const connect = (
             });
           } else {
             console.error("STOMP client is not connected");
+            if (reconnectionAttempts < maxReconnectionAttempts) {
+              setTimeout(() => {
+                console.log(
+                  `Attempting to reconnect... Attempt ${
+                    reconnectionAttempts + 1
+                  }`
+                );
+                activateClient(); // Recursive call to reactivate client
+              }, reconnectionDelay * ++reconnectionAttempts); // Increase delay with each attempt
+            }
           }
         }, 100); // Delay of 0.1 second
       },
       onStompError: (frame) => {
         console.error("Broker reported error: " + frame.headers["message"]);
+        if (reconnectionAttempts < maxReconnectionAttempts) {
+          setTimeout(() => {
+            console.log(
+              `Attempting to reconnect... Attempt ${reconnectionAttempts + 1}`
+            );
+            activateClient(); // Recursive call to reactivate client
+          }, reconnectionDelay * ++reconnectionAttempts); // Increase delay with each attempt
+        }
       },
     });
     client.activate();

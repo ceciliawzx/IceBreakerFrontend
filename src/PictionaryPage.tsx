@@ -2,12 +2,7 @@ import React, { useEffect, useCallback, useState } from "react";
 import DrawingCanvas from "./pictionary/DrawingCanvas";
 import ChatRoom from "./ChatRoomPage";
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-  DrawingData,
-  DrawingMessage,
-  PasteImgData,
-  PasteImgMessage,
-} from "./type/DrawingCanvas";
+import { DrawingData, DrawingMessage, PasteImgData, PasteImgMessage } from "./type/DrawingCanvas";
 import {
   connect,
   sendMsg,
@@ -76,24 +71,24 @@ const PictionaryPage = () => {
     checkPlayers();
   }, []);
 
-  // useEffect(() => {
-  //   // set target word
-  //   fetchTargetWord();
-  //   // connect to drawing websocket
-  //   const topic = `/topic/room/${roomCode}/drawing`;
+  useEffect(() => {
+    // set target word
+    fetchTargetWord();
+    // connect to drawing websocket
+    const topic = `/topic/room/${roomCode}/drawing`;
 
-  //   // Store the cleanup function returned by connect
-  //   const cleanup = connect(
-  //     socketUrl,
-  //     websocketUrl,
-  //     topic,
-  //     handleReceivedDrawing,
-  //     setRender
-  //   );
+    // Store the cleanup function returned by connect
+    const cleanup = connect(
+      socketUrl,
+      websocketUrl,
+      topic,
+      handleReceivedDrawing,
+      setRender
+    );
 
-  //   // Return the cleanup function from useEffect
-  //   return cleanup; // This will be called when the component unmounts
-  // }, []);
+    // Return the cleanup function from useEffect
+    return cleanup; // This will be called when the component unmounts
+  }, []);
 
   // If first time to this page, pop up instruction
   useEffect(() => {
@@ -217,18 +212,18 @@ const PictionaryPage = () => {
   const handlePaste = useCallback(
     (pasteImgData: PasteImgData) => {
       const destination = `/app/room/${roomCode}/sendPasteImg`;
-
+      
       const pasteImgMessage: PasteImgMessage = {
         roomCode,
         pasteImgData,
         timestamp: new Date().toISOString(),
         paster: userID,
       };
-      console.log("Sending pasteImgMessage ", pasteImgMessage);
+      console.log('Sending pasteImgMessage ', pasteImgMessage);
       sendMsg(destination, pasteImgMessage);
     },
     [roomCode]
-  );
+  )
 
   // navigate back to presentRoom
   const handleBackToPresentRoom = async () => {
@@ -296,7 +291,7 @@ const PictionaryPage = () => {
     }
   };
 
-  return true ? (
+  return render ? (
     <div className="row-page">
       <div className="left-column">
         <div className="row-container up-row">
@@ -315,6 +310,32 @@ const PictionaryPage = () => {
               defaultTime={60}
             />
           </div>
+        </div>
+        <div className="column-container down-row">
+          <div className="chat-room-container">
+            <ChatRoom isPresenter={isSameUser(presenter, user)} />
+          </div>
+        </div>
+      </div>
+      <div className="drawing-canvas-container">
+        <DrawingCanvas
+          isDrawer={isDrawer}
+          onDraw={handleDraw}
+          onPaste={handlePaste}
+          externalDrawing={externalDrawing}
+          externalPasteImg={externalPasteImg}
+          target={target}
+        />
+        <div>
+          {isSameUser(user, admin) && (
+            <button
+              id="back-to-presentroom-button"
+              className="button admin-only-button"
+              onClick={() => handleBackToPresentRoom()}
+            >
+              Choose Another Game
+            </button>
+          )}
         </div>
       </div>
 
