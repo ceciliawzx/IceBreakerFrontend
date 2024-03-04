@@ -10,11 +10,18 @@
   max-width: 120px;
 }
 
-.float-timer {
+.wordle-timer {
   position: absolute;
-  left: 20%; /* Adjust the position as needed */
+  left: 20%;
   transform: translateX(-50%);
   margin-top: 2%;
+}
+
+.geoguesser-timer {
+  position: absolute;
+  top: 0%;
+  left: 15%;
+  transform: translateX(-50%);
 }
 
 /* Progress bar container */

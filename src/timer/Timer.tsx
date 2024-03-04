@@ -17,13 +17,13 @@ export const Timer = ({
   roomCode,
   roomStatus,
   defaultTime,
-  useFloatTimer = false,
+  timerClassName,
 }: {
   user: User;
   roomCode: string;
   roomStatus: RoomStatus;
   defaultTime: number;
-  useFloatTimer?: boolean;
+  timerClassName?: string;
 }) => {
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [inputValue, setInputValue] = useState<string>(defaultTime.toString());
@@ -188,13 +188,9 @@ export const Timer = ({
         />
       )}
 
-      {useFloatTimer && (
-        <div className="float-timer">
-          <TimerContent />
-        </div>
-      )}
-
-      {!useFloatTimer && <TimerContent />}
+      <div className={timerClassName ? timerClassName : ""}>
+        <TimerContent />
+      </div>
     </>
   );
 };

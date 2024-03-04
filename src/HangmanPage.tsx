@@ -561,7 +561,7 @@ const HangmanPage = () => {
         roomCode={roomCode}
         roomStatus={RoomStatus.PRESENTING}
         defaultTime={60}
-        useFloatTimer={true}
+        timerClassName={"wordle-timer"}
       />
 
       <div className="main-column">

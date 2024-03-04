@@ -59,8 +59,12 @@ const GeoguesserPage: React.FC = () => {
   const [userSubStatus, setUserSubStatus] = useState(false);
   const [streetViewPanorama, setStreetViewPanorama] =
     useState<google.maps.StreetViewPanorama>();
-  const [winner, setWinner] = useState<UserProfile[]>([]);
-  const [winnerDistance, setWinnerDistance] = useState<number[]>([]);
+
+  const [winnerPlayer, setWinnerPlayer] = useState<User | null>(null);
+  const [winnerDistance, setWinnerDistance] = useState<number>(0);
+  const [otherPlayers, setOtherPlayers] = useState<User[]>([]);
+  const [otherDistances, setOtherDistances] = useState<number[]>([]);
+
   const [satelliteImageUrl, setSatelliteImageUrl] = useState<string | null>(
     null
   );
@@ -253,7 +257,7 @@ const GeoguesserPage: React.FC = () => {
     }
   };
 
-  const checkWinner = async () => {
+  const checkResult = async () => {
     try {
       const response = await fetch(
         `${serverPort}/geoGuesserRank?roomCode=${roomCode}`,
@@ -265,8 +269,14 @@ const GeoguesserPage: React.FC = () => {
       }
 
       const data = await response.json();
-      setWinner(data.rankPerson);
-      setWinnerDistance(data.rankDistance);
+
+      console.log(data.rankPerson);
+
+      setWinnerPlayer(data.rankPerson[0]);
+      setWinnerDistance(data.rankDistance[0]);
+
+      setOtherPlayers(data.rankPerson.slice(1));
+      setOtherDistances(data.rankDistance.slice(1));
     } catch (error) {
       console.error("Failed to get winner:", error);
     }
@@ -367,7 +377,7 @@ const GeoguesserPage: React.FC = () => {
     (msg: any) => {
       checkRoomStatus();
       checkUserSubmit();
-      checkWinner();
+      checkResult();
       checkBacktoPresentRoom();
       fetchFieldName();
       if (geoguesserStatus === GeoguesserStatus.PLAYER_CHOOSE) {
@@ -465,7 +475,7 @@ const GeoguesserPage: React.FC = () => {
   useEffect(() => {
     checkRoomStatus();
     checkUserSubmit();
-    checkWinner();
+    checkResult();
     fetchFieldName();
     if (geoguesserStatus === GeoguesserStatus.PRE_CHOOSE && !isPret) {
       setGuestWaitingPopup(true);
@@ -580,6 +590,7 @@ const GeoguesserPage: React.FC = () => {
               roomCode={roomCode}
               roomStatus={RoomStatus.PRESENTING}
               defaultTime={60}
+              timerClassName={"geoguesser-timer"}
             />
           </div>
         </div>
@@ -648,23 +659,33 @@ const GeoguesserPage: React.FC = () => {
       {/* AllPlayers Submitted popup */}
       {showAllSubmitPopup && (
         <div className="popup">
-          <h3>All finished!</h3>
-          <h3>The results are:</h3>
-          <ul>
-            {winner.map((winnerProfile, index) => {
-              const distance = winnerDistance[index].toFixed(2);
-              return (
-                <li key={index}>
-                  {winnerProfile.displayName} : {distance}km away
-                </li>
-              );
-            })}
-          </ul>
+          <h2>Winner:</h2>
+          <h2 style={{ color: "orange" }}>
+            {winnerPlayer && (
+              <>
+                {winnerPlayer.displayName}: {winnerDistance.toFixed(2)} km away
+              </>
+            )}
+          </h2>
+          <div style={{ margin: "10%" }}></div>
+
+          <h3>The following results are:</h3>
+
+          {otherPlayers.map((otherPlayer, index) => {
+            const distance = otherDistances[index].toFixed(2);
+
+            return (
+              <div key={index}>
+                {otherPlayer.displayName} : {distance}km away
+              </div>
+            );
+          })}
+
           {isAdmin && (
             <button
               className="button admin-only-button"
               onClick={handleBackButton}
-              style={{ zIndex: "var(--above-overlay-index)" }}
+              style={{ zIndex: "var(--above-overlay-index)", marginTop: "10%" }}
             >
               Back to Present Room
             </button>

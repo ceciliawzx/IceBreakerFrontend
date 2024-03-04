@@ -33,12 +33,13 @@
 .map-section {
   display: flex;
   flex-direction: column;
+  margin-top: 3%;
 }
 
 .street-view-section h2,
 .map-section h2 {
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 2%;
 }
 
 .street-view-container,
@@ -62,59 +63,6 @@
   min-width: 50vw;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Adding subtle shadow for depth, similar to popup */
   border-radius: 5px; /* Rounded corners like buttons */
-}
-
-.marker-list {
-  margin-top: 20px;
-  text-align: left; /* Align text to the left for better readability */
-  padding: 10px; /* Padding for spacing */
-  background-color: #fff; /* Background color for visibility */
-  border-radius: 5px; /* Consistency in design */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-  width: 95%; /* Slightly less than 100% for better aesthetics */
-  margin-left: auto; /* Center align the marker list */
-  margin-right: auto; /* Center align the marker list */
-}
-
-.marker-list h2 {
-  margin-bottom: 10px; /* Spacing between title and list items */
-}
-
-.marker-list ul {
-  list-style-type: none; /* Remove default bullet points */
-  padding-left: 0; /* Align list items with the title */
-}
-
-.marker-list li {
-  padding: 5px 0; /* Spacing between list items */
-  border-bottom: 1px solid #eee; /* Subtle separator for each item */
-}
-
-.marker-list li:last-child {
-  border-bottom: none; /* Remove border for the last item */
-}
-
-.common-button {
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  cursor: pointer;
-  margin: 10px;
-  padding: 10px;
-  border-radius: 5px;
-}
-
-.submit-popup {
-  background-color: #fff;
-  border: 1px solid #ccc;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  text-align: center;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 100;
 }
 
 .waiting-popup {
@@ -158,14 +106,4 @@
     100% - 20px
   ); /* Adjust based on the space you want for the text */
   object-fit: contain; /* Adjust how the image fits within its box */
-}
-
-.winner-popup {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #fff;
-  padding: 10px;
-  border-top: 2px solid #000;
 }
