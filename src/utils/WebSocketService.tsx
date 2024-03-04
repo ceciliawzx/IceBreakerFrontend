@@ -55,6 +55,7 @@ const connect = (
                 );
                 activateClient(); // Recursive call to reactivate client
               }, reconnectionDelay); // Increase delay with each attempt
+              reconnectionAttempts++;
             }
           }
         }, 100); // Delay of 0.1 second
