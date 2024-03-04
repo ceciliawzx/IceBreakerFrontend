@@ -13,3 +13,9 @@
   bottom: 0;
   right: 0;
 }
+
+.similarity-report {
+  font-style: italic;
+  margin-bottom: 20px;
+}
+
