@@ -26,7 +26,7 @@ class UserProfile {
     lastName: string,
     country: string,
     city: string,
-    felling: string,
+    feeling: string,
     favFood: string,
     favActivity: string
   ) {
@@ -37,7 +37,7 @@ class UserProfile {
     this.lastName = lastName;
     this.country = country;
     this.city = city;
-    this.feeling = felling;
+    this.feeling = feeling;
     this.favFood = favFood;
     this.favActivity = favActivity;
     this.profileImage = profileImage;
@@ -46,7 +46,7 @@ class UserProfile {
       lastName &&
       country &&
       city &&
-      felling &&
+      feeling &&
       favFood &&
       favActivity
     ) {

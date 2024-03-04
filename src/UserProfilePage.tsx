@@ -487,6 +487,13 @@ const UserProfilePage = () => {
         type="submit"
         className="button common-button"
         onClick={handleSubmit}
+        disabled={!(firstName &&
+          lastName &&
+          country &&
+          city &&
+          feeling &&
+          favFood &&
+          favActivity)}
       >
         Submit
       </button>
