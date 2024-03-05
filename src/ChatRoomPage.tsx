@@ -8,6 +8,7 @@ import {
 } from "./utils/WebSocketService";
 import "./css/ChatRoomPage.css";
 import { websocketPort, serverPort } from "./macro/MacroServer";
+import { TimerMessage } from "./type/Timer";
 
 interface ChatMessage {
   roomNumber: number;
@@ -29,20 +30,14 @@ const ChatRoom = ({ isPresenter }: { isPresenter: boolean }) => {
   const roomCode = user.roomCode;
   const [message, setMessage] = useState<string>("");
   const [chatHistory, setChatHistory] = useState<ChatMessageExtended[]>([]);
+  const [isTimerStarted, setIsTimerStarted] = useState(false);
 
   const [render, setRender] = useState(false);
 
-  const topic = `/topic/room/${roomCode}`;
+  const topic = `/topic/room/${roomCode}/chatRoom`;
   const destination = `/app/room/${roomCode}/sendMessage`;
 
   useEffect(() => {
-    const onMessageReceived = (msg: ChatMessage) => {
-      setChatHistory((prevHistory) => [
-        ...prevHistory,
-        { ...msg, decisionMade: false },
-      ]);
-    };
-
     const cleanup = connect(
       socketUrl,
       websocketUrl,
@@ -53,7 +48,21 @@ const ChatRoom = ({ isPresenter }: { isPresenter: boolean }) => {
     return cleanup;
   }, []);
 
+  const onMessageReceived = (msg: ChatMessage | TimerMessage) => {
+    if ("started" in msg && msg.started) {
+      // If msg has started field, it's TimerMessage
+      setIsTimerStarted(true);
+    } else {
+      // Otherwise, it's ChatMessage
+      setChatHistory((prevHistory) => [
+        ...prevHistory,
+        { ...(msg as ChatMessage), decisionMade: false },
+      ]);
+    }
+  };
+
   const handleSendMessage = () => {
+    if (!isTimerStarted) return;
     if (message.trim() !== "") {
       sendMsg(destination, {
         roomCode,
@@ -67,6 +76,7 @@ const ChatRoom = ({ isPresenter }: { isPresenter: boolean }) => {
   };
 
   const handleKeyPress = (e: any) => {
+    if (!isTimerStarted) return;
     if (e.key === "Enter") {
       handleSendMessage();
     }
@@ -188,6 +198,7 @@ const ChatRoom = ({ isPresenter }: { isPresenter: boolean }) => {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Type a message..."
+            disabled={!isTimerStarted}
           />
           <button
             className="button small-button common-button"
