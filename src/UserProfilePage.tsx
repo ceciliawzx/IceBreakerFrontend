@@ -1,30 +1,33 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import { UserProfile } from "./type/UserProfile";
+
+/* Macro and Type */
 import { serverPort } from "./macro/MacroServer";
-import {
-  connect,
-  sendMsg,
-  socketUrl,
-  websocketUrl,
-} from "./utils/WebSocketService";
-import "./css/UserProfilePage.css";
+import { UserProfile } from "./type/UserProfile";
 import { User } from "./type/User";
+
+/* Web socket */
+import { connect, socketUrl, websocketUrl } from "./utils/WebSocketService";
+
+/* CSS */
+import "./css/UserProfilePage.css";
 
 const UserProfilePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+
+  /* Location passed field */
   const user = location.state?.user;
   const userID = user.userID;
-
-  const [admin, setAdmin] = useState<User | null>(null);
-  const [presenter, setPresenter] = useState<User | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-
   const roomCode = user.roomCode;
   const displayName = user.displayName;
-  const [message, setMessage] = useState("");
+
+  /* Users in room */
+  const [admin, setAdmin] = useState<User | null>(null);
+  const [presenter, setPresenter] = useState<User | null>(null);
+
+  /* User Information */
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [city, setCity] = useState("");
@@ -34,31 +37,33 @@ const UserProfilePage = () => {
   const [favActivity, setfavActivity] = useState("");
   const [selfieBase64, setSelfieBase64] = useState("");
 
-  const [showCameraPopup, setShowCameraPopup] = useState(false);
-  const [imageCaptured, setImageCaptured] = useState(false);
+  /* Camera related */
   const streamRef = useRef<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [showCameraPopup, setShowCameraPopup] = useState(false);
+  const [imageCaptured, setImageCaptured] = useState(false);
   const [image, setImage] = useState("");
+
+  /* Popup */
+  const [errorMessage, setErrorMessage] = useState("");
   const [showKickPopup, setShowKickPopup] = useState(false);
   const [showRingPopUp, setShowRingPopUp] = useState(false);
   const [showDismissPopup, setShowDismissPopup] = useState(false);
+
+  /* UI render */
   const [render, setRender] = useState(false);
 
-  // Initial pull
+  /* -------- Use Effect ---------- */
+
+  /* Initial pull */
   useEffect(() => {
     checkPlayers();
     checkKickOut();
     checkRing();
   }, []);
 
-  const onMessageReceived = () => {
-    checkPlayers();
-    checkKickOut();
-    checkRing();
-  };
-
-  // Connect to presentRoom websokect
+  /* When mount, connect websokect */
   useEffect(() => {
     const topic = `/topic/room/${roomCode}/wait`;
     const cleanup = connect(
@@ -71,6 +76,7 @@ const UserProfilePage = () => {
     return cleanup;
   }, []);
 
+  /* When user pulled, collect previous input data */
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -100,6 +106,7 @@ const UserProfilePage = () => {
     fetchUserData();
   }, [user.userID, user.roomCode]);
 
+  /* -------- Refresh Management ---------- */
   useEffect(() => {
     const notifyServerOnUnload = (event: BeforeUnloadEvent) => {
       event.preventDefault();
@@ -133,7 +140,7 @@ const UserProfilePage = () => {
     if (admin?.userID && presenter?.userID) {
       if (presenter.userID === userID) {
         const notifyServerOnUnload = () => {
-          handleChangePresenterAfterQuitting(admin!.userID);
+          changePresenterAfterQuitting(admin!.userID);
         };
 
         window.addEventListener("unload", notifyServerOnUnload);
@@ -175,19 +182,6 @@ const UserProfilePage = () => {
     }
   };
 
-  const handleChangePresenterAfterQuitting = async (userID: string) => {
-    const response = await fetch(
-      `${serverPort}/changePresenter?roomCode=${roomCode}&userID=${userID}`,
-      {
-        method: "POST",
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-  };
-
   const handleKickUser = async (userID: string) => {
     // kick this user
     const response = await fetch(
@@ -202,36 +196,19 @@ const UserProfilePage = () => {
     }
   };
 
-  const checkPlayers = async () => {
-    const url = `${serverPort}/getPlayers?roomCode=${roomCode}`;
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error("Room cannot be found");
-      }
+  /* -------- Web Socket ---------- */
 
-      const data = await response.json();
-
-      // Check if room dismissed
-      Object.values(data).some((value) => {
-        if (typeof value === "string" && value.includes("Room Not Found")) {
-          setShowDismissPopup(true);
-          return;
-        }
-      });
-
-      if (data.admin) {
-        setAdmin(data.admin);
-      }
-      if (data.presenter) {
-        setPresenter(data.presenter);
-      }
-    } catch (error) {
-      console.error("Error fetching players:", error);
-    }
+  /* When receive web socket message, check all status */
+  const onMessageReceived = () => {
+    checkPlayers();
+    checkKickOut();
+    checkRing();
   };
 
-  const startCamera = () => {
+  /* -------- Button Handler ---------- */
+
+  /* When click TakePicture button, open camera */
+  const handleStartCamera = () => {
     setShowCameraPopup(true);
     navigator.mediaDevices
       .getUserMedia({ video: true })
@@ -248,7 +225,8 @@ const UserProfilePage = () => {
       });
   };
 
-  const closeCamera = () => {
+  /* When click Cancel/Confirm button, close camera */
+  const handleCloseCamera = () => {
     if (streamRef.current) {
       const tracks = streamRef.current.getTracks();
       tracks.forEach((track: MediaStreamTrack) => track.stop());
@@ -260,7 +238,8 @@ const UserProfilePage = () => {
     setShowCameraPopup(false);
   };
 
-  const captureImage = () => {
+  /* When click Capture button, capture image */
+  const handleCaptureImage = () => {
     const canvas = canvasRef.current;
     const video = videoRef.current;
     if (canvas && video) {
@@ -275,6 +254,7 @@ const UserProfilePage = () => {
     }
   };
 
+  /* When click UploadSelfie button, capture image */
   const handleSelfieChange = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -282,52 +262,6 @@ const UserProfilePage = () => {
       const file = event.target.files[0];
       const base64String = (await convertToBase64(file)) as string;
       setSelfieBase64(base64String);
-    }
-  };
-
-  const convertToBase64 = (file: File) => {
-    return new Promise((resolve, reject) => {
-      const fileReader = new FileReader();
-      fileReader.readAsDataURL(file);
-      fileReader.onload = () => {
-        resolve(fileReader.result);
-      };
-      fileReader.onerror = (error) => {
-        reject(error);
-      };
-    });
-  };
-
-  const checkRing = async () => {
-    const url = `${serverPort}/isNotified?userID=${userID}&roomCode=${roomCode}`;
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error("Room cannot be found");
-      }
-      if (data) {
-        console.log("Notification received!");
-        setShowRingPopUp(true);
-      }
-    } catch (error) {
-      console.error("Error fetching ring:", error);
-    }
-  };
-
-  const checkKickOut = async () => {
-    const url = `${serverPort}/getPlayer?userID=${userID}&roomCode=${roomCode}`;
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error("Room cannot be found");
-      }
-      if (data.error === "Person Not Found") {
-        setShowKickPopup(true);
-      }
-    } catch (error) {
-      console.error("Error fetching player:", error);
     }
   };
 
@@ -359,7 +293,7 @@ const UserProfilePage = () => {
         throw new Error(`HTTP error! Status: ${response.status}`); // Error message
       }
       const msg = await response.text();
-      setMessage(msg);
+      setErrorMessage(msg);
       console.log(msg);
 
       navigate("/WaitRoomPage", {
@@ -370,9 +304,103 @@ const UserProfilePage = () => {
     }
   };
 
+  /* When click Response button for Ring popup */
   const handleReceiveNotification = async () => {
+    setShowRingPopUp(false);
+  };
+
+  /* -------- Check status ---------- */
+
+  /* Fetch all player information and room status */
+  const checkPlayers = async () => {
+    const url = `${serverPort}/getPlayers?roomCode=${roomCode}`;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error("Room cannot be found");
+      }
+
+      const data = await response.json();
+
+      // Check if room dismissed
+      Object.values(data).some((value) => {
+        if (typeof value === "string" && value.includes("Room Not Found")) {
+          setShowDismissPopup(true);
+          return;
+        }
+      });
+
+      if (data.admin) {
+        setAdmin(data.admin);
+      }
+      if (data.presenter) {
+        setPresenter(data.presenter);
+      }
+    } catch (error) {
+      console.error("Error fetching players:", error);
+    }
+  };
+
+  /* Check if the user is ringed by admin */
+  const checkRing = async () => {
+    const url = `${serverPort}/isNotified?userID=${userID}&roomCode=${roomCode}`;
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error("Room cannot be found");
+      }
+      if (data) {
+        console.log("Notification received!");
+        setShowRingPopUp(true);
+      }
+    } catch (error) {
+      console.error("Error fetching ring:", error);
+    }
+  };
+
+  /* Check if the user is kicked out by admin */
+  const checkKickOut = async () => {
+    const url = `${serverPort}/getPlayer?userID=${userID}&roomCode=${roomCode}`;
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error("Room cannot be found");
+      }
+      if (data.error === "Person Not Found") {
+        setShowKickPopup(true);
+      }
+    } catch (error) {
+      console.error("Error fetching player:", error);
+    }
+  };
+
+  /* -------- Helper function ---------- */
+
+  /* Filter special characters in input */
+  const filterInput = (input: any) => {
+    return input.trim().replace(/[^a-zA-Z0-9\s]/g, "");
+  };
+
+  /* Convert image into Base64 String */
+  const convertToBase64 = (file: File) => {
+    return new Promise((resolve, reject) => {
+      const fileReader = new FileReader();
+      fileReader.readAsDataURL(file);
+      fileReader.onload = () => {
+        resolve(fileReader.result);
+      };
+      fileReader.onerror = (error) => {
+        reject(error);
+      };
+    });
+  };
+
+  /* If current presenter exit room, change presenter back to admin  */
+  const changePresenterAfterQuitting = async (userID: string) => {
     const response = await fetch(
-      `${serverPort}/acknowledgeNotification?roomCode=${roomCode}&userID=${userID}`,
+      `${serverPort}/changePresenter?roomCode=${roomCode}&userID=${userID}`,
       {
         method: "POST",
       }
@@ -381,10 +409,9 @@ const UserProfilePage = () => {
     setShowRingPopUp(false);
   };
 
-  const filterInput = (input: any) => {
-    return input.replace(/[^a-zA-Z0-9\s]/g, "");
-  };
+  /* -------- UI Component ---------- */
 
+  /* Main renderer */
   return render ? (
     <div className="center-page">
       <h2>Hi {displayName},please enter your details</h2>
@@ -465,7 +492,7 @@ const UserProfilePage = () => {
           <button
             type="button"
             className="button common-button"
-            onClick={startCamera}
+            onClick={handleStartCamera}
           >
             Take a Picture
           </button>
@@ -501,17 +528,24 @@ const UserProfilePage = () => {
       >
         Submit
       </button>
-      {message && <p className="message">{message}</p>}
+      {errorMessage && <p className="error-message">{errorMessage}</p>}
 
+      {/* Camera popup */}
       {showCameraPopup && (
         <div className="camera-popup">
           <div className="column-container">
             <video ref={videoRef} width="400" height="300" />
             <div className="row-container">
-              <button className="button common-button" onClick={captureImage}>
+              <button
+                className="button common-button"
+                onClick={handleCaptureImage}
+              >
                 {imageCaptured ? "Recapture Image" : "Capture Image"}
               </button>
-              <button className="button common-button" onClick={closeCamera}>
+              <button
+                className="button common-button"
+                onClick={handleCloseCamera}
+              >
                 {imageCaptured ? "Confirm" : "Cancel"}
               </button>
             </div>
@@ -527,7 +561,7 @@ const UserProfilePage = () => {
         </div>
       )}
 
-      {/* kickout popup */}
+      {/* Kickout popup */}
       {showKickPopup && (
         <div className="overlay-popup">
           <div className="popup">
@@ -561,6 +595,7 @@ const UserProfilePage = () => {
         </div>
       )}
 
+      {/* Dismiss popup */}
       {showDismissPopup && (
         <div className="overlay-popup">
           <div className="popup">

@@ -1,29 +1,44 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import "./css/WordlePage.css";
+
+/* Macro and Type */
+import { serverPort } from "./macro/MacroServer";
 import { User } from "./type/User";
 import { UserProfile } from "./type/UserProfile";
-import { serverPort, websocketPort } from "./macro/MacroServer";
 import { LetterStatus, WordleLetter } from "./type/WordleLetter";
+import { RoomStatus } from "./type/RoomStatus";
+import { PresentRoomInfo } from "./type/PresentRoomInfo";
+
+/* General function */
+import { updatePresentRoomInfo } from "./utils/RoomOperation";
+import { isSameUser } from "./utils/CommonCompare";
+
+/* Web socket */
 import {
   connect,
   sendMsg,
   socketUrl,
   websocketUrl,
 } from "./utils/WebSocketService";
-import { updatePresentRoomInfo } from "./utils/RoomOperation";
-import { PresentRoomInfo } from "./type/PresentRoomInfo";
-import { BackMessage } from "./type/BackMessage";
-import { Modal } from "./utils/Modal";
-import { Timer } from "./timer/Timer";
-import { RoomStatus } from "./type/RoomStatus";
+import { TimerMessage } from "./type/Timer";
 import { ModalMessage } from "./type/ModalMessage";
+import { BackMessage } from "./type/BackMessage";
+
+/* Timer */
+import { Timer } from "./timer/Timer";
+
+/* Modal */
+import { Modal } from "./utils/Modal";
+
+/* Instruction */
 import Instructions from "./Instructions";
 import wordleInstructionPic from "./instructions/WordleInstruction.png";
-import { isSameUser } from "./utils/CommonCompare";
-import { TimerMessage } from "./type/Timer";
 
+/* CSS */
+import "./css/WordlePage.css";
+
+/* Instructions */
 const wordleInstructions = [
   {
     img: wordleInstructionPic,
@@ -31,6 +46,7 @@ const wordleInstructions = [
   },
 ];
 
+/* Web socket message interface */
 interface WordleMsg {
   currentAttempt: number;
   totalAttempt: number;
@@ -45,54 +61,66 @@ const Wordle = () => {
   const rootStyles = getComputedStyle(document.documentElement);
   const navigate = useNavigate();
   const location = useLocation();
+
+  /* Location passed field */
   const user = location.state?.user;
-  const userID = user.userID;
   const roomCode = user.roomCode;
   const isAdmin = user.isAdmin;
+  const fieldName = location.state?.selectedField;
+
+  /* Users in room */
   const [admin, setAdmin] = useState<User | null>(null);
   const [presenter, setPresenter] = useState<User | null>(null);
   const [guests, setGuests] = useState<User[]>([]);
-  const fieldName = location.state?.selectedField;
 
-  /* Pop up */
+  /* User status */
+  const [notPresented, setNotPresented] = useState<User[]>([]);
   const [selectedUserProfile, setSelectedUserProfile] =
     useState<UserProfile | null>(null);
-  const [showProfilePopup, setShowProfilePopup] = useState(false);
-  const [notPresented, setNotPresented] = useState<User[]>([]);
-
-  /* Modal */
-  const [showModal, setShowModal] = useState(false);
 
   /* Web socket url */
   const topic = `/topic/room/${roomCode}/wordle`;
   const destination = `/app/room/${roomCode}/wordle`;
 
-  /* Wordle related */
-  const totalAttempts = Math.max(6, guests.length);
-
-  const [currentGuesser, setCurrentGuesser] = useState<User | null>(null);
-  const [currentAttempt, setCurrentAttempt] = useState<number>(0);
+  /* Target word */
+  const [selectedField, setSelectedField] = useState<keyof PresentRoomInfo>();
   const [targetCharNum, setTargetCharNum] = useState<number>(0);
   const [targetWord, setTargetWord] = useState<string>("");
-  const [selectedField, setSelectedField] = useState<keyof PresentRoomInfo>();
+
+  /* Wordle related */
+  const totalAttempts = Math.max(6, guests.length);
+  const [currentGuesser, setCurrentGuesser] = useState<User | null>(null);
+  const [currentAttempt, setCurrentAttempt] = useState<number>(0);
   const [correct, setCorrect] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
-  const [initialized, setInitialized] = useState(false);
 
-  // totalAttempts: rowNum; targeteCharNum: coluNum
+  // totalAttempts: rowNum; targeteCharNum: columnNum
   const [currentGuess, setCurrentGuess] = useState<WordleLetter[][]>([]);
 
+  /* Alphabet */
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const alphabetRows = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
   const [allLetterStatus, setAllLetterStatus] = useState<LetterStatus[]>(
     Array.from(alphabet).map((_) => LetterStatus.UNCHECKED)
   );
 
+  /* Timer */
   const [isTimerStarted, setIsTimerStarted] = useState(false);
-  const [render, setRender] = useState(false);
-  const [instructionPopup, setInstructionPopup] = useState(false);
 
-  // When launch
+  /* Modal */
+  const [showModal, setShowModal] = useState(false);
+
+  /* Popup */
+  const [showProfilePopup, setShowProfilePopup] = useState(false);
+  const [showInstructionPopup, setShowInstructionPopup] = useState(false);
+
+  /* UI render */
+  const [render, setRender] = useState(false);
+  const [initialized, setInitialized] = useState(false);
+
+  /* -------- Use Effect ---------- */
+
+  /* When launch, Connet to web socket and initialize*/
   useEffect(() => {
     const onMessageReceived = (
       msg: WordleMsg | BackMessage | ModalMessage | TimerMessage
@@ -114,19 +142,19 @@ const Wordle = () => {
     return cleanup;
   }, []);
 
-  // If first time to this page, pop up instruction
+  /* If first time to this page, pop up instruction */
   useEffect(() => {
     const pageVisited = localStorage.getItem("wordleVisited");
 
     if (pageVisited !== "true") {
-      setInstructionPopup(true);
+      setShowInstructionPopup(true);
 
       // Mark the user as visited to prevent showing the popup again
       localStorage.setItem("wordleVisited", "true");
     }
   }, []);
 
-  // When got target word, initialize grid
+  /* When got target word, render grid */
   useEffect(() => {
     if (targetCharNum > 0) {
       // If first launch, set intial guess; if refresh page, does not change
@@ -144,12 +172,12 @@ const Wordle = () => {
     }
   }, [targetCharNum]);
 
-  // When grid initialized, select guesser and change cursor
+  /* When grid initialized, select guesser and change cursor */
   useEffect(() => {
     changeGuesser();
   }, [initialized]);
 
-  // When submit guess
+  /* When submit guess, change guesser and check finished */
   useEffect(() => {
     // Change guesser
     changeGuesser();
@@ -157,12 +185,14 @@ const Wordle = () => {
     setIsFinished(currentAttempt >= totalAttempts || correct);
   }, [currentAttempt]);
 
-  // When isFinished update
+  /* When finished, show modal */
   useEffect(() => {
     if (isFinished) {
-      handleModalMessage();
+      receiveModalMessage();
     }
   }, [isFinished]);
+
+  /* -------- Refresh Management ---------- */
 
   useEffect(() => {
     const notifyServerOnUnload = (event: BeforeUnloadEvent) => {
@@ -181,9 +211,12 @@ const Wordle = () => {
     };
   }, []);
 
+  /* -------- Use Effect helper ---------- */
+
+  /* Initialize game in order, execute line by line */
   const initializeGame = async () => {
     // get player status
-    await getWordleStatus();
+    await checkWordleStatus();
     await checkPlayers();
     await checkNotPresented();
 
@@ -192,7 +225,7 @@ const Wordle = () => {
     await fetchTargetWord();
   };
 
-  // Fetch target word length
+  /* Fetch target word length */
   const fetchWordLength = async () => {
     try {
       const response = await fetch(
@@ -217,7 +250,7 @@ const Wordle = () => {
     }
   };
 
-  // Fetch target word
+  /* Fetch target word */
   const fetchTargetWord = async () => {
     try {
       const response = await fetch(
@@ -243,27 +276,9 @@ const Wordle = () => {
     }
   };
 
-  const checkNotPresented = async () => {
-    try {
-      const response = await fetch(
-        `${serverPort}/notPresentedPeople?roomCode=${roomCode}`,
-        {
-          method: "GET",
-        }
-      );
+  /* -------- Web Socket ---------- */
 
-      const data = await response.json();
-      setNotPresented(data.notPresentedPeople || []);
-
-      if (!response.ok) {
-        throw new Error("Room cannot be found");
-      }
-    } catch (error) {
-      console.error("Error checking notPresented:", error);
-    }
-  };
-
-  // Send message via websocket
+  /* Send message via websocket */
   const sendWordleMessage = (
     isCheck: boolean,
     updatedGuess: WordleLetter[][]
@@ -279,21 +294,21 @@ const Wordle = () => {
     });
   };
 
-  // Receive message from websocket
+  /* When receive message from websocket */
   const receiveMessage = useCallback(
     (msg: WordleMsg | BackMessage | ModalMessage | TimerMessage) => {
       try {
         // If contain letters field, it's WordleMsg
         if ("letters" in msg) {
-          handleWordleMessage(msg as WordleMsg);
+          receiveWordleMessage(msg as WordleMsg);
         } else if ("show" in msg) {
           // show modal and update PresentRoomInfo
-          handleModalMessage();
+          receiveModalMessage();
         } else if ("started" in msg && msg.started) {
           console.log("receive TimerMessage in wordle: ", msg);
           setIsTimerStarted(true);
         } else {
-          handleBackMessage();
+          receiveBackMessage();
         }
       } catch (error) {
         console.error("Error parsing:", error);
@@ -302,8 +317,8 @@ const Wordle = () => {
     []
   );
 
-  // Update wordle page
-  const handleWordleMessage = (msg: WordleMsg) => {
+  /* When receive wordle message, update wordle status */
+  const receiveWordleMessage = (msg: WordleMsg) => {
     setCurrentGuess(msg.letters);
 
     if (msg.isCheck) {
@@ -314,8 +329,8 @@ const Wordle = () => {
     setAllLetterStatus(msg.allLetterStat);
   };
 
-  // Show modal
-  const handleModalMessage = () => {
+  /* When receive modal message, show modal */
+  const receiveModalMessage = () => {
     // Update PresentRoomInfo
     if (fieldName) {
       updatePresentRoomInfo({ roomCode, field: fieldName });
@@ -324,13 +339,16 @@ const Wordle = () => {
     setShowModal(true);
   };
 
-  // Back to present page
-  const handleBackMessage = async () => {
+  /* When receive back message, back to present page */
+  const receiveBackMessage = async () => {
     navigate("/PresentPage", {
-      state: { user, admin, presenter, guests },
+      state: { user },
     });
   };
 
+  /* -------- Button, Keyboard Handler ---------- */
+
+  /* When click button to input guess, update cell */
   const handleInputChangeByButton = (value: string) => {
     /* Disable button when:
      1. User is not the current guesser
@@ -366,7 +384,7 @@ const Wordle = () => {
     }
   };
 
-  // When enter letter
+  /* When use keyboard to input guess, update cell */
   const handleInputChange = (row: number, col: number, value: string) => {
     /* Disable input when:
        1. User is not current guesser
@@ -400,7 +418,26 @@ const Wordle = () => {
     sendWordleMessage(false, updatedGuess);
   };
 
-  // When delete letter
+  /* When click button to delete letter, update cell */
+  const handleBackspaceButton = () => {
+    const currentRow = currentGuess[currentAttempt];
+
+    // Find the index of the last non-empty cell in the current attempt
+    let lastNonEmptyCol = -1;
+    for (let i = currentRow.length - 1; i >= 0; i--) {
+      if (currentRow[i].letter !== "") {
+        lastNonEmptyCol = i;
+        break;
+      }
+    }
+
+    // If there's a non-empty cell, call handleBackspace for that cell
+    if (lastNonEmptyCol !== -1) {
+      handleBackspace(currentAttempt, lastNonEmptyCol);
+    }
+  };
+
+  /* When use Keyboard BACKSPACE to delete letter, update cell */
   const handleBackspace = (row: number, col: number) => {
     // If empty first column, cannot delete
     if (col <= 0 && currentGuess[row][col].letter === "") {
@@ -428,33 +465,8 @@ const Wordle = () => {
     sendWordleMessage(false, updatedGuess);
   };
 
-  const handleBackspaceButton = () => {
-    const currentRow = currentGuess[currentAttempt];
-
-    // Find the index of the last non-empty cell in the current attempt
-    let lastNonEmptyCol = -1;
-    for (let i = currentRow.length - 1; i >= 0; i--) {
-      if (currentRow[i].letter !== "") {
-        lastNonEmptyCol = i;
-        break;
-      }
-    }
-
-    // If there's a non-empty cell, call handleBackspace for that cell
-    if (lastNonEmptyCol !== -1) {
-      handleBackspace(currentAttempt, lastNonEmptyCol);
-    }
-  };
-
-  // Press "Enter" = Press guess
-  const handleKeyPress = (e: any) => {
-    if (e.key === "Enter") {
-      handleGuess();
-    }
-  };
-
-  // When click submit guess
-  const handleGuess = () => {
+  /* When click Guess button*/
+  const handleGuessButton = () => {
     if (isFinished) {
       console.log("Reach max attempt");
       return;
@@ -469,7 +481,14 @@ const Wordle = () => {
     sendWordleMessage(true, currentGuess);
   };
 
-  // When click back to presenet room button
+  /* When click Keyboard ENTER, submit guess  */
+  const handleKeyPress = (e: any) => {
+    if (e.key === "Enter") {
+      handleGuessButton();
+    }
+  };
+
+  /* When click ChangeAnotherGame button */
   const handleBackButton = async () => {
     // Change room status
     const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;
@@ -485,7 +504,7 @@ const Wordle = () => {
     }
   };
 
-  // When click view profile button
+  /* When click ViewProfile button */
   const handleViewProfile = async (user: User | null) => {
     if (user) {
       const url = `${serverPort}/getPlayer?userID=${user.userID}&roomCode=${roomCode}`;
@@ -520,44 +539,10 @@ const Wordle = () => {
     }
   };
 
-  // Auto set color of grid
-  const getStatusStyle = (status: LetterStatus) => {
-    switch (status) {
-      case LetterStatus.GREY:
-        return {
-          backgroundColor: rootStyles.getPropertyValue("--wordle-unchecked"),
-        };
-      case LetterStatus.YELLOW:
-        return {
-          backgroundColor: rootStyles.getPropertyValue("--wordle-yellow"),
-        };
-      case LetterStatus.GREEN:
-        return {
-          backgroundColor: rootStyles.getPropertyValue("--wordle-green"),
-        };
-      default:
-        return {
-          backgroundColor: rootStyles.getPropertyValue(
-            "--light-grey-background"
-          ),
-        };
-    }
-  };
+  /* -------- Check status ---------- */
 
-  const changeGuesser = () => {
-    const nextGuesser = guests[currentAttempt % guests.length];
-
-    // Change to next guesser
-    setCurrentGuesser(nextGuesser);
-
-    // Move cursor to the first grid next row
-    if (isSameUser(user, nextGuesser)) {
-      document.getElementById(`input-${currentAttempt}-0`)?.focus();
-    }
-  };
-
-  // Get player info when start
-  const getWordleStatus = async () => {
+  /* Get game info when start, so that it can synchronize when refresh page */
+  const checkWordleStatus = async () => {
     const url = `${serverPort}/getWordleGameStatus?roomCode=${roomCode}`;
     try {
       const response = await fetch(url);
@@ -581,7 +566,7 @@ const Wordle = () => {
     }
   };
 
-  // Get player info when start
+  /* Check player information in room */
   const checkPlayers = async () => {
     const url = `${serverPort}/getPlayers?roomCode=${roomCode}`;
     try {
@@ -618,6 +603,69 @@ const Wordle = () => {
     }
   };
 
+  /* Check who has not presented, so can not view their proile */
+  const checkNotPresented = async () => {
+    try {
+      const response = await fetch(
+        `${serverPort}/notPresentedPeople?roomCode=${roomCode}`,
+        {
+          method: "GET",
+        }
+      );
+
+      const data = await response.json();
+      setNotPresented(data.notPresentedPeople || []);
+
+      if (!response.ok) {
+        throw new Error("Room cannot be found");
+      }
+    } catch (error) {
+      console.error("Error checking notPresented:", error);
+    }
+  };
+
+  /* -------- Helper function ---------- */
+
+  /* Change guesser according to currentAttempt */
+  const changeGuesser = () => {
+    const nextGuesser = guests[currentAttempt % guests.length];
+
+    // Change to next guesser
+    setCurrentGuesser(nextGuesser);
+
+    // Move cursor to the first grid next row
+    if (isSameUser(user, nextGuesser)) {
+      document.getElementById(`input-${currentAttempt}-0`)?.focus();
+    }
+  };
+
+  /* Auto set color of grid */
+  const getStatusStyle = (status: LetterStatus) => {
+    switch (status) {
+      case LetterStatus.GREY:
+        return {
+          backgroundColor: rootStyles.getPropertyValue("--wordle-unchecked"),
+        };
+      case LetterStatus.YELLOW:
+        return {
+          backgroundColor: rootStyles.getPropertyValue("--wordle-yellow"),
+        };
+      case LetterStatus.GREEN:
+        return {
+          backgroundColor: rootStyles.getPropertyValue("--wordle-green"),
+        };
+      default:
+        return {
+          backgroundColor: rootStyles.getPropertyValue(
+            "--light-grey-background"
+          ),
+        };
+    }
+  };
+
+  /* -------- UI Component ---------- */
+
+  /* Modal message */
   const modalContent = () => {
     return (
       <>
@@ -629,6 +677,7 @@ const Wordle = () => {
     );
   };
 
+  /* Main renderer */
   return render ? (
     <div className="row-page">
       <div className="left-column">
@@ -752,7 +801,7 @@ const Wordle = () => {
         <div className="row-container">
           <button
             className="button common-button"
-            onClick={handleGuess}
+            onClick={handleGuessButton}
             disabled={!isSameUser(user, currentGuesser)}
           >
             Guess
@@ -816,7 +865,7 @@ const Wordle = () => {
         </div>
       </div>
 
-      {/* show profile popup */}
+      {/* Show profile popup */}
       {showProfilePopup && selectedUserProfile && (
         <div className="popup">
           <p>First name: {selectedUserProfile.firstName}</p>
@@ -842,17 +891,17 @@ const Wordle = () => {
             setShowModal(false);
             handleBackButton();
           }}
-          isAdmin={userID === admin?.userID}
+          isAdmin={isSameUser(user, admin)}
           modalContent={modalContent()}
         />
       )}
 
       {/* First time instruction popup */}
-      {instructionPopup && (
+      {showInstructionPopup && (
         <Instructions
           instructionPics={wordleInstructions}
           onlyShowPopup={true}
-          closeButtonFunction={() => setInstructionPopup(false)}
+          closeButtonFunction={() => setShowInstructionPopup(false)}
         />
       )}
     </div>

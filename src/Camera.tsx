@@ -1,11 +1,12 @@
 import React, { useRef, useState } from "react";
 
 const CameraCapture = () => {
-  // Specify the correct types for the refs
+  /* Camera related*/
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [image, setImage] = useState("");
 
+  /* Start camera */
   const startVideo = () => {
     navigator.mediaDevices
       .getUserMedia({ video: true })
@@ -21,6 +22,7 @@ const CameraCapture = () => {
       });
   };
 
+  /* Capture Image */
   const captureImage = () => {
     const canvas = canvasRef.current;
     const video = videoRef.current;
@@ -34,6 +36,9 @@ const CameraCapture = () => {
     }
   };
 
+  /* -------- UI Component ---------- */
+
+  /* Main renderer */
   return (
     <div>
       <video ref={videoRef} width="640" height="480" />

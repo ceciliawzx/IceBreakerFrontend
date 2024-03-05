@@ -1,35 +1,50 @@
 import React, { useEffect, useCallback, useState } from "react";
-import DrawingCanvas from "./pictionary/DrawingCanvas";
-import ChatRoom from "./ChatRoomPage";
 import { useLocation, useNavigate } from "react-router-dom";
+
+/* Macro and Type */
+import { serverPort } from "./macro/MacroServer";
+import { User } from "./type/User";
 import {
   DrawingData,
   DrawingMessage,
   PasteImgData,
   PasteImgMessage,
 } from "./type/DrawingCanvas";
+import { RoomStatus } from "./type/RoomStatus";
+import { PresentRoomInfo } from "./type/PresentRoomInfo";
+
+/* General function */
+import { isSameUser } from "./utils/CommonCompare";
+import { disableScroll } from "./utils/CssOperation";
+import { updatePresentRoomInfo } from "./utils/RoomOperation";
+import DrawingCanvas from "./pictionary/DrawingCanvas";
+import ChatRoom from "./ChatRoomPage";
+
+/* Web socket */
 import {
   connect,
   sendMsg,
   socketUrl,
   websocketUrl,
 } from "./utils/WebSocketService";
-import { serverPort, websocketPort } from "./macro/MacroServer";
-import "./css/PictionaryPage.css";
-import { User } from "./type/User";
-import { updatePresentRoomInfo } from "./utils/RoomOperation";
-import { RoomStatus } from "./type/RoomStatus";
-import { Timer } from "./timer/Timer";
 import { BackMessage } from "./type/BackMessage";
 import { ModalMessage } from "./type/ModalMessage";
+
+/* Timer */
+import { Timer } from "./timer/Timer";
+
+/* Modal */
 import { Modal } from "./utils/Modal";
-import { PresentRoomInfo } from "./type/PresentRoomInfo";
+
+/* Instruction */
 import Instructions from "./Instructions";
 import PictionaryInstructionPic from "./instructions/PictionaryInstruction.png";
 import ShareboardInstructionPic from "./instructions/ShareboardInstruction.png";
-import { isSameUser } from "./utils/CommonCompare";
-import { disableScroll } from "./utils/CssOperation";
 
+/* CSS */
+import "./css/PictionaryPage.css";
+
+/* Instructions */
 const pictionaryInstructions = [
   {
     img: PictionaryInstructionPic,
@@ -45,40 +60,58 @@ const shareBoardInstructions = [
 ];
 
 const PictionaryPage = () => {
+  const navigate = useNavigate();
   const location = useLocation();
-  const [externalDrawing, setExternalDrawing] = useState<DrawingMessage>();
-  const [externalPasteImg, setExternalPasteImg] = useState<PasteImgMessage>();
+
+  /* Location passed field */
   const user: User = location.state?.user;
   const userID = user?.userID;
   const roomCode = user?.roomCode;
   const fieldName = location.state?.selectedField;
 
-  const [isDrawer, setIsDrawer] = useState(false);
-  const [seletedField, setSelectedField] = useState<
-    keyof PresentRoomInfo | null
-  >(null);
-
+  /* Users in room */
   const [admin, setAdmin] = useState<User | null>(null);
   const [presenter, setPresenter] = useState<User | null>(null);
 
-  const [targetWord, setTargetWord] = useState("");
-  const [showModal, setShowModal] = useState(false);
-  const navigate = useNavigate();
-  const [render, setRender] = useState(false);
-  const [wordFetched, setWordFetched] = useState(false);
-  const [instructionPopup, setInstructionPopup] = useState(false);
+  /* User status */
+  const [isDrawer, setIsDrawer] = useState(false);
 
+  /* Web socket url */
   const topic = `/topic/room/${roomCode}/drawing`;
   const destination = `/app/room/${roomCode}/sendDrawing`;
 
-  // disable scroll for this page
+  /* Target word */
+  const [seletedField, setSelectedField] = useState<
+    keyof PresentRoomInfo | null
+  >(null);
+  const [targetWord, setTargetWord] = useState("");
+
+  /* Canvas related */
+  const [externalDrawing, setExternalDrawing] = useState<DrawingMessage>();
+  const [externalPasteImg, setExternalPasteImg] = useState<PasteImgMessage>();
+
+  /* Modal */
+  const [showModal, setShowModal] = useState(false);
+
+  /* Popup */
+  const [showInstructionPopup, setShowInstructionPopup] = useState(false);
+
+  /* UI render */
+  const [render, setRender] = useState(false);
+  const [wordFetched, setWordFetched] = useState(false);
+
+  /* -------- Use Effect ---------- */
+
+  /* Disable scroll for this page */
   useEffect(disableScroll, []);
 
+  /* Initial pull */
   useEffect(() => {
     // get player status
     checkPlayers();
   }, []);
 
+  /* When mount, fetch target word and connect websocket */
   useEffect(() => {
     // set target word
     fetchTargetWord();
@@ -88,7 +121,7 @@ const PictionaryPage = () => {
       socketUrl,
       websocketUrl,
       topic,
-      handleReceivedDrawing,
+      receiveMessage,
       setRender
     );
 
@@ -96,7 +129,7 @@ const PictionaryPage = () => {
     return cleanup; // This will be called when the component unmounts
   }, []);
 
-  // If first time to this page, pop up instruction
+  /* If first time to this page, pop up instruction */
   useEffect(() => {
     // Check after fetched target word, to distinguish between pictionary and shareboard
     if (!wordFetched) return;
@@ -108,13 +141,14 @@ const PictionaryPage = () => {
     const pageVisited = localStorage.getItem(pageItemName);
 
     if (pageVisited !== "true") {
-      setInstructionPopup(true);
+      setShowInstructionPopup(true);
 
       // Mark the user as visited to prevent showing the popup again
       localStorage.setItem(pageItemName, "true");
     }
   }, [wordFetched]);
 
+  /* -------- Refresh Management ---------- */
   useEffect(() => {
     const notifyServerOnUnload = (event: BeforeUnloadEvent) => {
       event.preventDefault();
@@ -132,7 +166,9 @@ const PictionaryPage = () => {
     };
   }, []);
 
-  // Fetch targetWord
+  /* -------- Use Effect helper ---------- */
+
+  /* Fetch targetWord */
   const fetchTargetWord = async () => {
     const response = await fetch(
       `${serverPort}/getTarget?roomCode=${roomCode}`
@@ -140,7 +176,6 @@ const PictionaryPage = () => {
     const data = await response.json();
     if (data) {
       console.log("target received ", data);
-      // setTargetWord(data.toString());
       setSelectedField(data.target.fieldName);
       setTargetWord(data.target.targetWord);
       setWordFetched(true);
@@ -150,57 +185,10 @@ const PictionaryPage = () => {
     }
   };
 
-  // Only when the timer stops naturally can the field be revealed, if navigated by the button, field should not be revealed
+  /* -------- Web Socket ---------- */
 
-  // Back to present page directly without revealing the field
-  const handleBackMessage = async () => {
-    navigate("/PresentPage", {
-      state: { user },
-    });
-  };
-
-  const handleModalMessage = () => {
-    if (fieldName) {
-      // Update PresentRoomInfo
-      console.log("updating presentRoomInfo ", {
-        roomCode,
-        field: fieldName,
-      });
-      updatePresentRoomInfo({ roomCode, field: fieldName });
-    }
-    // Show the modal
-    setShowModal(true);
-  }; // Add fieldName and any other relevant state to the dependency array
-
-  const handleReceivedDrawing = useCallback(
-    (msg: DrawingMessage | PasteImgMessage | BackMessage | ModalMessage) => {
-      console.log(
-        "Pictionary receives message ",
-        msg,
-        " filedName ",
-        fieldName
-      );
-      try {
-        // If contain drawingData field, is DrawingMessage
-        if ("drawer" in msg) {
-          setExternalDrawing(msg as DrawingMessage);
-        } else if ("paster" in msg) {
-          setExternalPasteImg(msg as PasteImgMessage);
-        } else if ("show" in msg) {
-          // show modal and update PresentRoomInfo
-          handleModalMessage();
-        } else {
-          handleBackMessage();
-        }
-      } catch (error) {
-        console.error("Error parsing:", error);
-      }
-    },
-    []
-  );
-
-  // Send DrawingMessage to server
-  const handleDraw = useCallback(
+  /* Send drawed lines via websocket */
+  const sendDraw = useCallback(
     (drawingData: DrawingData) => {
       const drawingMessage: DrawingMessage = {
         roomCode,
@@ -208,13 +196,13 @@ const PictionaryPage = () => {
         timestamp: new Date().toISOString(),
         drawer: userID,
       };
-      // console.log('Sending drawing data', drawingData);
       sendMsg(destination, drawingMessage);
     },
     [roomCode]
   );
 
-  const handlePaste = useCallback(
+  /* Send pasted image via websocket */
+  const sendPaste = useCallback(
     (pasteImgData: PasteImgData) => {
       const destination = `/app/room/${roomCode}/sendPasteImg`;
 
@@ -230,7 +218,59 @@ const PictionaryPage = () => {
     [roomCode]
   );
 
-  // navigate back to presentRoom
+  /* When receive message from websocket */
+  const receiveMessage = useCallback(
+    (msg: DrawingMessage | PasteImgMessage | BackMessage | ModalMessage) => {
+      console.log(
+        "Pictionary receives message ",
+        msg,
+        " filedName ",
+        fieldName
+      );
+      try {
+        // If contain drawingData field, is DrawingMessage
+        if ("drawer" in msg) {
+          setExternalDrawing(msg as DrawingMessage);
+        } else if ("paster" in msg) {
+          setExternalPasteImg(msg as PasteImgMessage);
+        } else if ("show" in msg) {
+          // show modal and update PresentRoomInfo
+          receiveModalMessage();
+        } else {
+          receiveBackMessage();
+        }
+      } catch (error) {
+        console.error("Error parsing:", error);
+      }
+    },
+    []
+  );
+
+  /* When receive modal message, show modal */
+  const receiveModalMessage = () => {
+    if (fieldName) {
+      // Update PresentRoomInfo
+      console.log("updating presentRoomInfo ", {
+        roomCode,
+        field: fieldName,
+      });
+      updatePresentRoomInfo({ roomCode, field: fieldName });
+    }
+
+    // Show the modal
+    setShowModal(true);
+  };
+
+  /* When receive wordle message, back to present page */
+  const receiveBackMessage = async () => {
+    navigate("/PresentPage", {
+      state: { user },
+    });
+  };
+
+  /* -------- Button Handler ---------- */
+
+  /* When click ChangeAnotherGame button */
   const handleBackToPresentRoom = async () => {
     const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;
     try {
@@ -242,10 +282,43 @@ const PictionaryPage = () => {
     }
   };
 
+  /* -------- Check status ---------- */
+
+  /* Check player information in room */
+  const checkPlayers = async () => {
+    const url = `${serverPort}/getPlayers?roomCode=${roomCode}`;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error("Room cannot be found");
+      }
+
+      const data = await response.json();
+
+      if (data.admin) {
+        setAdmin(data.admin);
+      }
+      if (data.presenter) {
+        setPresenter(data.presenter);
+      }
+
+      // If I am presenter, set isDrawer
+      setIsDrawer(isSameUser(data.presenter, user));
+    } catch (error) {
+      console.error("Error fetching players:", error);
+    }
+  };
+
+  /* -------- Helper function ---------- */
+
+  /* Check if this game is pictionary or shareboard */
   const isPictionary = () => {
     return targetWord !== "";
   };
 
+  /* -------- UI Component ---------- */
+
+  /* Target display component */
   const target: JSX.Element | null = isPictionary() ? (
     <div className="word-display">
       {isSameUser(presenter, user) || isSameUser(user, admin) ? (
@@ -271,31 +344,7 @@ const PictionaryPage = () => {
     </div>
   );
 
-  // Get player info when start
-  const checkPlayers = async () => {
-    const url = `${serverPort}/getPlayers?roomCode=${roomCode}`;
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error("Room cannot be found");
-      }
-
-      const data = await response.json();
-
-      if (data.admin) {
-        setAdmin(data.admin);
-      }
-      if (data.presenter) {
-        setPresenter(data.presenter);
-      }
-
-      // If I am presenter, set isDrawer
-      setIsDrawer(isSameUser(data.presenter, user));
-    } catch (error) {
-      console.error("Error fetching players:", error);
-    }
-  };
-
+  /* Modal message */
   const modalContent = () => {
     return targetWord !== "" ? (
       <>
@@ -309,6 +358,7 @@ const PictionaryPage = () => {
     );
   };
 
+  /* Main renderer */
   return render ? (
     <div className="row-page">
       <div className="left-column">
@@ -335,11 +385,13 @@ const PictionaryPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Canvas */}
       <div className="drawing-canvas-container">
         <DrawingCanvas
           isDrawer={isDrawer}
-          onDraw={handleDraw}
-          onPaste={handlePaste}
+          onDraw={sendDraw}
+          onPaste={sendPaste}
           externalDrawing={externalDrawing}
           externalPasteImg={externalPasteImg}
           target={target}
@@ -357,25 +409,26 @@ const PictionaryPage = () => {
         </div>
       </div>
 
+      {/* Modal */}
       {showModal && (
         <Modal
           onClose={() => {
             setShowModal(false);
             handleBackToPresentRoom();
           }}
-          isAdmin={userID === admin?.userID}
+          isAdmin={isSameUser(user, admin)}
           modalContent={modalContent()}
         />
       )}
 
       {/* First time instruction popup */}
-      {instructionPopup && (
+      {showInstructionPopup && (
         <Instructions
           instructionPics={
             isPictionary() ? pictionaryInstructions : shareBoardInstructions
           }
           onlyShowPopup={true}
-          closeButtonFunction={() => setInstructionPopup(false)}
+          closeButtonFunction={() => setShowInstructionPopup(false)}
         />
       )}
     </div>

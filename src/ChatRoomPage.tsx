@@ -1,15 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+
+/* Macro */
+import { serverPort } from "./macro/MacroServer";
+
+/* Web socket */
 import {
   connect,
   sendMsg,
   socketUrl,
   websocketUrl,
 } from "./utils/WebSocketService";
-import "./css/ChatRoomPage.css";
-import { websocketPort, serverPort } from "./macro/MacroServer";
 import { TimerMessage } from "./type/Timer";
 
+/* CSS */
+import "./css/ChatRoomPage.css";
+
+/* Web socket message interface */
 interface ChatMessage {
   roomNumber: number;
   content: string;
@@ -24,19 +31,26 @@ interface ChatMessageExtended extends ChatMessage {
 
 const ChatRoom = ({ isPresenter }: { isPresenter: boolean }) => {
   const location = useLocation();
+
+  /* Location passed field */
   const user = location.state?.user;
   const userID = user.userID;
   const displayName = user.displayName;
   const roomCode = user.roomCode;
+
+  /* Web socket url */
+  const topic = `/topic/room/${roomCode}/chatRoom`;
+  const destination = `/app/room/${roomCode}/sendMessage`;
+
+  /* Chatroom related */
   const [message, setMessage] = useState<string>("");
   const [chatHistory, setChatHistory] = useState<ChatMessageExtended[]>([]);
   const [isTimerStarted, setIsTimerStarted] = useState(false);
 
+  /* UI render */
   const [render, setRender] = useState(false);
 
-  const topic = `/topic/room/${roomCode}/chatRoom`;
-  const destination = `/app/room/${roomCode}/sendMessage`;
-
+  /* When launch, Connet to web socket */
   useEffect(() => {
     const cleanup = connect(
       socketUrl,
@@ -48,19 +62,9 @@ const ChatRoom = ({ isPresenter }: { isPresenter: boolean }) => {
     return cleanup;
   }, []);
 
-  const onMessageReceived = (msg: ChatMessage | TimerMessage) => {
-    if ("started" in msg && msg.started) {
-      // If msg has started field, it's TimerMessage
-      setIsTimerStarted(true);
-    } else {
-      // Otherwise, it's ChatMessage
-      setChatHistory((prevHistory) => [
-        ...prevHistory,
-        { ...(msg as ChatMessage), decisionMade: false },
-      ]);
-    }
-  };
+  /* -------- Web Socket ---------- */
 
+  /* Send message via websocket */
   const handleSendMessage = () => {
     if (!isTimerStarted) return;
     if (message.trim() !== "") {
@@ -75,6 +79,22 @@ const ChatRoom = ({ isPresenter }: { isPresenter: boolean }) => {
     }
   };
 
+  const onMessageReceived = (msg: ChatMessage | TimerMessage) => {
+    if ("started" in msg && msg.started) {
+      // If msg has started field, it's TimerMessage
+      setIsTimerStarted(true);
+    } else {
+      // Otherwise, it's ChatMessage
+      setChatHistory((prevHistory) => [
+        ...prevHistory,
+        { ...(msg as ChatMessage), decisionMade: false },
+      ]);
+    }
+  };
+
+  /* -------- Button Handler ---------- */
+
+  /* When click Keyboard ENTER, send message  */
   const handleKeyPress = (e: any) => {
     if (!isTimerStarted) return;
     if (e.key === "Enter") {
@@ -82,21 +102,7 @@ const ChatRoom = ({ isPresenter }: { isPresenter: boolean }) => {
     }
   };
 
-  const extractMessage = (fullMessage: string) => {
-    if (fullMessage.includes("Server has received your message")) {
-      const parts = fullMessage.split(":");
-      if (parts.length > 1) {
-        // Remove the first part ("Server has received your message")
-        parts.shift();
-        // Rejoin the remaining parts with ":" to restore the original message content
-        const message = parts.join(":").trim();
-        return message;
-      }
-    } else {
-      return fullMessage;
-    }
-  };
-
+  /* When click SetGuessRight button, see the message as a right guess */
   const handleGuessDecision = async ({
     message,
     guessedCorrect,
@@ -133,6 +139,27 @@ const ChatRoom = ({ isPresenter }: { isPresenter: boolean }) => {
     );
   };
 
+  /* -------- Helper function ---------- */
+
+  /* If someone guessed it right, display system message */
+  const extractMessage = (fullMessage: string) => {
+    if (fullMessage.includes("Server has received your message")) {
+      const parts = fullMessage.split(":");
+      if (parts.length > 1) {
+        // Remove the first part ("Server has received your message")
+        parts.shift();
+        // Rejoin the remaining parts with ":" to restore the original message content
+        const message = parts.join(":").trim();
+        return message;
+      }
+    } else {
+      return fullMessage;
+    }
+  };
+
+  /* -------- UI Component ---------- */
+
+  /* Main renderer */
   return (
     <div className={`chat-room-page`}>
       <div className="chat-room-bar">

@@ -1,5 +1,13 @@
 .building-penguin {
   position: absolute;
+  top: 45%;
+  left: 0%;
+  width: 40%;
+  height: auto;
+}
+
+.joining-penguin {
+  position: absolute;
   top: 50%;
   left: 0%;
   width: 40%;
@@ -7,15 +15,14 @@
 }
 
 .create-room-heading {
-  font-size: 2.5rem; /* Increase the font size of the heading */
-  margin-top: 17%; /* Increase spacing below the heading */
+  font-size: 2.5rem;
   margin-bottom: 5%;
 }
 
-.create-room-form-input {
-  font-size: 1.2rem; /* Increase the font size of the input field */
-}
-
-.create-button-margin {
-  font-size: 1rem; /* Adjust button font size if necessary */
+.form-input {
+  margin: 10px;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  font-size: 1.2rem;
 }

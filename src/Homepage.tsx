@@ -1,20 +1,28 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import "./css/Homepage.css";
+
+/* General function */
+import { disableScroll } from "./utils/CssOperation";
+
+/* Image used */
 import titleImage from "./assets/Title.png";
 import createRoomImage from "./assets/CreateRoom.png";
 import joinRoomImage from "./assets/JoinRoom.png";
 import joinMockRoomImage from "./assets/MockRoom.png";
-import { disableScroll } from "./utils/CssOperation";
+
+/* CSS */
+import "./css/Homepage.css";
 
 const Homepage: React.FC = () => {
   const navigate = useNavigate();
   const [log, setLog] = useState<string | null>(null);
 
-  // disable scroll for this page
+  /* -------- Use Effect ---------- */
+
+  /* Disable scroll for this page */
   useEffect(disableScroll, []);
 
-  // clear local storage
+  /* Clear local storage */
   useEffect(() => {
     localStorage.setItem("waitRoomVisited", "false");
     localStorage.setItem("presentRoomVisited", "false");
@@ -25,21 +33,29 @@ const Homepage: React.FC = () => {
     localStorage.setItem("geoguesserVisited", "false");
   }, []);
 
+  /* -------- Button Handler ---------- */
+
+  /* When click CreateRoom button */
   const handleCreateRoom = () => {
     setLog("Create Room clicked");
     navigate("/CreateRoomPage");
   };
 
+  /* When click JoinRoom button */
   const handleJoinRoom = () => {
     setLog("Join Room clicked");
     navigate("/JoinRoomPage");
   };
 
+  /* When click JoinMockRoom button */
   const handleJoinMockRoom = () => {
     setLog("Join Mock Room clicked");
     navigate("/JoinMockRoomPage");
   };
 
+  /* -------- UI Component ---------- */
+
+  /* Main renderer */
   return (
     <div className="page">
       <img src={titleImage} className="title-image" />

@@ -2,35 +2,42 @@ import React, { useState, useCallback, useEffect } from "react";
 import GoogleMapReact from "google-map-react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import { serverPort, websocketPort } from "./macro/MacroServer";
-import { BackMessage } from "./type/BackMessage";
-import { refreshTime } from "./macro/MacroConst";
+
+/* Macro and Type */
+import { serverPort } from "./macro/MacroServer";
+import { GOOGLE_MAPS_API_KEY } from "./macro/MacroConst";
 import { User } from "./type/User";
-import { UserProfile } from "./type/UserProfile";
 import { RoomStatus } from "./type/RoomStatus";
 import { PresentRoomInfo } from "./type/PresentRoomInfo";
-import "./css/Geoguesser.css";
+
+/* General function */
+import { updatePresentRoomInfo } from "./utils/RoomOperation";
+
+/* Web socket */
 import {
   connect,
   sendMsg,
   socketUrl,
   websocketUrl,
 } from "./utils/WebSocketService";
-import { Timer } from "./timer/Timer";
-import Instructions from "./Instructions";
-
-import { updatePresentRoomInfo } from "./utils/RoomOperation";
+import { BackMessage } from "./type/BackMessage";
 import { ModalMessage } from "./type/ModalMessage";
+
+/* Timer */
+import { Timer } from "./timer/Timer";
+
+/* Modal */
 import { Modal } from "./utils/Modal";
+
+/* Instruction */
+import Instructions from "./Instructions";
 import geoguesserInstructionPic1 from "./instructions/Geoguesser1.png";
 import geoguesserInstructionPic2 from "./instructions/Geoguesser2.png";
 
-enum GeoguesserStatus {
-  PRE_CHOOSE = "PRE_CHOOSE",
-  PLAYER_CHOOSE = "PLAYER_CHOOSE",
-  SUBMITTED = "SUBMITTED",
-}
+/* CSS */
+import "./css/Geoguesser.css";
 
+/* Instructions */
 const geoguesserInstructions = [
   {
     img: geoguesserInstructionPic1,
@@ -42,55 +49,25 @@ const geoguesserInstructions = [
   },
 ];
 
+/* Geoguesser game status */
+enum GeoguesserStatus {
+  PRE_CHOOSE = "PRE_CHOOSE",
+  PLAYER_CHOOSE = "PLAYER_CHOOSE",
+  SUBMITTED = "SUBMITTED",
+}
+
+/* Web socket message interface */
 interface GeoguesserMessage {
   roomCode: string;
   displayName: string;
   location: string;
 }
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyDENKVeABbLKd8DG_8H0RJLeh7y4FBqrUs";
-
 const GeoguesserPage: React.FC = () => {
-  const [map, setMap] = useState<google.maps.Map>();
-  const [mapsApi, setMapsApi] = useState<typeof google.maps>();
-  const [historyMarkers, setHistoryMarkers] = useState<
-    { lat: number; lng: number }[]
-  >([]);
-  const [currentMarker, setCurrentMarker] = useState<google.maps.Marker | null>(
-    null
-  );
-  const [showSubmitPopup, setShowSubmitPopup] = useState(false);
-  const [isMapInteractive, setIsMapInteractive] = useState(true);
-  const [guestWaitingPopup, setGuestWaitingPopup] = useState(false);
-  const [geoguesserStatus, setGeoguesserStatus] = useState<GeoguesserStatus>();
-  const [allSubmitted, setAllSubmitted] = useState(false);
-  const [userSubStatus, setUserSubStatus] = useState(false);
-  const [streetViewPanorama, setStreetViewPanorama] =
-    useState<google.maps.StreetViewPanorama>();
-
-  const [winnerPlayer, setWinnerPlayer] = useState<User | null>(null);
-  const [winnerDistance, setWinnerDistance] = useState<number>(0);
-  const [otherPlayers, setOtherPlayers] = useState<User[]>([]);
-  const [otherDistances, setOtherDistances] = useState<number[]>([]);
-
-  const [satelliteImageUrl, setSatelliteImageUrl] = useState<string | null>(
-    null
-  );
-  const [answerMarker, setAnswerMarker] = useState<google.maps.Marker | null>(
-    null
-  );
-  const [answerLocation, setAnswerLocation] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(null);
-  const [render, setRender] = useState(false);
-  const [otherUserMarkers, setOtherUserMarkers] = useState(new Map());
-  const [selectedField, setSelectedField] = useState<keyof PresentRoomInfo>();
-  const [instructionPopup, setInstructionPopup] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-
   const location = useLocation();
   const navigate = useNavigate();
+
+  /* Location passed field */
   const user = location.state?.user;
   const userID = user.userID;
   const roomCode = user.roomCode;
@@ -101,17 +78,171 @@ const GeoguesserPage: React.FC = () => {
   const isAdmin = user.isAdmin;
   const fieldName = location.state?.selectedField;
 
-  // If first time to this page, pop up instruction
+  /* User Status */
+  const [isMapInteractive, setIsMapInteractive] = useState(true);
+  const [guestWaitingPopup, setGuestWaitingPopup] = useState(false);
+  const [userSubStatus, setUserSubStatus] = useState(false);
+
+  /* Room Status */
+  const [geoguesserStatus, setGeoguesserStatus] = useState<GeoguesserStatus>();
+  const [allSubmitted, setAllSubmitted] = useState(false);
+
+  /* Google Map api related */
+  const [map, setMap] = useState<google.maps.Map>();
+  const [mapsApi, setMapsApi] = useState<typeof google.maps>();
+
+  /* Map related */
+  const [streetViewPanorama, setStreetViewPanorama] =
+    useState<google.maps.StreetViewPanorama>();
+  const [satelliteImageUrl, setSatelliteImageUrl] = useState<string | null>(
+    null
+  );
+
+  const [currentMarker, setCurrentMarker] = useState<google.maps.Marker | null>(
+    null
+  );
+  const [otherUserMarkers, setOtherUserMarkers] = useState(new Map());
+  const [historyMarkers, setHistoryMarkers] = useState<
+    { lat: number; lng: number }[]
+  >([]);
+
+  /* Target */
+  const [selectedField, setSelectedField] = useState<keyof PresentRoomInfo>();
+  const [answerMarker, setAnswerMarker] = useState<google.maps.Marker | null>(
+    null
+  );
+  const [answerLocation, setAnswerLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+
+  /* Result */
+  const [winnerPlayer, setWinnerPlayer] = useState<User | null>(null);
+  const [winnerDistance, setWinnerDistance] = useState<number>(0);
+  const [otherPlayers, setOtherPlayers] = useState<User[]>([]);
+  const [otherDistances, setOtherDistances] = useState<number[]>([]);
+
+  /* Modal */
+  const [showModal, setShowModal] = useState(false);
+
+  /* Popup */
+  const [showInstructionPopup, setShowInstructionPopup] = useState(false);
+  const [showSubmitPopup, setShowSubmitPopup] = useState(false);
+
+  /* UI render */
+  const [render, setRender] = useState(false);
+
+  /* -------- Use Effect ---------- */
+
+  /* If first time to this page, pop up instruction */
   useEffect(() => {
     const pageVisited = localStorage.getItem("geoguesserVisited");
 
     if (pageVisited !== "true") {
-      setInstructionPopup(true);
+      setShowInstructionPopup(true);
 
       // Mark the user as visited to prevent showing the popup again
       localStorage.setItem("geoguesserVisited", "true");
     }
   }, []);
+
+  /* When mount, connect to waitroom websocket */
+  useEffect(() => {
+    const topic = `/topic/room/${roomCode}/wait`;
+    const cleanup = connect(
+      socketUrl,
+      websocketUrl,
+      topic,
+      onMessageReceived,
+      setRender
+    );
+    return cleanup;
+  }, []);
+
+  /* When api loaded, connect to geoguesser websocket */
+  useEffect(() => {
+    if (mapsApi && map) {
+      const topic = `/topic/room/${roomCode}/geoguesser`;
+      const cleanup = connect(
+        socketUrl,
+        websocketUrl,
+        topic,
+        onGeoguesserMessageReceived,
+        setRender
+      );
+      return cleanup;
+    }
+  }, [mapsApi, map]);
+
+  /* When geoguesserStatus change, fetch info and change status */
+  useEffect(() => {
+    checkRoomStatus();
+    checkUserSubmit();
+    checkResult();
+    fetchFieldName();
+    if (geoguesserStatus === GeoguesserStatus.PRE_CHOOSE && !isPret) {
+      setGuestWaitingPopup(true);
+    } else if (geoguesserStatus === GeoguesserStatus.PLAYER_CHOOSE) {
+      setGuestWaitingPopup(false);
+      fetchPresenterLocation();
+    } else if (geoguesserStatus === GeoguesserStatus.SUBMITTED) {
+      setGuestWaitingPopup(false);
+      setShowSubmitPopup(false);
+      setAllSubmitted(true);
+      showAnswerLocation();
+    }
+  }, [geoguesserStatus]);
+
+  /* When userSubStatus change, Popup submited */
+  useEffect(() => {
+    if (userSubStatus && geoguesserStatus !== GeoguesserStatus.SUBMITTED) {
+      setShowSubmitPopup(true);
+      setIsMapInteractive(false);
+    }
+  }, [userSubStatus]);
+
+  /* Fetch street view image */
+  const updateStreetViewAndSatelliteImage: any = useCallback(
+    (lat: any, lng: any) => {
+      if (isMapInteractive && map && mapsApi && streetViewPanorama) {
+        new mapsApi.StreetViewService().getPanorama(
+          { location: { lat, lng }, radius: 50 },
+          (data, status) => {
+            if (status === mapsApi.StreetViewStatus.OK) {
+              streetViewPanorama.setPosition({ lat, lng });
+              streetViewPanorama.setVisible(true);
+              setSatelliteImageUrl(null);
+            } else {
+              streetViewPanorama.setVisible(false);
+
+              const zoom = 15;
+              const imageWidth = window.innerWidth;
+              const imageHeight = Math.floor(window.innerHeight / 2);
+              const imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=${zoom}&size=5000x3000&maptype=satellite&key=${GOOGLE_MAPS_API_KEY}`;
+              setSatelliteImageUrl(imageUrl);
+            }
+          }
+        );
+      }
+    },
+    [mapsApi, streetViewPanorama]
+  );
+
+  /* When location mark changed, set presenter location */
+  useEffect(() => {
+    if (answerLocation) {
+      updateStreetViewAndSatelliteImage(answerLocation.lat, answerLocation.lng);
+    }
+  }, [answerLocation, updateStreetViewAndSatelliteImage]);
+
+  /* When all submitted, show modal */
+  useEffect(() => {
+    if (allSubmitted && !showModal) {
+      setShowModal(true);
+    }
+  }, [allSubmitted]);
+
+  /* -------- Refresh Management ---------- */
 
   useEffect(() => {
     const notifyServerOnUnload = (event: BeforeUnloadEvent) => {
@@ -130,177 +261,7 @@ const GeoguesserPage: React.FC = () => {
     };
   }, []);
 
-  const handleApiLoaded = (map: google.maps.Map, maps: typeof google.maps) => {
-    setMap(map);
-    setMapsApi(maps);
-    console.log("map", map);
-    console.log("mapsApi", maps);
-
-    // Find the element in the DOM
-    const streetViewDiv = document.getElementById("street-view");
-
-    // Check if the element exists
-    if (streetViewDiv) {
-      // Create a StreetViewPanorama instance
-      const panorama = new maps.StreetViewPanorama(streetViewDiv, {
-        pov: { heading: 165, pitch: 0 },
-        visible: false,
-        addressControl: false,
-      });
-
-      setStreetViewPanorama(panorama);
-    } else {
-      console.error("Street view div not found");
-    }
-  };
-
-  const handleSubmitAnswer = async () => {
-    if (currentMarker) {
-      const lat = currentMarker?.getPosition()?.lat();
-      const lng = currentMarker?.getPosition()?.lng();
-      const position = `${lat}, ${lng}`;
-
-      try {
-        const response = await fetch(
-          `${serverPort}/setTargetLocation?roomCode=${roomCode}&location=${position}&userID=${userID}`,
-          { method: "POST" }
-        );
-        if (response.ok) {
-          console.log("submitted position:", position);
-        } else {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-      } catch (error) {
-        console.error("Failed to submit location:", error);
-      }
-    }
-  };
-
-  const updateStreetViewAndSatelliteImage: any = useCallback((lat: any, lng: any) => {
-    if (isMapInteractive && map && mapsApi && streetViewPanorama) {
-      new mapsApi.StreetViewService().getPanorama(
-        { location: { lat, lng }, radius: 50 },
-        (data, status) => {
-          if (status === mapsApi.StreetViewStatus.OK) {
-            streetViewPanorama.setPosition({ lat, lng });
-            streetViewPanorama.setVisible(true);
-            setSatelliteImageUrl(null);
-          } else {
-            streetViewPanorama.setVisible(false);
-
-            const zoom = 15;
-            const imageWidth = window.innerWidth;
-            const imageHeight = Math.floor(window.innerHeight / 2);
-            const imageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=${zoom}&size=5000x3000&maptype=satellite&key=${GOOGLE_MAPS_API_KEY}`;
-            setSatelliteImageUrl(imageUrl);
-          }
-        }
-      );
-    }
-  }, [mapsApi, streetViewPanorama]);
-
-  const handleMapClick = (event: { lat: any; lng: any }) => {
-    const { lat, lng } = event;
-    if (isMapInteractive && map && mapsApi) {
-      if (currentMarker) {
-        currentMarker.setMap(null);
-      }
-
-      const newMarker = new mapsApi.Marker({
-        position: { lat, lng },
-        map: map,
-      });
-
-      setCurrentMarker(newMarker);
-
-      const location = `${lat}, ${lng}`;
-
-      handlePin(location);
-
-      setHistoryMarkers((prevHistoyMarkers) => [
-        ...prevHistoyMarkers,
-        { lat, lng },
-      ]);
-
-      if (isPret) {
-        updateStreetViewAndSatelliteImage(lat, lng);
-      }
-    }
-  };
-
-  const checkRoomStatus = async () => {
-    try {
-      const response = await fetch(
-        `${serverPort}/getGeoguesserStatus?roomCode=${roomCode}`,
-        { method: "GET" }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log("status get: ", data);
-      setGeoguesserStatus(data.status);
-    } catch (error) {
-      console.error("Failed to fetch room status:", error);
-    }
-  };
-
-  const checkUserSubmit = async () => {
-    try {
-      const response = await fetch(
-        `${serverPort}/getUserGeoSubmission?roomCode=${roomCode}&userID=${userID}`,
-        { method: "GET" }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setUserSubStatus(data);
-    } catch (error) {
-      console.error("Failed to fetch user submit status:", error);
-    }
-  };
-
-  const checkResult = async () => {
-    try {
-      const response = await fetch(
-        `${serverPort}/geoGuesserRank?roomCode=${roomCode}`,
-        { method: "GET" }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      console.log(data.rankPerson);
-
-      setWinnerPlayer(data.rankPerson[0]);
-      setWinnerDistance(data.rankDistance[0]);
-
-      setOtherPlayers(data.rankPerson.slice(1));
-      setOtherDistances(data.rankDistance.slice(1));
-    } catch (error) {
-      console.error("Failed to get winner:", error);
-    }
-  };
-
-  // Back to present page
-  const handleBackMessage = async () => {
-    navigate("/PresentPage", {
-      state: { user, presenter },
-    });
-  };
-
-  function parseCoordinates(coordString: string) {
-    const parts = coordString.split(",").map((part) => part.trim());
-    return parts.map((num) => parseFloat(num));
-  }
+  /* -------- Use Effect helper ---------- */
 
   const fetchPresenterLocation = async () => {
     try {
@@ -350,34 +311,9 @@ const GeoguesserPage: React.FC = () => {
     }
   };
 
-  const showAnswerLocation: any = () => {
-    if (answerLocation && map && mapsApi && !isPret) {
-      if (answerMarker) {
-        answerMarker.setMap(null);
-      }
+  /* -------- Web Socket ---------- */
 
-      const newMarker = new mapsApi.Marker({
-        position: answerLocation,
-        map: map,
-        icon: {
-          url: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
-          scaledSize: new google.maps.Size(40, 40),
-        },
-      });
-      setAnswerMarker(newMarker);
-    }
-  };
-
-  // Show modal
-  const handleModalMessage = () => {
-    // Update PresentRoomInfo
-    if (fieldName) {
-      updatePresentRoomInfo({ roomCode, field: fieldName });
-    }
-    // Show the modal
-    setShowModal(true);
-  };
-
+  /* When receive message from waitroom websocket */
   const onMessageReceived = useCallback(
     (msg: boolean) => {
       checkRoomStatus();
@@ -405,6 +341,7 @@ const GeoguesserPage: React.FC = () => {
     ]
   );
 
+  /* When receive message from geoguesser websocket */
   const onGeoguesserMessageReceived = useCallback(
     (msg: GeoguesserMessage | ModalMessage | BackMessage) => {
       // Prevent updating for the current user or the presenter.
@@ -468,11 +405,11 @@ const GeoguesserPage: React.FC = () => {
       } else if ("show" in msg) {
         // ModalMessage
         if (msg.show) {
-          handleModalMessage();
+          receiveModalMessage();
         }
       } else {
         // BackMessage
-        handleBackMessage();
+        receiveBackMessage();
       }
     },
     [
@@ -485,13 +422,144 @@ const GeoguesserPage: React.FC = () => {
     ]
   );
 
-  useEffect(() => {
-    if (allSubmitted && !showModal) {
-      setShowModal(true);
+  /* When receive modal message, show modal */
+  const receiveModalMessage = () => {
+    // Update PresentRoomInfo
+    if (fieldName) {
+      updatePresentRoomInfo({ roomCode, field: fieldName });
     }
-  }, [allSubmitted]);
+    // Show the modal
+    setShowModal(true);
+  };
 
-  // Send GeoguesserMessage to server
+  /* When receive back message, back to present page */
+  const receiveBackMessage = async () => {
+    navigate("/PresentPage", {
+      state: { user, presenter },
+    });
+  };
+
+  /* -------- Button Handler ---------- */
+
+  /* When click SubmitAnswer button */
+  const handleSubmitAnswer = async () => {
+    if (currentMarker) {
+      const lat = currentMarker?.getPosition()?.lat();
+      const lng = currentMarker?.getPosition()?.lng();
+      const position = `${lat}, ${lng}`;
+
+      try {
+        const response = await fetch(
+          `${serverPort}/setTargetLocation?roomCode=${roomCode}&location=${position}&userID=${userID}`,
+          { method: "POST" }
+        );
+        if (response.ok) {
+          console.log("submitted position:", position);
+        } else {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+      } catch (error) {
+        console.error("Failed to submit location:", error);
+      }
+    }
+  };
+
+  /* When click on map */
+  const handleMapClick = (event: { lat: any; lng: any }) => {
+    const { lat, lng } = event;
+    if (isMapInteractive && map && mapsApi) {
+      if (currentMarker) {
+        currentMarker.setMap(null);
+      }
+
+      const newMarker = new mapsApi.Marker({
+        position: { lat, lng },
+        map: map,
+      });
+
+      setCurrentMarker(newMarker);
+
+      const location = `${lat}, ${lng}`;
+
+      handlePin(location);
+
+      setHistoryMarkers((prevHistoyMarkers) => [
+        ...prevHistoyMarkers,
+        { lat, lng },
+      ]);
+
+      if (isPret) {
+        updateStreetViewAndSatelliteImage(lat, lng);
+      }
+    }
+  };
+
+  /* -------- Check status ---------- */
+
+  /* Check Geoguesser status */
+  const checkRoomStatus = async () => {
+    try {
+      const response = await fetch(
+        `${serverPort}/getGeoguesserStatus?roomCode=${roomCode}`,
+        { method: "GET" }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("status get: ", data);
+      setGeoguesserStatus(data.status);
+    } catch (error) {
+      console.error("Failed to fetch room status:", error);
+    }
+  };
+
+  /* Check if user has submitted */
+  const checkUserSubmit = async () => {
+    try {
+      const response = await fetch(
+        `${serverPort}/getUserGeoSubmission?roomCode=${roomCode}&userID=${userID}`,
+        { method: "GET" }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setUserSubStatus(data);
+    } catch (error) {
+      console.error("Failed to fetch user submit status:", error);
+    }
+  };
+
+  /* Check winner and other game results */
+  const checkResult = async () => {
+    try {
+      const response = await fetch(
+        `${serverPort}/geoGuesserRank?roomCode=${roomCode}`,
+        { method: "GET" }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      setWinnerPlayer(data.rankPerson[0]);
+      setWinnerDistance(data.rankDistance[0]);
+
+      setOtherPlayers(data.rankPerson.slice(1));
+      setOtherDistances(data.rankDistance.slice(1));
+    } catch (error) {
+      console.error("Failed to get winner:", error);
+    }
+  };
+
+  /* When click on the map */
   const handlePin = useCallback(
     (location: string) => {
       const destination = `/app/room/${roomCode}/sendGuessing`;
@@ -506,69 +574,7 @@ const GeoguesserPage: React.FC = () => {
     [roomCode, displayName]
   );
 
-  // check user sub status
-  useEffect(() => {
-    checkRoomStatus();
-    checkUserSubmit();
-    checkResult();
-    fetchFieldName();
-    if (geoguesserStatus === GeoguesserStatus.PRE_CHOOSE && !isPret) {
-      setGuestWaitingPopup(true);
-    } else if (geoguesserStatus === GeoguesserStatus.PLAYER_CHOOSE) {
-      setGuestWaitingPopup(false);
-      fetchPresenterLocation();
-    } else if (geoguesserStatus === GeoguesserStatus.SUBMITTED) {
-      setGuestWaitingPopup(false);
-      setShowSubmitPopup(false);
-      setAllSubmitted(true);
-      showAnswerLocation();
-    }
-  }, [geoguesserStatus]);
-
-  useEffect(() => {
-    if (userSubStatus && geoguesserStatus !== GeoguesserStatus.SUBMITTED) {
-      setShowSubmitPopup(true);
-      setIsMapInteractive(false);
-    }
-  }, [userSubStatus]);
-
-  // Connect to waitroom websokect
-  useEffect(() => {
-    const topic = `/topic/room/${roomCode}/wait`;
-    const cleanup = connect(
-      socketUrl,
-      websocketUrl,
-      topic,
-      onMessageReceived,
-      setRender
-    );
-    return cleanup;
-  }, []);
-
-  // Connect to GeoguesserMessage websokect
-  useEffect(() => {
-    if (mapsApi && map) {
-      const topic = `/topic/room/${roomCode}/geoguesser`;
-      const cleanup = connect(
-        socketUrl,
-        websocketUrl,
-        topic,
-        onGeoguesserMessageReceived,
-        setRender
-      );
-      return cleanup;
-    }
-  }, [mapsApi, map]);
-
-  // set presenter location
-  useEffect(() => {
-    if (answerLocation) {
-      updateStreetViewAndSatelliteImage(answerLocation.lat, answerLocation.lng);
-      console.log("streetview set");
-    }
-  }, [answerLocation, updateStreetViewAndSatelliteImage]);
-
-  // When click back to presenet room button
+  /* When click Continue button in modal */
   const handleBackButton = async () => {
     // Change room status
     const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;
@@ -589,7 +595,7 @@ const GeoguesserPage: React.FC = () => {
     }
   };
 
-  // When click choose another game button
+  /* When click ChooseAnotherGame button */
   const handleChooseAnotherGame = async () => {
     // Change room status
     const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;
@@ -605,37 +611,90 @@ const GeoguesserPage: React.FC = () => {
     }
   };
 
+  /* -------- Helper function ---------- */
+
+  const apiLoaded = (map: google.maps.Map, maps: typeof google.maps) => {
+    setMap(map);
+    setMapsApi(maps);
+
+    // Find the element in the DOM
+    const streetViewDiv = document.getElementById("street-view");
+
+    // Check if the element exists
+    if (streetViewDiv) {
+      // Create a StreetViewPanorama instance
+      const panorama = new maps.StreetViewPanorama(streetViewDiv, {
+        pov: { heading: 165, pitch: 0 },
+        visible: false,
+        addressControl: false,
+      });
+
+      setStreetViewPanorama(panorama);
+    } else {
+      console.error("Street view div not found");
+    }
+  };
+
+  /* Parse marker coordinate */
+  const parseCoordinates = (coordString: string) => {
+    const parts = coordString.split(",").map((part) => part.trim());
+    return parts.map((num) => parseFloat(num));
+  };
+
+  /* -------- UI Component ---------- */
+
+  /* Show marker of user's click on map */
+  const showAnswerLocation: any = () => {
+    if (answerLocation && map && mapsApi && !isPret) {
+      if (answerMarker) {
+        answerMarker.setMap(null);
+      }
+
+      const newMarker = new mapsApi.Marker({
+        position: answerLocation,
+        map: map,
+        icon: {
+          url: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
+          scaledSize: new google.maps.Size(40, 40),
+        },
+      });
+      setAnswerMarker(newMarker);
+    }
+  };
+
+  /* Modal message */
   const modalContent = () => {
     checkResult();
-    return winnerPlayer? (
+    return winnerPlayer ? (
       <>
         <h2>Winner:</h2>
-          <h2 style={{ color: "orange" }}>
-            {winnerPlayer && (
-              <>
-                {winnerPlayer.displayName}: {winnerDistance.toFixed(2)} km away
-              </>
-            )}
-          </h2>
-          <div style={{ margin: "10%" }}></div>
+        <h2 style={{ color: "orange" }}>
+          {winnerPlayer && (
+            <>
+              {winnerPlayer.displayName}: {winnerDistance.toFixed(2)} km away
+            </>
+          )}
+        </h2>
+        <div style={{ margin: "10%" }}></div>
 
-          <h3>The following results are:</h3>
+        <h3>The following results are:</h3>
 
-          {otherPlayers.map((otherPlayer, index) => {
-            const distance = otherDistances[index].toFixed(2);
+        {otherPlayers.map((otherPlayer, index) => {
+          const distance = otherDistances[index].toFixed(2);
 
-            return (
-              <div key={index}>
-                {otherPlayer.displayName} : {distance}km away
-              </div>
-            );
-          })}
-</>
+          return (
+            <div key={index}>
+              {otherPlayer.displayName} : {distance}km away
+            </div>
+          );
+        })}
+      </>
     ) : (
       <h3>No one has submitted answer!</h3>
     );
   };
 
+  /* Main renderer */
   return render ? (
     <div className="page" style={{ alignItems: "flex-start" }}>
       <div
@@ -665,6 +724,7 @@ const GeoguesserPage: React.FC = () => {
         </h1>
       </div>
 
+      {/* Street View */}
       <div className="content-container">
         <div className="street-view-section">
           <h2>Referenced Street View</h2>
@@ -675,6 +735,7 @@ const GeoguesserPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Map */}
         <div className="map-section">
           <h2>Choose Your Guess Point on Map</h2>
           <div className="map-container">
@@ -686,7 +747,7 @@ const GeoguesserPage: React.FC = () => {
               defaultCenter={{ lat: 0, lng: 0 }}
               defaultZoom={2}
               yesIWantToUseGoogleMapApiInternals
-              onGoogleApiLoaded={({ map, maps }) => handleApiLoaded(map, maps)}
+              onGoogleApiLoaded={({ map, maps }) => apiLoaded(map, maps)}
               onClick={handleMapClick}
             />
           </div>
@@ -744,11 +805,11 @@ const GeoguesserPage: React.FC = () => {
       )}
 
       {/* First time instruction popup */}
-      {instructionPopup && (
+      {showInstructionPopup && (
         <Instructions
           instructionPics={geoguesserInstructions}
           onlyShowPopup={true}
-          closeButtonFunction={() => setInstructionPopup(false)}
+          closeButtonFunction={() => setShowInstructionPopup(false)}
         />
       )}
     </div>

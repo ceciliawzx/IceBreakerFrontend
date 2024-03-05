@@ -1,3 +1,4 @@
+/* Letter Status used in Wordle and GeoGuesser */
 export enum LetterStatus {
   UNCHECKED = "UNCHECKED",
   GREY = "GREY",

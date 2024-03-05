@@ -1,10 +1,14 @@
 import React, { useCallback, useRef, useEffect, useState } from "react";
+
+/* Macro and Type */
 import {
   DrawingCanvasProps,
   DrawingData,
   presetColors,
   canvasBackgroundColor,
 } from "../type/DrawingCanvas";
+
+/* CSS */
 import "../css/DrawingCanvas.css";
 
 const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
@@ -15,13 +19,16 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
   isDrawer,
   target,
 }) => {
+  /* Canvas related */
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef<boolean>(false);
   const [isEraser, setIsEraser] = useState<boolean>(false); // New state for eraser
   const [selectedColor, setSelectedColor] = useState<string>("black"); // Default color
   const backgroundColor = canvasBackgroundColor; // Canvas background color
 
-  // Set responsive canvas size
+  /* -------- Use Effect ---------- */
+
+  /* When mount, set canvas size */
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -40,7 +47,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     };
   }, []);
 
-  // When receive drawingMessage from the server, draw it on the canvs
+  /* When receive drawingMessage from the server, draw it on the canvs */
   useEffect(() => {
     if (externalDrawing?.drawingData) {
       if (externalDrawing.drawingData.clear) {
@@ -59,7 +66,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     }
   }, [externalDrawing, externalDrawing?.drawingData]);
 
-  // When receives paste image from the server, draw it on the canvas
+  /* When receives paste image from the server, draw it on the canvas*/
   useEffect(() => {
     if (externalPasteImg?.pasteImgData?.imgUrl) {
       const img = new Image();
@@ -75,6 +82,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     }
   }, [externalPasteImg, externalPasteImg?.pasteImgData]);
 
+  /* When paste to canvas, upload image to server */
   useEffect(() => {
     const handlePaste = async (event: any) => {
       if (!isDrawer) return;
@@ -123,6 +131,21 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     };
   }, [isDrawer, onPaste]);
 
+  /* When click Eraser button, change between eraser and pen */
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    if (isEraser) {
+      canvas.classList.add("eraser-cursor");
+    } else {
+      canvas.classList.remove("eraser-cursor");
+    }
+  }, [isEraser]);
+
+  /* -------- Interaction Handler ---------- */
+
+  /* store stroke */
   const draw = useCallback(
     (drawingData: DrawingData) => {
       const canvas = canvasRef.current;
@@ -149,6 +172,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     [[backgroundColor]]
   );
 
+  /* When mouse move */
   const handleMouseMove = (event: MouseEvent) => {
     if (!isDrawer) return;
 
@@ -175,6 +199,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     onDraw(drawingData);
   };
 
+  /* When mouse holding */
   const handleMouseDown = (event: MouseEvent) => {
     if (!isDrawer) return;
 
@@ -193,17 +218,16 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       drawing: false,
       newLine: true,
       color: isEraser ? backgroundColor : selectedColor, // Use background color if eraser is active
-      // TODO
       strokeWidth: isEraser ? 20 : 2,
       eraser: isEraser,
       clear: false,
     };
 
-    // draw(drawingData);
     onDraw(drawingData);
     console.log("ondraw in mouse down", drawingData);
   };
 
+  /* When mouse released */
   const handleMouseUp = (event: MouseEvent) => {
     if (!isDrawer) return;
 
@@ -230,6 +254,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     draw(drawingData); // End the current path
   };
 
+  /* When mouse leave canvas */
   const handleMouseLeave = (event: MouseEvent) => {
     if (!isDrawer || !isDrawing.current) return;
 
@@ -257,6 +282,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     onDraw(drawingData);
   };
 
+  /* When click ClearCanvas button */
   const handleClearCanvas = () => {
     const drawingData: DrawingData = {
       x: 0,
@@ -271,6 +297,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     onDraw(drawingData);
   };
 
+  /* When interaction happens, deal with it */
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -291,18 +318,9 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     };
   }, [handleMouseDown, handleMouseUp, handleMouseMove, handleMouseLeave]);
 
-  // Change cursor
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+  /* -------- Helper function ---------- */
 
-    if (isEraser) {
-      canvas.classList.add("eraser-cursor");
-    } else {
-      canvas.classList.remove("eraser-cursor");
-    }
-  }, [isEraser]);
-
+  /* Compress uploaded image */
   const compressImage = (file: Blob, callback: (blob: Blob | null) => void) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -317,7 +335,7 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
 
         // Adjust the quality to reduce file size
         // Lower the quality for smaller size
-        canvas.toBlob((blob) => callback(blob), "image/jpeg", 0.7); 
+        canvas.toBlob((blob) => callback(blob), "image/jpeg", 0.7);
       };
       if (e.target?.result) {
         img.src = e.target.result as string;
@@ -326,9 +344,12 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     reader.readAsDataURL(file);
   };
 
-  // Placeholder for non-drawer users to maintain layout consistency
+  /* -------- UI Component ---------- */
+
+  /* Placeholder for non-drawer users to maintain layout consistency */
   const Placeholder = () => <div style={{ height: "51px" }}></div>;
 
+  /* Main renderer */
   return (
     <div
       style={{
