@@ -6,6 +6,7 @@ stages:
   - deploy_dev
   - deploy_master
   - deploy_test
+  - deploy_release
 
 build-app:
   stage: build
@@ -66,4 +67,20 @@ dev_deploy:
     - scp -r build/* zw4021@texel01:/vol/project/2023/60021/g236002112/dev
   except:
     - master
+    - release
     - test
+
+release_deploy:
+  stage: deploy_release
+  before_script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - 'echo -e "Host texel01\n\tHostName shell2.doc.ic.ac.uk\n\tUser zw4021\n\tRequestTTY yes\n\tIdentityFile ~/.ssh/id_rsa\n\tRemoteCommand ssh texel01" > ~/.ssh/config'
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+  script:
+    - rm -f zw4021@texel01:/vol/project/2023/60021/g236002112/release/*
+    - scp -r build/* zw4021@texel01:/vol/project/2023/60021/g236002112/release
+  only:
+    - release
