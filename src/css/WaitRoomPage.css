@@ -84,7 +84,7 @@
   top: 30%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 1000;
+  z-index: var(--general-popup-layer);
 }
 
 .change-presenter-popup ul {
@@ -123,5 +123,5 @@
   display: flex;
   flex-direction: column;
   align-items: center; /* Center align children */
-  z-index: 1; /* Below the instruction button */
+  z-index: 1;
 }

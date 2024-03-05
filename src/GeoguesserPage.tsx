@@ -767,7 +767,7 @@ const GeoguesserPage: React.FC = () => {
         {isAdmin && (
           <button
             className="button admin-only-button"
-            style={{ zIndex: "var(--above-overlay-index)" }}
+            style={{ zIndex: "var(--above-timer-layer)" }}
             onClick={handleChooseAnotherGame}
           >
             Choose Another Game
@@ -792,6 +792,7 @@ const GeoguesserPage: React.FC = () => {
           }}
           isAdmin={isAdmin}
           modalContent={modalContent()}
+          needOverlay={false}
         />
       )}
 

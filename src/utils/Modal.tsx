@@ -5,12 +5,25 @@ export const Modal = ({
   onClose,
   isAdmin,
   modalContent,
+  needOverlay = true,
 }: {
   onClose: any;
   isAdmin: boolean;
   modalContent: JSX.Element;
-}) => (
-  <div className="overlay-popup">
+  needOverlay?: boolean;
+}) =>
+  needOverlay ? (
+    <div className="modal-popup">
+      <div className="modal">
+        {modalContent}
+        {isAdmin && (
+          <button className="button admin-only-button" onClick={onClose}>
+            Continue
+          </button>
+        )}
+      </div>
+    </div>
+  ) : (
     <div className="modal">
       {modalContent}
       {isAdmin && (
@@ -19,8 +32,7 @@ export const Modal = ({
         </button>
       )}
     </div>
-  </div>
-);
+  );
 
 // TimerModal as a separate component
 export const TimerModal = ({
@@ -66,7 +78,7 @@ export const TimerModal = ({
   };
 
   return (
-    <div className="overlay-popup">
+    <div className="timer-popup">
       <div className="modal">
         {isAdmin && (
           <>

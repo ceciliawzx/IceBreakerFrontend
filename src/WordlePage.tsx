@@ -819,7 +819,7 @@ const Wordle = () => {
         {isAdmin && (
           <button
             className="button admin-only-button"
-            style={{ zIndex: "var(--above-overlay-index)" }}
+            style={{ zIndex: "var(--above-timer-layer)" }}
             onClick={handleBackButton}
           >
             Choose Another Game

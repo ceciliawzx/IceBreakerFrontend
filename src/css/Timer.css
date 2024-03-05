@@ -22,6 +22,7 @@
   top: 0%;
   left: 15%;
   transform: translateX(-50%);
+  z-index: var(--above-overlay-layer);
 }
 
 /* Progress bar container */

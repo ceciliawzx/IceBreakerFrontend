@@ -99,7 +99,7 @@ const Instructions: React.FC<InstructionsProps> = ({
       {onlyShowPopup ? (
         <InstructionPopup />
       ) : (
-        <div style={{ zIndex: "var(--instruction-overlay-index)" }}>
+        <div style={{ zIndex: "var(--instruction-layer)" }}>
           {/* Instruction Button */}
           <button
             className="instruction-button"
