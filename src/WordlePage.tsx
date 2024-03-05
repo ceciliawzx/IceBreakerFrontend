@@ -439,6 +439,11 @@ const Wordle = () => {
 
   /* When use Keyboard BACKSPACE to delete letter, update cell */
   const handleBackspace = (row: number, col: number) => {
+    // If not your turn, cannot delete
+    if (!isSameUser(user, currentGuesser) || isFinished || !isTimerStarted) {
+      return;
+    }
+
     // If empty first column, cannot delete
     if (col <= 0 && currentGuess[row][col].letter === "") {
       return;
