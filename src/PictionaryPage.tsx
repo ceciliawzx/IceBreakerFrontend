@@ -68,6 +68,9 @@ const PictionaryPage = () => {
   const [wordFetched, setWordFetched] = useState(false);
   const [instructionPopup, setInstructionPopup] = useState(false);
 
+  const topic = `/topic/room/${roomCode}/drawing`;
+  const destination = `/app/room/${roomCode}/sendDrawing`;
+
   // disable scroll for this page
   useEffect(disableScroll, []);
 
@@ -79,10 +82,8 @@ const PictionaryPage = () => {
   useEffect(() => {
     // set target word
     fetchTargetWord();
-    // connect to drawing websocket
-    const topic = `/topic/room/${roomCode}/drawing`;
 
-    // Store the cleanup function returned by connect
+    // connect to drawing websocket
     const cleanup = connect(
       socketUrl,
       websocketUrl,
@@ -201,7 +202,6 @@ const PictionaryPage = () => {
   // Send DrawingMessage to server
   const handleDraw = useCallback(
     (drawingData: DrawingData) => {
-      const destination = `/app/room/${roomCode}/sendDrawing`;
       const drawingMessage: DrawingMessage = {
         roomCode,
         drawingData,
@@ -224,7 +224,7 @@ const PictionaryPage = () => {
         timestamp: new Date().toISOString(),
         paster: userID,
       };
-      console.log('Sending pasteImgMessage ', pasteImgMessage);
+      console.log("Sending pasteImgMessage ", pasteImgMessage);
       sendMsg(destination, pasteImgMessage);
     },
     [roomCode]
