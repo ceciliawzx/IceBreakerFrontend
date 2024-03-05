@@ -1,51 +1,71 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
+import jsPDF from "jspdf";
+
+/* Macro and Type */
 import { serverPort } from "./macro/MacroServer";
 import { User } from "./type/User";
 import { UserProfile } from "./type/UserProfile";
-import jsPDF from "jspdf";
+import { SimilarityReports, ReportEntry } from "./type/SimilarityReport";
+
+/* General function */
 import { exportUserProfileAsPDF, addPDFInfo } from "./utils/ExportPDF";
-import { disableScroll } from "./utils/CssOperation";
 import { isSameUser } from "./utils/CommonCompare";
-import "./css/CommonStyle.css";
-import "./css/AllPresentedPage.css";
+
+/* Image used */
 import celebrationLeft from "./assets/CelebrationLeft.png";
 import celebrationRight from "./assets/CelebrationRight.png";
-import { SimilarityReports, ReportEntry } from "./type/SimilarityReport";
+
+/* CSS */
+import "./css/CommonStyle.css";
+import "./css/AllPresentedPage.css";
 
 const AllPresentedPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+
+  /* Location passed field */
   const user = location.state?.user;
   const roomCode = user.roomCode;
   const displayName = user.displayName;
 
+  /* Users in room */
   const [admin, setAdmin] = useState<User | null>(null);
   const [allUserProfile, setAllUserProfile] = useState<UserProfile[]>([]);
   const [selectedUserProfile, setSelectedUserProfile] =
     useState<UserProfile | null>(null);
+  const [similarityReports, setSimilarityReports] =
+    useState<SimilarityReports | null>(null);
+
+  /* Popup */
   const [showProfilePopup, setShowProfilePopup] = useState(false);
   const [showDestroyPopUp, setShowDestroyPopUp] = useState(false);
   const [showDismissPopUp, setShowDismissPopup] = useState(false);
-  const [similarityReports, setSimilarityReports] =
-    useState<SimilarityReports | null>(null);
+
+  /* UI render */
   const [render, setRender] = useState(false);
   const [loadingSimilarityReports, setLoadingSimilarityReports] =
     useState(true);
 
-  // Fetch all users when component mounts
+  /* -------- Use Effect ---------- */
+
+  /* Initial pull */
   useEffect(() => {
     fetchUsers();
     fetchSimilarityReports();
   }, []);
 
+  /* When fetch completed, start render */
   useEffect(() => {
     if (allUserProfile !== null && admin !== null && !render) {
       setRender(true);
     }
   }, [allUserProfile, admin]);
 
+  /* -------- Button Handler ---------- */
+
+  /* When click BackToHomePage button, navigate */
   const handleBackToHomePage = async () => {
     // Normal user, jump back
     if (!isSameUser(user, admin)) {
@@ -56,6 +76,7 @@ const AllPresentedPage: React.FC = () => {
     }
   };
 
+  /* When admin click BackToHomePage button, destroy room */
   const handleDestroyRoom = async () => {
     const response = await fetch(
       `${serverPort}/destroyRoom?roomCode=${roomCode}`,
@@ -71,6 +92,7 @@ const AllPresentedPage: React.FC = () => {
     }
   };
 
+  /* When click ViewProfile button */
   const handleViewProfile = async (selectedUser: UserProfile | null) => {
     const foundUser =
       allUserProfile.find(
@@ -82,36 +104,16 @@ const AllPresentedPage: React.FC = () => {
     setShowProfilePopup(true);
   };
 
-  const exportAllUserProfileAsPDF = async () => {
-    for (const userProfile of allUserProfile) {
-      const similarityReport = findSimilarityReport(userProfile);
-      await new Promise((resolve) => {
-        console.log("exporting user profile as PDF: ", userProfile);
-        exportUserProfileAsPDF(
-          userProfile,
-        ); // Assuming this is synchronous or has a callback
-        setTimeout(resolve, 1000); // Wait for 1 second before proceeding to the next PDF (adjust as needed)
-      });
-    }
+  /* When click ExportPDF in ViewProfile button */
+  const handleExportUserProfileAsPDF = (selectedUserProfile: UserProfile) => {
+    const userSpecificReport: Partial<SimilarityReports> =
+      findSimilarityReport(selectedUserProfile);
+    exportUserSimilarityReportAsPDF(userSpecificReport, selectedUserProfile);
   };
 
-  const exportAllInSinglePDF = async () => {
-    const doc = new jsPDF("p", "mm", "a4", true);
+  /* -------- Check status ---------- */
 
-    for (let i = 0; i < allUserProfile.length; i++) {
-      const similarityReport = findSimilarityReport(allUserProfile[i]);
-      console.log("exporting user profile as PDF: ", allUserProfile[i]);
-      addPDFInfo(doc, allUserProfile[i]);
-
-      // Check if it's not the last iteration
-      if (i < allUserProfile.length - 1) {
-        doc.addPage(); // Add a new page for the next user (adjust as needed)
-      }
-    }
-
-    doc.save("all_user_profiles.pdf");
-  };
-
+  /* Get all users info */
   const fetchUsers = async () => {
     try {
       const response = await fetch(
@@ -140,6 +142,7 @@ const AllPresentedPage: React.FC = () => {
     }
   };
 
+  /* Get similiarity report */
   const fetchSimilarityReports = async () => {
     try {
       const response = await fetch(
@@ -158,6 +161,67 @@ const AllPresentedPage: React.FC = () => {
     }
   };
 
+  /* -------- Export PDF ---------- */
+
+  /* Export every pdf */
+  const exportAllUserProfileAsPDF = async () => {
+    for (const userProfile of allUserProfile) {
+      await new Promise((resolve) => {
+        console.log("exporting user profile as PDF: ", userProfile);
+        exportUserProfileAsPDF(userProfile); // Assuming this is synchronous or has a callback
+        setTimeout(resolve, 1000); // Wait for 1 second before proceeding to the next PDF (adjust as needed)
+      });
+    }
+  };
+
+  /* Export all users in same pdf */
+  const exportAllInSinglePDF = async () => {
+    const doc = new jsPDF("p", "mm", "a4", true);
+
+    for (let i = 0; i < allUserProfile.length; i++) {
+      const similarityReport = findSimilarityReport(allUserProfile[i]);
+      console.log("exporting user profile as PDF: ", allUserProfile[i]);
+      addPDFInfo(doc, allUserProfile[i]);
+
+      // Check if it's not the last iteration
+      if (i < allUserProfile.length - 1) {
+        doc.addPage(); // Add a new page for the next user (adjust as needed)
+      }
+    }
+
+    doc.save("all_user_profiles.pdf");
+  };
+
+  /* Export similaroty report */
+  const exportUserSimilarityReportAsPDF = (
+    userSpecificReport: Partial<SimilarityReports>,
+    selectedUserProfile: UserProfile
+  ) => {
+    // Check if userSpecificReport has any non-empty categories
+    if (
+      Object.values(userSpecificReport).some(
+        (category) => Object.keys(category).length > 0
+      )
+    ) {
+      console.log(
+        "Exporting user profile with specific report: ",
+        selectedUserProfile,
+        userSpecificReport
+      );
+      exportUserProfileAsPDF(selectedUserProfile);
+    } else {
+      // If no specific reports were found for the selected user, export the profile without them
+      console.log(
+        "Exporting user profile without specific report: ",
+        selectedUserProfile
+      );
+      exportUserProfileAsPDF(selectedUserProfile);
+    }
+  };
+
+  /* -------- UI Component ---------- */
+
+  /* Format similarity report */
   const findSimilarityReport = (selectedUserProfile: UserProfile) => {
     let userSpecificReport: Partial<SimilarityReports> = {
       similar_activities: {},
@@ -187,40 +251,6 @@ const AllPresentedPage: React.FC = () => {
     return userSpecificReport;
   };
 
-  const exportUserSimilarityReportAsPDF = (
-    userSpecificReport: Partial<SimilarityReports>,
-    selectedUserProfile: UserProfile
-  ) => {
-    // Check if userSpecificReport has any non-empty categories
-    if (
-      Object.values(userSpecificReport).some(
-        (category) => Object.keys(category).length > 0
-      )
-    ) {
-      console.log(
-        "Exporting user profile with specific report: ",
-        selectedUserProfile,
-        userSpecificReport
-      );
-      exportUserProfileAsPDF(
-        selectedUserProfile,
-      );
-    } else {
-      // If no specific reports were found for the selected user, export the profile without them
-      console.log(
-        "Exporting user profile without specific report: ",
-        selectedUserProfile
-      );
-      exportUserProfileAsPDF(selectedUserProfile);
-    }
-  };
-
-  const handleExportUserProfileAsPDF = (selectedUserProfile: UserProfile) => {
-    const userSpecificReport: Partial<SimilarityReports> =
-      findSimilarityReport(selectedUserProfile);
-    exportUserSimilarityReportAsPDF(userSpecificReport, selectedUserProfile);
-  };
-
   const displaySimilarityReports = () => {
     if (loadingSimilarityReports) {
       return (
@@ -234,7 +264,7 @@ const AllPresentedPage: React.FC = () => {
       return (
         <div className="similarity-report">
           <h2>Have You noticed that:</h2>
-          <h2>You are so unique.</h2>
+          <h2>You are so unique!</h2>
         </div>
       );
     }
@@ -262,18 +292,11 @@ const AllPresentedPage: React.FC = () => {
     );
   };
 
+  /* Main renderer */
   return render ? (
     <div className="page">
-      <img
-        src={celebrationLeft}
-        alt="Create Room"
-        className="celebration-left"
-      />
-      <img
-        src={celebrationRight}
-        alt="Create Room"
-        className="celebration-right"
-      />
+      <img src={celebrationLeft} className="celebration-left" />
+      <img src={celebrationRight} className="celebration-right" />
       <h1>Congratulations, {displayName}! </h1>
       <h1>You have finished the Icebreaker!</h1>
 
@@ -327,7 +350,7 @@ const AllPresentedPage: React.FC = () => {
         Back to HomePage
       </button>
 
-      {/* show profile popup */}
+      {/* Show profile popup */}
       {showProfilePopup && selectedUserProfile && (
         <div className="outside-popup">
           <p>First name: {selectedUserProfile.firstName}</p>
@@ -346,7 +369,6 @@ const AllPresentedPage: React.FC = () => {
           <div>
             <button
               className="button common-button"
-              // onClick={() => exportUserProfileAsPDF(selectedUserProfile)}
               onClick={() => handleExportUserProfileAsPDF(selectedUserProfile)}
             >
               Export as PDF

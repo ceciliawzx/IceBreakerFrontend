@@ -1,21 +1,25 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { HashRouter as Router, Routes, Route } from "react-router-dom";
-import "./css/index.css";
+import reportWebVitals from "./service/reportWebVitals";
+
+/* Page */
 import Homepage from "./Homepage";
+import CreateRoomPage from "./CreateRoomPage";
 import JoinRoomPage from "./JoinRoomPage";
+import JoinMockRoomPage from "./JoinMockRoomPage";
 import WaitRoomPage from "./WaitRoomPage";
 import UserProfilePage from "./UserProfilePage";
-import reportWebVitals from "./service/reportWebVitals";
-import CreateRoomPage from "./CreateRoomPage";
-import GeoguesserPage from "./GeoguesserPage";
 import PresentPage from "./PresentPage";
+import GeoguesserPage from "./GeoguesserPage";
 import PictionaryPage from "./PictionaryPage";
-import JoinMockRoomPage from "./JoinMockRoomPage";
 import WordlePage from "./WordlePage";
-import "./css/CommonStyle.css";
 import HangmanPage from "./HangmanPage";
 import AllPresentedPage from "./AllPresentedPage";
+
+/* CSS */
+import "./css/CommonStyle.css";
+import "./css/index.css";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement

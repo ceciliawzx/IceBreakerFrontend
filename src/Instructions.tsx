@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+
+/* CSS */
 import "./css/Instructions.css";
 
-// Define a type for the instruction data
+/* Type for instrctions */
 type InstructionPic = {
   img: string;
   text: string;
@@ -21,16 +23,23 @@ const Instructions: React.FC<InstructionsProps> = ({
   const [showInstructions, setShowInstructions] = useState(false);
   const [currentInstructionPage, setCurrentInstructionPage] = useState(0);
 
-  const showPrevInstruction = () => {
+  /* -------- Button Handler ---------- */
+
+  /* When click PrevPage button */
+  const handlePrevInstruction = () => {
     setCurrentInstructionPage((prev) => (prev > 0 ? prev - 1 : 0));
   };
 
-  const showNextInstruction = () => {
+  /* When click NextPage button */
+  const handleNextInstruction = () => {
     setCurrentInstructionPage((prev) =>
       prev < instructionPics.length - 1 ? prev + 1 : prev
     );
   };
 
+  /* -------- UI Component ---------- */
+
+  /* The popup component of instruction */
   const InstructionPopup = () => {
     return (
       <div>
@@ -49,7 +58,7 @@ const Instructions: React.FC<InstructionsProps> = ({
               {currentInstructionPage !== 0 && (
                 <button
                   className="button common-button"
-                  onClick={showPrevInstruction}
+                  onClick={handlePrevInstruction}
                   disabled={currentInstructionPage === 0}
                 >
                   Prev
@@ -58,7 +67,7 @@ const Instructions: React.FC<InstructionsProps> = ({
               {currentInstructionPage !== instructionPics.length - 1 && (
                 <button
                   className="button common-button"
-                  onClick={showNextInstruction}
+                  onClick={handleNextInstruction}
                   disabled={
                     currentInstructionPage === instructionPics.length - 1
                   }
@@ -84,6 +93,7 @@ const Instructions: React.FC<InstructionsProps> = ({
     );
   };
 
+  /* Main renderer */
   return (
     <>
       {onlyShowPopup ? (

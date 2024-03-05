@@ -1,21 +1,33 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+/* Macro and Type */
 import { serverPort } from "./macro/MacroServer";
 import { User } from "./type/User";
-import "./css/CreateRoomPage.css";
+
+/* Image used */
 import buildingPenguin from "./assets/BuildingPenguin.png";
+
+/* CSS */
+import "./css/CreateRoomPage.css";
 
 const CreateRoomPage = () => {
   const navigate = useNavigate();
-  const [message, setMessage] = useState("");
-  const [displayName, setDisplayName] = useState("");
-  const [showPopup, setShowPopup] = useState(false);
 
-  const createRoom = async () => {
-    // Get display name
+  /* Field */
+  const [errorMessage, setErrorMessage] = useState("");
+  const [displayName, setDisplayName] = useState("");
+
+  /* Popup */
+  const [showEmptyNamePopup, setShowEmptyNamePopup] = useState(false);
+
+  /* -------- Button Handler ---------- */
+
+  /* When click CreateRoom button */
+  const handleCreateRoom = async () => {
+    // If empty display name, show alert
     if (!displayName.trim()) {
-      // Display popup or alert for empty nickname
-      setShowPopup(true);
+      setShowEmptyNamePopup(true);
       return;
     }
 
@@ -35,10 +47,7 @@ const CreateRoomPage = () => {
       const { userID, roomCode } = await response.json();
 
       if (userID && roomCode) {
-        // Navigate to with user detail
-        // Creating room is admin
-
-        // change the isPresenter later
+        // Create Admin User
         const user = new User(
           roomCode,
           userID,
@@ -48,6 +57,8 @@ const CreateRoomPage = () => {
           "",
           false
         );
+
+        // Navigate to with user detail
         navigate("/WaitRoomPage", {
           state: { user },
         });
@@ -57,31 +68,49 @@ const CreateRoomPage = () => {
         );
       }
     } catch (error: any) {
-      setMessage("Error creating room: " + error.message); // Error message
+      setErrorMessage("Error creating room: " + error.message); // Error message
     }
   };
 
+  /* -------- UI Component ---------- */
+
+  /* Main renderer */
   return (
-    <div className="page">
-      <img src={buildingPenguin} alt="Building Penguin" className="building-penguin" />
+    <div className="center-page">
+      <img
+        src={buildingPenguin}
+        alt="Building Penguin"
+        className="building-penguin"
+      />
       <h1 className="create-room-heading">Create a New Room</h1>
       <div>
         <input
           type="text"
-          className="form-input create-room-form-input"
+          className="form-input"
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
           placeholder="Enter Your Display Name"
         />
       </div>
-      <button onClick={createRoom} className="button common-button create-button-margin">
+      <button
+        onClick={handleCreateRoom}
+        className="button common-button"
+        style={{ fontSize: "1rem" }}
+      >
         Create Room
       </button>
-      {message && <p className="error-message">{message}</p>}
-      {showPopup && (
+      {errorMessage && <p className="error-message">{errorMessage}</p>}
+
+      {/* Empty name error popup */}
+      {showEmptyNamePopup && (
         <div className="popup">
-          <p>Please enter a displayname.</p>
-          <button className="button common-button" onClick={() => setShowPopup(false)}>OK</button>
+          <p>Please enter a display name.</p>
+          <button
+            className="button common-button"
+            onClick={() => setShowEmptyNamePopup(false)}
+          >
+            OK
+          </button>
         </div>
       )}
     </div>

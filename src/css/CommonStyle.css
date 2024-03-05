@@ -23,8 +23,13 @@
   --general-popup-layer: 100;
   --general-overlay-layer: 200;
   --above-overlay-layer: 300;
-  --timer-overlay-layer: 400;
-  --instruction-overlay-layer: 500;
+  --timer-layer: 400;
+  --above-timer-layer: 500;
+  --modal-layer: 600;
+  --above-modal-layer: 700;
+  --instruction-layer: 800;
+  --above-instruction-layer: 900;
+  --top-layer: 1000;
 
   --overlay-index: 1000;
   --above-overlay-index: 1001;
@@ -265,4 +270,11 @@
   top: 1.9%;
   left: 4.5%;
   margin: 10px; /* Adjust as needed for spacing */
+}
+
+.error-message {
+  background-color: rgb(252, 233, 212);
+  margin-bottom: 8px;
+  padding: 8px;
+  border-radius: 6px;
 }

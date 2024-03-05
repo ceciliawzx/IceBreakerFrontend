@@ -1,16 +1,24 @@
 import React, { useState, useEffect, useCallback } from "react";
+
+/* Macro and Type */
+import { serverPort } from "../macro/MacroServer";
+import { User } from "../type/User";
+import { RoomStatus } from "../type/RoomStatus";
+
+/* Web socket */
 import {
   connect,
   sendMsg,
   socketUrl,
   websocketUrl,
 } from "../utils/WebSocketService";
-import { User } from "../type/User";
 import { TimerMessage } from "../type/Timer";
-import { RoomStatus } from "../type/RoomStatus";
-import "../css/Timer.css";
+
+/* Modal */
 import { TimerModal } from "../utils/Modal";
-import { serverPort } from "../macro/MacroServer";
+
+/* CSS */
+import "../css/Timer.css";
 
 export const Timer = ({
   user,
@@ -25,15 +33,20 @@ export const Timer = ({
   defaultTime: number;
   timerClassName?: string;
 }) => {
+  /* Timer related */
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [inputValue, setInputValue] = useState<string>(defaultTime.toString());
-  const userID = user.userID;
-  // Track if the timer has started
   const [isTimerStarted, setIsTimerStarted] = useState<boolean>(false);
-  const [render, setRender] = useState<boolean>(false);
+
+  /* Modal */
   const [showTimerModal, setShowTimerModal] = useState<boolean>();
 
-  // Connect to Timer websokect
+  /* UI render */
+  const [render, setRender] = useState<boolean>(false);
+
+  /* -------- Use Effect ---------- */
+
+  /* When mount, connect to websocket */
   useEffect(() => {
     const topic = `/topic/room/${roomCode}/timer`;
     const cleanup = connect(
@@ -46,11 +59,70 @@ export const Timer = ({
     return cleanup;
   }, []);
 
-  // Initially check for showTimerModal
+  /* When rendered, initial pull */
   useEffect(() => {
     checkShowTimerModal();
   }, [render]);
 
+  /* When get default time, set input time value */
+  useEffect(() => {
+    setInputValue(defaultTime.toString());
+  }, [defaultTime]);
+
+  /* -------- Web Socket ---------- */
+
+  /* When receive message from websocket */
+  const onTimerMessageReceived = useCallback((msg: TimerMessage) => {
+    if (msg.started) {
+      setShowTimerModal(false);
+      setIsTimerStarted(true);
+    }
+    setTimeLeft(msg.seconds);
+  }, []);
+
+  /* -------- Button Handler ---------- */
+
+  /* When admin click StartTimer button */
+  const handleStartTimer = useCallback(() => {
+    const seconds = inputValue.trim() === "" ? defaultTime : Number(inputValue);
+    const destination = `/app/room/${roomCode}/startTimer`;
+    const timerMessage: TimerMessage = {
+      roomCode,
+      roomStatus,
+      seconds,
+    };
+    sendMsg(destination, timerMessage);
+  }, [roomCode, roomStatus, inputValue, defaultTime]);
+
+  /* When admin modify timer or click +20Second button */
+  // Ensure the functions modifyTimer and stopTimer also respect the isTimerStarted state if needed
+  const handleModifyTimer = (seconds: number) => {
+    if (!isTimerStarted) return; // Prevent modification if timer hasn't started
+    const destination = `/app/room/${roomCode}/modifyTimer`;
+    const timerMessage: TimerMessage = {
+      roomCode: roomCode,
+      roomStatus: roomStatus,
+      seconds: seconds,
+    };
+    sendMsg(destination, timerMessage);
+  };
+
+  /* When admin click SkipTimer button */
+  const handleSkipTimer = () => {
+    if (!isTimerStarted) return; // Prevent stopping if timer hasn't started
+    const destination = `/app/room/${roomCode}/stopTimer`;
+    const timerMessage: TimerMessage = {
+      roomCode: roomCode,
+      roomStatus: roomStatus,
+      seconds: 0,
+    };
+    setIsTimerStarted(false); // reset the timer start state
+    sendMsg(destination, timerMessage);
+  };
+
+  /* -------- Check status ---------- */
+
+  /* Check if need to show modal */
   const checkShowTimerModal = async () => {
     const url = `${serverPort}/getShowTimerModal?roomCode=${roomCode}`;
     try {
@@ -64,64 +136,18 @@ export const Timer = ({
     }
   };
 
-  const onTimerMessageReceived = useCallback(
-    (msg: TimerMessage) => {
-      if (msg.started) {
-        setShowTimerModal(false);
-        setIsTimerStarted(true);
-      }
-      setTimeLeft(msg.seconds);
-    },
-    []
-  );
+  /* -------- Helper function ---------- */
 
-  // Set input time value
-  useEffect(() => {
-    setInputValue(defaultTime.toString());
-  }, [defaultTime]);
-
-  const startTimer = useCallback(() => {
-    const seconds = inputValue.trim() === "" ? defaultTime : Number(inputValue);
-    const destination = `/app/room/${roomCode}/startTimer`;
-    const timerMessage: TimerMessage = {
-      roomCode,
-      roomStatus,
-      seconds,
-    };
-    sendMsg(destination, timerMessage);
-  }, [roomCode, roomStatus, inputValue, defaultTime]);
-
-  // Ensure the functions modifyTimer and stopTimer also respect the isTimerStarted state if needed
-  const modifyTimer = (seconds: number) => {
-    if (!isTimerStarted) return; // Prevent modification if timer hasn't started
-    const destination = `/app/room/${roomCode}/modifyTimer`;
-    const timerMessage: TimerMessage = {
-      roomCode: roomCode,
-      roomStatus: roomStatus,
-      seconds: seconds,
-    };
-    sendMsg(destination, timerMessage);
-  };
-
-  const stopTimer = () => {
-    if (!isTimerStarted) return; // Prevent stopping if timer hasn't started
-    const destination = `/app/room/${roomCode}/stopTimer`;
-    const timerMessage: TimerMessage = {
-      roomCode: roomCode,
-      roomStatus: roomStatus,
-      seconds: 0,
-    };
-    setIsTimerStarted(false); // reset the timer start state
-    sendMsg(destination, timerMessage);
-  };
-
+  /* Calculate the width of progress bar */
   const calculateProgress = () => {
     if (timeLeft === null || timeLeft === 0) return 0;
     const percentageLeft = (timeLeft / defaultTime) * 100;
     return Math.min(percentageLeft, 100);
   };
 
-  // Timer component
+  /* -------- UI Component ---------- */
+
+  /* Timer component */
   const TimerContent = () => {
     return (
       <div className="timerContainer">
@@ -158,14 +184,14 @@ export const Timer = ({
               {/* <button onClick={startTimer}>Start Timer</button> */}
               <button
                 className="button small-button admin-only-button"
-                onClick={() => modifyTimer(20)}
+                onClick={() => handleModifyTimer(20)}
                 disabled={!isTimerStarted}
               >
                 + 20 Seconds
               </button>
               <button
                 className="button small-button admin-only-button"
-                onClick={stopTimer}
+                onClick={handleSkipTimer}
                 disabled={!isTimerStarted}
               >
                 Skip Timer
@@ -177,6 +203,7 @@ export const Timer = ({
     );
   };
 
+  /* Main renderer */
   return (
     <>
       {showTimerModal && (
@@ -184,7 +211,7 @@ export const Timer = ({
           isAdmin={user.isAdmin}
           inputValue={inputValue}
           setInputValue={setInputValue}
-          startTimer={startTimer}
+          startTimer={handleStartTimer}
         />
       )}
 

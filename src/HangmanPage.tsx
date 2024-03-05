@@ -1,30 +1,47 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { serverPort, websocketPort } from "./macro/MacroServer";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+
+/* Macro and Type */
+import { serverPort } from "./macro/MacroServer";
 import { User } from "./type/User";
 import { UserProfile } from "./type/UserProfile";
+import { LetterStatus } from "./type/WordleLetter";
+import { PresentRoomInfo } from "./type/PresentRoomInfo";
+import { RoomStatus } from "./type/RoomStatus";
+
+/* General function */
+import { updatePresentRoomInfo } from "./utils/RoomOperation";
+import { isSameUser } from "./utils/CommonCompare";
+
+/* Web socket */
 import {
   connect,
   sendMsg,
   socketUrl,
   websocketUrl,
 } from "./utils/WebSocketService";
-import hangmanStages from "./HangmanStage";
-import { LetterStatus } from "./type/WordleLetter";
-import { updatePresentRoomInfo } from "./utils/RoomOperation";
-import { PresentRoomInfo } from "./type/PresentRoomInfo";
-import "./css/HangmanPage.css";
-import { BackMessage } from "./type/BackMessage";
-import { Modal } from "./utils/Modal";
-import { Timer } from "./timer/Timer";
-import { RoomStatus } from "./type/RoomStatus";
 import { ModalMessage } from "./type/ModalMessage";
-import { isSameUser } from "./utils/CommonCompare";
+import { TimerMessage } from "./type/Timer";
+import { BackMessage } from "./type/BackMessage";
+
+/* Image used */
+import hangmanStages from "./HangmanStage";
+
+/* Timer */
+import { Timer } from "./timer/Timer";
+
+/* Modal */
+import { Modal } from "./utils/Modal";
+
+/* Instruction */
 import Instructions from "./Instructions";
 import hangmanInstructionPic from "./instructions/HangmanInstruction.png";
-import { TimerMessage } from "./type/Timer";
 
+/* CSS */
+import "./css/HangmanPage.css";
+
+/* Instructions */
 const hangmanInstructions = [
   {
     img: hangmanInstructionPic,
@@ -32,6 +49,7 @@ const hangmanInstructions = [
   },
 ];
 
+/* Web socket message interface */
 interface HangmanMsg {
   guessLetter: string;
   isCorrect: boolean;
@@ -48,52 +66,65 @@ const HangmanPage = () => {
   const rootStyles = getComputedStyle(document.documentElement);
   const navigate = useNavigate();
   const location = useLocation();
+
+  /* Location passed field */
   const user = location.state?.user;
   const userID = user.userID;
   const roomCode = user.roomCode;
   const isAdmin = user.isAdmin;
+  const fieldName = location.state?.selectedField;
 
+  /* Users in room */
   const [admin, setAdmin] = useState<User | null>(null);
   const [presenter, setPresenter] = useState<User | null>(null);
   const [guests, setGuests] = useState<User[]>([]);
-  const fieldName = location.state?.selectedField;
-  const [selectedField, setSelectedField] = useState<keyof PresentRoomInfo>();
 
+  /* User status */
+  const [notPresented, setNotPresented] = useState<User[]>([]);
   const [selectedUserProfile, setSelectedUserProfile] =
     useState<UserProfile | null>(null);
-  const [showProfilePopup, setShowProfilePopup] = useState(false);
-  const [notPresented, setNotPresented] = useState<User[]>([]);
-
-  /* Modal */
-  const [showModal, setShowModal] = useState(false);
 
   /* Web socket url */
   const topic = `/topic/room/${roomCode}/hangman`;
   const destination = `/app/room/${roomCode}/hangman`;
 
-  // Hangman game states
+  /* Target word */
+  const [selectedField, setSelectedField] = useState<keyof PresentRoomInfo>();
+  const [targetWord, setTargetWord] = useState<string>("");
+
+  /* Hangman related */
   const [mistakes, setMistakes] = useState(0);
   const [correct, setCorrect] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
 
   const [currentGuesses, setCurrentGuesses] = useState(0);
   const [currentGuesser, setCurrentGuesser] = useState<User | null>(null);
-  const [targetWord, setTargetWord] = useState<string>("");
-
   const [currentPositions, setCurrentPositions] = useState<number[]>([]);
   const [currentStages, setCurrentStages] = useState<string[]>([]);
 
+  /* Alphabet */
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const alphabetRows = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
   const [allLetterStatus, setAllLetterStatus] = useState<LetterStatus[]>(
     Array.from(alphabet).map((_) => LetterStatus.UNCHECKED)
   );
 
+  /* Timer */
   const [isTimerStarted, setIsTimerStarted] = useState(false);
-  const [render, setRender] = useState(false);
-  const [instructionPopup, setInstructionPopup] = useState(false);
 
-  // When launch
+  /* Modal */
+  const [showModal, setShowModal] = useState(false);
+
+  /* Popup */
+  const [showProfilePopup, setShowProfilePopup] = useState(false);
+  const [showInstructionPopup, setShowInstructionPopup] = useState(false);
+
+  /* UI render */
+  const [render, setRender] = useState(false);
+
+  /* -------- Use Effect ---------- */
+
+  /* When launch, Connet to web socket and initialize*/
   useEffect(() => {
     const onMessageReceived = (
       msg: HangmanMsg | BackMessage | ModalMessage | TimerMessage
@@ -115,19 +146,65 @@ const HangmanPage = () => {
     return cleanup;
   }, []);
 
-  // If first time to this page, pop up instruction
+  /* If first time to this page, pop up instruction */
   useEffect(() => {
     const pageVisited = localStorage.getItem("hangmanVisited");
 
     if (pageVisited !== "true") {
-      setInstructionPopup(true);
+      setShowInstructionPopup(true);
 
       // Mark the user as visited to prevent showing the popup again
       localStorage.setItem("hangmanVisited", "true");
     }
   }, []);
 
-  // When mount, start handling refresh
+  /* When submit guess, change player */
+  useEffect(() => {
+    changeGuesser();
+  }, [guests, currentGuesses]);
+
+  const changeGuesser = () => {
+    const nextGuesser = guests[currentGuesses % guests.length];
+
+    console.log(nextGuesser?.displayName, " is next guesser");
+    // Change to next guesser
+    setCurrentGuesser(nextGuesser);
+  };
+
+  /* When game finished, show modal */
+  useEffect(() => {
+    if (isFinished) {
+      receiveModalMessage();
+    }
+  }, [isFinished]);
+
+  /* When key down, send guess */
+  useEffect(() => {
+    const handleKeyDown = (event: any) => {
+      const pressedKey = event.key.toUpperCase();
+
+      if (
+        alphabet.includes(pressedKey) &&
+        allLetterStatus[alphabet.indexOf(pressedKey)] ===
+          LetterStatus.UNCHECKED &&
+        !isFinished &&
+        isTimerStarted &&
+        isSameUser(user, currentGuesser)
+      ) {
+        sendHangmanMessage(pressedKey);
+      }
+    };
+
+    // Attach the event listener when the component mounts
+    window.addEventListener("keydown", handleKeyDown);
+
+    // Detach the event listener when the component unmounts
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isTimerStarted, allLetterStatus, isFinished, currentGuesser]);
+
+  /* -------- Refresh Management ---------- */
   useEffect(() => {
     const notifyServerOnUnload = (event: BeforeUnloadEvent) => {
       event.preventDefault();
@@ -145,151 +222,21 @@ const HangmanPage = () => {
     };
   }, []);
 
-  // When submit, change player
-  useEffect(() => {
-    changeGuesser();
-  }, [guests, currentGuesses]);
+  /* -------- Use Effect helper ---------- */
 
-  const changeGuesser = () => {
-    const nextGuesser = guests[currentGuesses % guests.length];
-
-    console.log(nextGuesser?.displayName, " is next guesser");
-    // Change to next guesser
-    setCurrentGuesser(nextGuesser);
-  };
-
-  // When guessed correct, show modal
-  useEffect(() => {
-    if (isFinished) {
-      handleModalMessage();
-    }
-  }, [isFinished]);
-
-  // Handle keyboard input
-  useEffect(() => {
-    const handleKeyDown = (event: any) => {
-      const pressedKey = event.key.toUpperCase();
-
-      handleKeyPress(pressedKey);
-      debouncedHandleKeyPress(pressedKey);
-    };
-
-    // Attach the event listener when the component mounts
-    window.addEventListener("keydown", handleKeyDown);
-
-    // Detach the event listener when the component unmounts
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      clearDebounce();
-    };
-  }, [isTimerStarted, allLetterStatus, isFinished, currentGuesser]);
-
-  // General debounce counting down
-  const useDebounce = (callback: any, delay: any) => {
-    const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | undefined>(
-      undefined
-    );
-
-    const debounceFunction = (...args: any[]) => {
-      clearTimeout(timeoutId);
-
-      const newTimeoutId = setTimeout(() => {
-        callback(...args);
-      }, delay);
-
-      setTimeoutId(newTimeoutId);
-    };
-
-    const clearDebounce = () => {
-      clearTimeout(timeoutId);
-    };
-
-    return [debounceFunction, clearDebounce];
-  };
-
-  // Handle Press key
-  const handleKeyPress = (pressedKey: any) => {
-    // Only allow: alphabetical & not tried input from currentGuesser
-    if (
-      alphabet.includes(pressedKey) &&
-      allLetterStatus[alphabet.indexOf(pressedKey)] ===
-        LetterStatus.UNCHECKED &&
-      !isFinished &&
-      isTimerStarted &&
-      isSameUser(user, currentGuesser)
-    ) {
-      sendHangmanMessage(pressedKey);
-    }
-  };
-
-  // Disable typing too fast
-  const [debouncedHandleKeyPress, clearDebounce] = useDebounce(
-    handleKeyPress,
-    1000
-  );
-
-  // When receive message from web socket
-  const receiveMessage = useCallback(
-    (msg: HangmanMsg | BackMessage | ModalMessage | TimerMessage) => {
-      try {
-        console.log("receive msg, ", msg);
-        if ("guessLetter" in msg) {
-          // If contain letters field, it's WordleMsg
-          handleHangmanMessage(msg as HangmanMsg);
-        } else if ("show" in msg) {
-          // show modal and update PresentRoomInfo
-          handleModalMessage();
-        } // Handle Timer started message
-        else if ("started" in msg && msg.started) {
-          setIsTimerStarted(true);
-        } else {
-          handleBackMessage();
-        }
-      } catch (error) {
-        console.error("Error parsing:", error);
-      }
-    },
-    []
-  );
-
-  // Receive and parse message from websocket
-  const handleHangmanMessage = (msg: HangmanMsg) => {
-    try {
-      // Update guess
-      setCurrentStages(msg.currentStages);
-      const displayWord = msg.currentStages
-        .map((letter) =>
-          letter
-            ? letter === " "
-              ? "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0"
-              : letter
-            : "_"
-        )
-        .join("\u00A0");
-
-      setCorrect(msg.isCorrect);
-      setIsFinished(msg.isFinished);
-      setCurrentPositions(msg.correctPositions);
-      setAllLetterStatus(msg.allLetterStat);
-      setMistakes(msg.currentWrongGuesses);
-      setCurrentGuesses(msg.currentGuesses);
-    } catch (error) {
-      console.error("Error parsing:", error);
-    }
-  };
-
+  /* Initialize game in order, execute line by line */
   const initializeGame = async () => {
     // get player status
     await checkPlayers();
     await checkNotPresented();
-    await getHangmanStatus();
+    await checkHangmanStatus();
 
     // fetch target word
     await fetchWordLength();
     await fetchTargetWord();
   };
 
-  // Fetch target word length
+  /* Fetch target word length */
   const fetchWordLength = async () => {
     try {
       const response = await fetch(
@@ -311,7 +258,7 @@ const HangmanPage = () => {
     }
   };
 
-  // Fetch target word
+  /* Fetch target word */
   const fetchTargetWord = async () => {
     try {
       const response = await fetch(
@@ -336,38 +283,9 @@ const HangmanPage = () => {
     }
   };
 
-  // Show modal
-  const handleModalMessage = () => {
-    // Update PresentRoomInfo
-    if (fieldName) {
-      updatePresentRoomInfo({ roomCode, field: fieldName });
-    }
-    // Show the modal
-    setShowModal(true);
-  };
+  /* -------- Web Socket ---------- */
 
-  const checkNotPresented = async () => {
-    try {
-      const response = await fetch(
-        `${serverPort}/notPresentedPeople?roomCode=${roomCode}`,
-        {
-          method: "GET",
-        }
-      );
-
-      const data = await response.json();
-      setNotPresented(data.notPresentedPeople || []);
-      console.log("check who has not presenter", notPresented);
-
-      if (!response.ok) {
-        throw new Error("Room cannot be found");
-      }
-    } catch (error) {
-      console.error("Error checking notPresented:", error);
-    }
-  };
-
-  // Send message via web socket
+  /* Send message via websocket */
   const sendHangmanMessage = (letter: string) => {
     sendMsg(destination, {
       guessLetter: letter,
@@ -381,14 +299,66 @@ const HangmanPage = () => {
     });
   };
 
-  // Back to present page
-  const handleBackMessage = async () => {
+  /* When receive message from websocket */
+  const receiveMessage = useCallback(
+    (msg: HangmanMsg | BackMessage | ModalMessage | TimerMessage) => {
+      try {
+        console.log("receive msg, ", msg);
+        if ("guessLetter" in msg) {
+          // If contain letters field, it's WordleMsg
+          receiveHangmanMessage(msg as HangmanMsg);
+        } else if ("show" in msg) {
+          // show modal and update PresentRoomInfo
+          receiveModalMessage();
+        } // Handle Timer started message
+        else if ("started" in msg && msg.started) {
+          setIsTimerStarted(true);
+        } else {
+          receiveBackMessage();
+        }
+      } catch (error) {
+        console.error("Error parsing:", error);
+      }
+    },
+    []
+  );
+
+  /* When receive hangman message, update hangman status */
+  const receiveHangmanMessage = (msg: HangmanMsg) => {
+    try {
+      // Update guess
+      setCurrentStages(msg.currentStages);
+      setCorrect(msg.isCorrect);
+      setIsFinished(msg.isFinished);
+      setCurrentPositions(msg.correctPositions);
+      setAllLetterStatus(msg.allLetterStat);
+      setMistakes(msg.currentWrongGuesses);
+      setCurrentGuesses(msg.currentGuesses);
+    } catch (error) {
+      console.error("Error parsing:", error);
+    }
+  };
+
+  /* When receive modal message, show modal */
+  const receiveModalMessage = () => {
+    // Update PresentRoomInfo
+    if (fieldName) {
+      updatePresentRoomInfo({ roomCode, field: fieldName });
+    }
+    // Show the modal
+    setShowModal(true);
+  };
+
+  /* When receive back message, back to present page */
+  const receiveBackMessage = async () => {
     navigate("/PresentPage", {
-      state: { user, admin, presenter, guests },
+      state: { user },
     });
   };
 
-  // When click back to presenta page button
+  /* -------- Button Handler ---------- */
+
+  /* When click ChangeAnotherGame button */
   const handleBackButton = async () => {
     // Change room status
     const url = `${serverPort}/backToPresentRoom?roomCode=${roomCode}`;
@@ -404,18 +374,7 @@ const HangmanPage = () => {
     }
   };
 
-  // Display current guess
-  const displayWord = currentStages
-    .map((letter) =>
-      letter
-        ? letter === " "
-          ? "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0"
-          : letter
-        : "_"
-    )
-    .join("\u00A0");
-
-  // When click view profile button
+  /* When click ViewProfile button */
   const handleViewProfile = async (user: User | null) => {
     if (user) {
       const url = `${serverPort}/getPlayer?userID=${user.userID}&roomCode=${roomCode}`;
@@ -450,35 +409,10 @@ const HangmanPage = () => {
     }
   };
 
-  // Auto set grid color
-  const getStatusStyle = (status: LetterStatus) => {
-    const baseStyle = {
-      fontSize: "1rem",
-    };
-    switch (status) {
-      case LetterStatus.GREY:
-        return {
-          ...baseStyle,
-          backgroundColor: rootStyles.getPropertyValue("--hangman-red"),
-        };
+  /* -------- Check status ---------- */
 
-      case LetterStatus.GREEN:
-        return {
-          ...baseStyle,
-          backgroundColor: rootStyles.getPropertyValue("--wordle-green"),
-        };
-      default:
-        return {
-          ...baseStyle,
-          backgroundColor: rootStyles.getPropertyValue(
-            "--light-grey-background"
-          ),
-        };
-    }
-  };
-
-  // Get player info when start
-  const getHangmanStatus = async () => {
+  /* Get game info when start, so that it can synchronize when refresh page */
+  const checkHangmanStatus = async () => {
     const url = `${serverPort}/getHangmanGameStatus?roomCode=${roomCode}`;
     try {
       const response = await fetch(url);
@@ -502,7 +436,7 @@ const HangmanPage = () => {
     }
   };
 
-  // Get player info when start
+  /* Check player information in room */
   const checkPlayers = async () => {
     const url = `${serverPort}/getPlayers?roomCode=${roomCode}`;
     try {
@@ -539,6 +473,71 @@ const HangmanPage = () => {
     }
   };
 
+  /* Check who has not presented, so can not view their proile */
+  const checkNotPresented = async () => {
+    try {
+      const response = await fetch(
+        `${serverPort}/notPresentedPeople?roomCode=${roomCode}`,
+        {
+          method: "GET",
+        }
+      );
+
+      const data = await response.json();
+      setNotPresented(data.notPresentedPeople || []);
+      console.log("check who has not presenter", notPresented);
+
+      if (!response.ok) {
+        throw new Error("Room cannot be found");
+      }
+    } catch (error) {
+      console.error("Error checking notPresented:", error);
+    }
+  };
+
+  /* -------- Helper function ---------- */
+
+  /* Display current guess */
+  const displayWord = currentStages
+    .map((letter) =>
+      letter
+        ? letter === " "
+          ? "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0"
+          : letter
+        : "_"
+    )
+    .join("\u00A0");
+
+  /* Auto set color of grid */
+  const getStatusStyle = (status: LetterStatus) => {
+    const baseStyle = {
+      fontSize: "1rem",
+    };
+    switch (status) {
+      case LetterStatus.GREY:
+        return {
+          ...baseStyle,
+          backgroundColor: rootStyles.getPropertyValue("--hangman-red"),
+        };
+
+      case LetterStatus.GREEN:
+        return {
+          ...baseStyle,
+          backgroundColor: rootStyles.getPropertyValue("--wordle-green"),
+        };
+      default:
+        return {
+          ...baseStyle,
+          backgroundColor: rootStyles.getPropertyValue(
+            "--light-grey-background"
+          ),
+        };
+    }
+  };
+
+  /* -------- UI Component ---------- */
+
+  /* Modal message */
   const modalContent = () => {
     return (
       <>
@@ -550,6 +549,7 @@ const HangmanPage = () => {
     );
   };
 
+  /* Main renderer */
   return render ? (
     <div className="row-page">
       <div className="left-column">
@@ -700,7 +700,8 @@ const HangmanPage = () => {
           </div>
         </div>
       </div>
-      {/* show profile popup */}
+
+      {/* Show profile popup */}
       {showProfilePopup && selectedUserProfile && (
         <div className="popup">
           <p>First name: {selectedUserProfile.firstName}</p>
@@ -718,6 +719,7 @@ const HangmanPage = () => {
           </button>
         </div>
       )}
+
       {/* Modal */}
       {showModal && (
         <Modal
@@ -725,17 +727,17 @@ const HangmanPage = () => {
             setShowModal(false);
             handleBackButton();
           }}
-          isAdmin={userID === admin?.userID}
+          isAdmin={isSameUser(user, admin)}
           modalContent={modalContent()}
         />
       )}
 
       {/* First time instruction popup */}
-      {instructionPopup && (
+      {showInstructionPopup && (
         <Instructions
           instructionPics={hangmanInstructions}
           onlyShowPopup={true}
-          closeButtonFunction={() => setInstructionPopup(false)}
+          closeButtonFunction={() => setShowInstructionPopup(false)}
         />
       )}
     </div>

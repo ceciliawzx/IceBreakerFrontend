@@ -1,25 +1,32 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import "./css/WaitRoomPage.css";
-import { serverPort, websocketPort } from "./macro/MacroServer";
+
+/* Macro and Type */
+import { serverPort } from "./macro/MacroServer";
 import { User } from "./type/User";
 import { UserProfile } from "./type/UserProfile";
 import { RoomStatus } from "./type/RoomStatus";
-import exportUserProfileAsPDF from "./utils/ExportPDF";
-import blackBoard from "./assets/BlackBoard.png";
-import { isSameUser } from "./utils/CommonCompare";
-import {
-  connect,
-  sendMsg,
-  socketUrl,
-  websocketUrl,
-} from "./utils/WebSocketService";
 
+/* General function */
+import { exportUserProfileAsPDF } from "./utils/ExportPDF";
+import { isSameUser } from "./utils/CommonCompare";
+
+/* Image used */
+import blackBoard from "./assets/BlackBoard.png";
+
+/* Web socket */
+import { connect, socketUrl, websocketUrl } from "./utils/WebSocketService";
+
+/* Instruction */
 import Instructions from "./Instructions";
 import waitRoomAdminInstructionPic from "./instructions/WaitRoomAdminInstruction.png";
 import waitRoomNormalInstructionPic from "./instructions/WaitRoomNormalInstruction.png";
 
+/* CSS */
+import "./css/WaitRoomPage.css";
+
+/* Instructions */
 const waitRoomAdminInstructions = [
   {
     img: waitRoomAdminInstructionPic,
@@ -37,42 +44,47 @@ const waitRoomNormalInstructions = [
 const WaitRoomPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+
+  /* Location passed field */
   const user = location.state?.user;
   const userID = user.userID;
   const roomCode = user.roomCode;
   const displayName = user.displayName;
 
+  /* Room status */
+  const [roomStatus, setRoomStatus] = useState<RoomStatus>(RoomStatus.WAITING);
+
+  /* Users in room */
   const [guests, setGuests] = useState<User[]>([]);
   const [admin, setAdmin] = useState<User | null>(null);
   const [presenter, setPresenter] = useState<User | null>(null);
+
+  /* User status */
+  const [isAdmin, setIsAdmin] = useState(false);
   const [notPresented, setNotPresented] = useState<User[]>([]);
   const [hasPresented, setHasPresented] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [allGuestsCompleted, setAllGuestsCompleted] = useState(false);
 
+  const [selectedPresenter, setSelectedPresenter] = useState<User | null>(null);
+  const [selectedUserProfile, setSelectedUserProfile] =
+    useState<UserProfile | null>(null);
+
+  /* Popup */
   const [showKickPopup, setShowKickPopup] = useState(false);
   const [showDismissPopup, setShowDismissPopup] = useState(false);
   const [showChangePresenterPopup, setShowChangePresenterPopup] =
     useState(false);
-  const [selectedPresenter, setSelectedPresenter] = useState<User | null>(null);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
-  const [selectedUserProfile, setSelectedUserProfile] =
-    useState<UserProfile | null>(null);
-  const [allGuestsCompleted, setAllGuestsCompleted] = useState(false);
-  const [roomStatus, setRoomStatus] = useState<RoomStatus>(RoomStatus.WAITING);
   const [showRingPopup, setShowRingPopup] = useState(false);
   const [showFinishPopup, setShowFinishPopup] = useState(false);
-  const [instructionPopup, setInstructionPopup] = useState(false);
+  const [showInstructionPopup, setShowInstructionPopup] = useState(false);
+
+  /* UI render */
   const [render, setRender] = useState(false);
 
-  // Refetch pull
-  useEffect(() => {
-    checkPlayers();
-    checkKickOut();
-    checkNotPresented();
-    checkRing();
-  }, [render]);
+  /* -------- Use Effect ---------- */
 
-  // Connect to waitroom websokect
+  /* When mount, connect websokect */
   useEffect(() => {
     const topic = `/topic/room/${roomCode}/wait`;
     const cleanup = connect(
@@ -85,19 +97,28 @@ const WaitRoomPage = () => {
     return cleanup;
   }, []);
 
-  // If first time in wait room, pop up instruction
+  /* If first time in this page, pop up instruction */
   useEffect(() => {
     // Check if the user has visited the page before
     const pageVisited = localStorage.getItem("waitRoomVisited");
 
     if (pageVisited !== "true") {
-      setInstructionPopup(true);
+      setShowInstructionPopup(true);
 
       // Mark the user as visited to prevent showing the popup again
       localStorage.setItem("waitRoomVisited", "true");
     }
   }, []);
 
+  /* When rendered, check all status */
+  useEffect(() => {
+    checkPlayers();
+    checkKickOut();
+    checkNotPresented();
+    checkRing();
+  }, [render]);
+
+  /* When user changed, check user status */
   useEffect(() => {
     // Check whether the user is admin
     checkAdminStatus();
@@ -124,11 +145,23 @@ const WaitRoomPage = () => {
     }
   }, [roomStatus, user, admin, presenter, guests]);
 
+  /* When current presenter finished presentation, change to a new one */
+  useEffect(() => {
+    if (
+      presenter &&
+      !notPresented.some((user) => isSameUser(user, presenter))
+    ) {
+      changeToNextPresenter();
+    }
+  }, [presenter, notPresented]);
+
+  /* -------- Refresh Management ---------- */
+
   useEffect(() => {
     if (admin?.userID && presenter?.userID) {
       if (isSameUser(presenter, user)) {
         const notifyServerOnUnload = () => {
-          handleChangePresenterAfterQuitting(admin!.userID);
+          changePresenterAfterQuitting(admin!.userID);
         };
 
         window.addEventListener("unload", notifyServerOnUnload);
@@ -156,6 +189,70 @@ const WaitRoomPage = () => {
     }
   }, [admin]);
 
+  useEffect(() => {
+    const notifyServerOnUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+
+      const confirmationMessage = "Are you sure you want to leave?";
+      event.returnValue = confirmationMessage;
+      return confirmationMessage;
+    };
+
+    window.addEventListener("beforeunload", notifyServerOnUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", notifyServerOnUnload);
+    };
+  }, []);
+
+  useEffect(() => {
+    const notifyServerOnUnload = () => {
+      handleKickUser(userID);
+    };
+
+    window.addEventListener("unload", notifyServerOnUnload);
+
+    return () => {
+      window.removeEventListener("unload", notifyServerOnUnload);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (admin?.userID && presenter?.userID) {
+      if (isSameUser(presenter, user)) {
+        const notifyServerOnUnload = () => {
+          changePresenterAfterQuitting(admin!.userID);
+        };
+
+        window.addEventListener("unload", notifyServerOnUnload);
+
+        return () => {
+          window.removeEventListener("unload", notifyServerOnUnload);
+        };
+      }
+    }
+  }, [admin, presenter]);
+
+  useEffect(() => {
+    if (admin?.userID) {
+      if (isSameUser(admin, user)) {
+        const notifyServerOnUnload = () => {
+          handleLeaveRoom();
+        };
+
+        window.addEventListener("unload", notifyServerOnUnload);
+
+        return () => {
+          window.removeEventListener("unload", notifyServerOnUnload);
+        };
+      }
+    }
+  }, [admin]);
+
+  /* -------- Web Socket ---------- */
+
+  /* When receive web socket message, check all status */
   const onMessageReceived = (msg: any) => {
     checkPlayers();
     checkKickOut();
@@ -163,6 +260,9 @@ const WaitRoomPage = () => {
     checkRing();
   };
 
+  /* -------- Button Handler ---------- */
+
+  /* When click StartPresenting button */
   const handleStartRoom = async () => {
     // Tell server that to start room
     const response = await fetch(
@@ -176,97 +276,14 @@ const WaitRoomPage = () => {
     }
   };
 
+  /* When click EnterYourInfomation button */
   const handleUserInformation = () => {
     navigate("/UserProfilePage", {
       state: { user },
     });
   };
 
-  const handleKickUser = async (userID: string) => {
-    // kick this user
-    const response = await fetch(
-      `${serverPort}/kickPerson?roomCode=${roomCode}&userID=${userID}`,
-      {
-        method: "DELETE",
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-  };
-
-  const handleChangePresenterAfterQuitting = async (userID: string) => {
-    const response = await fetch(
-      `${serverPort}/changePresenter?roomCode=${roomCode}&userID=${userID}`,
-      {
-        method: "POST",
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-  };
-
-  const handleLeaveRoom = async () => {
-    // If admin leaves, send http request to delete room and all user should be kicked out
-    if (isAdmin) {
-      // Destroy room
-      const response = await fetch(
-        `${serverPort}/destroyRoom?roomCode=${roomCode}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-    } else {
-      // user leave room
-      const response = await fetch(
-        `${serverPort}/kickPerson?roomCode=${roomCode}&userID=${userID}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      } else {
-        navigate("/");
-      }
-    }
-  };
-
-  const handleFinishPresent = () => {
-    setShowFinishPopup(true);
-  };
-
-  // When sure to force finish
-  const handleForceFinish = async () => {
-    const response = await fetch(
-      `${serverPort}/forceBackToAllPresentedRoom?roomCode=${roomCode}`,
-      {
-        method: "POST",
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-  };
-
-  const handleChangePresenter = () => {
-    setShowChangePresenterPopup(true);
-    setSelectedPresenter(null);
-  };
-
-  const handleSelectPresenter = (selectedUser: User) => {
-    setSelectedPresenter(selectedUser);
-  };
-
+  /* When click ViewProfile button */
   const handleViewProfile = async (user: User | null) => {
     if (user) {
       const url = `${serverPort}/getPlayer?userID=${user.userID}&roomCode=${roomCode}`;
@@ -301,20 +318,84 @@ const WaitRoomPage = () => {
     }
   };
 
-  const handleRingUser = async (userID: string) => {
-    // notify this user to hurry up
+  /* When click LeaveRoom button */
+  const handleLeaveRoom = async () => {
+    // If admin leaves, send http request to delete room and all user should be kicked out
+    if (isAdmin) {
+      // Destroy room
+      const response = await fetch(
+        `${serverPort}/destroyRoom?roomCode=${roomCode}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+    } else {
+      // user leave room
+      const response = await fetch(
+        `${serverPort}/kickPerson?roomCode=${roomCode}&userID=${userID}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      } else {
+        navigate("/");
+      }
+    }
+  };
+
+  /* When admin click Kick button */
+  const handleKickUser = async (userID: string) => {
+    // kick this user
     const response = await fetch(
-      `${serverPort}/pushNotification?roomCode=${roomCode}&userID=${userID}`,
+      `${serverPort}/kickPerson?roomCode=${roomCode}&userID=${userID}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+  };
+
+  /* When admin click FinishPresenting button */
+  const handleFinishPresent = () => {
+    setShowFinishPopup(true);
+  };
+
+  /* When admin click SureToForceFinish button */
+  const handleForceFinish = async () => {
+    const response = await fetch(
+      `${serverPort}/forceBackToAllPresentedRoom?roomCode=${roomCode}`,
       {
         method: "POST",
       }
     );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
   };
 
-  const handleReceiveNotification = async () => {
-    setShowRingPopup(false);
+  /* When admin click ChangePresenter button */
+  const handleChangePresenter = () => {
+    setShowChangePresenterPopup(true);
+    setSelectedPresenter(null);
   };
 
+  /* When admin click username in ChoosePresent box */
+  const handleSelectPresenter = (selectedUser: User) => {
+    setSelectedPresenter(selectedUser);
+  };
+
+  /* When admin click Confirm button in ChoosePresent box */
   const confirmChangePresenter = () => {
     var newPresenter;
     if (selectedPresenter) {
@@ -338,42 +419,37 @@ const WaitRoomPage = () => {
     setShowChangePresenterPopup(false); // Close the popup
   };
 
-  const changeToNextPresenter = async () => {
-    // Ensure there are users who haven't presented
-    if (notPresented.length > 0) {
-      // Select the next presenter (e.g., the first in the list)
-      const nextPresenterID = notPresented[0].userID;
-
-      // Make an API call or update state to change the presenter
-      const response = await fetch(
-        `${serverPort}/changePresenter?roomCode=${roomCode}&userID=${nextPresenterID}`,
-        {
-          method: "POST",
-        }
-      );
-
-      if (!response.ok) {
-        console.error(`HTTP error! Status: ${response.status}`);
-        return;
+  /* When admin click Ring button */
+  const handleRingUser = async (userID: string) => {
+    // notify this user to hurry up
+    const response = await fetch(
+      `${serverPort}/pushNotification?roomCode=${roomCode}&userID=${userID}`,
+      {
+        method: "POST",
       }
-    } else {
-      console.log("No more users to present");
-    }
+    );
   };
 
-  // Check if the user is the admin
+  /* When click Response button for Ring popup */
+  const handleReceiveNotification = async () => {
+    setShowRingPopup(false);
+  };
+
+  /* -------- Check status ---------- */
+
+  /* Check if the user is the admin */
   const checkAdminStatus = async () => {
     const url = `${serverPort}/isAdmin?userID=${userID}&roomCode=${roomCode}`;
     try {
       const response = await fetch(url);
       const data = await response.json();
-      setIsAdmin(data === true);
+      setIsAdmin(data);
     } catch (error) {
       console.error("Error checking admin status:", error);
     }
   };
 
-  // Fetch the players & check if room start from the backend
+  /* Fetch all player information and room status */
   const checkPlayers = async () => {
     const url = `${serverPort}/getPlayers?roomCode=${roomCode}`;
     try {
@@ -421,6 +497,7 @@ const WaitRoomPage = () => {
     }
   };
 
+  /* Check if the user is ringed by admin */
   const checkRing = async () => {
     const url = `${serverPort}/isNotified?userID=${userID}&roomCode=${roomCode}`;
     try {
@@ -437,6 +514,7 @@ const WaitRoomPage = () => {
     }
   };
 
+  /* Check if the user is kicked out by admin */
   const checkKickOut = async () => {
     const url = `${serverPort}/getPlayer?userID=${userID}&roomCode=${roomCode}`;
     try {
@@ -453,6 +531,7 @@ const WaitRoomPage = () => {
     }
   };
 
+  /* Check which users has not presented */
   const checkNotPresented = async () => {
     try {
       const response = await fetch(
@@ -472,105 +551,49 @@ const WaitRoomPage = () => {
     }
   };
 
-  // check if current presenter finished presentation, if so change to a new one
-  useEffect(() => {
-    // Example check to see if presenter has finished
-    if (
-      presenter &&
-      !notPresented.some((user) => isSameUser(user, presenter))
-    ) {
-      changeToNextPresenter();
-    }
-  }, [presenter, notPresented]);
+  /* -------- Helper function ---------- */
 
-  useEffect(() => {
-    // Check whether the user is admin
-    checkAdminStatus();
+  /* Change presenter to a not presented user */
+  const changeToNextPresenter = async () => {
+    // Ensure there are users who haven't presented
+    if (notPresented.length > 0) {
+      // Select the next presenter (e.g., the first in the list)
+      const nextPresenterID = notPresented[0].userID;
 
-    // Check if all guests and presenter have completed
-    const allCompleted =
-      (guests.every((guest: User) => guest?.completed) &&
-        presenter?.completed) ||
-      false;
-    setAllGuestsCompleted(allCompleted);
+      // Make an API call or update state to change the presenter
+      const response = await fetch(
+        `${serverPort}/changePresenter?roomCode=${roomCode}&userID=${nextPresenterID}`,
+        {
+          method: "POST",
+        }
+      );
 
-    // If the RoomStatus is PRESENTING, navigate all users to the PresentPage
-    if (roomStatus === RoomStatus.PRESENTING) {
-      navigate("/PresentPage", {
-        state: { user, admin, presenter, guests },
-      });
-    }
-
-    // If the RoomStatus is ALL_FINISHED, navigate all users to the AllPresentedPage
-    if (roomStatus === RoomStatus.All_PRESENTED) {
-      navigate("/AllPresentedPage", {
-        state: { user, admin, presenter, guests },
-      });
-    }
-  }, [roomStatus, user, admin, presenter, guests]);
-
-  useEffect(() => {
-    const notifyServerOnUnload = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-      event.returnValue = "";
-
-      const confirmationMessage = "Are you sure you want to leave?";
-      event.returnValue = confirmationMessage;
-      return confirmationMessage;
-    };
-
-    window.addEventListener("beforeunload", notifyServerOnUnload);
-
-    return () => {
-      window.removeEventListener("beforeunload", notifyServerOnUnload);
-    };
-  }, []);
-
-  useEffect(() => {
-    const notifyServerOnUnload = () => {
-      handleKickUser(userID);
-    };
-
-    window.addEventListener("unload", notifyServerOnUnload);
-
-    return () => {
-      window.removeEventListener("unload", notifyServerOnUnload);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (admin?.userID && presenter?.userID) {
-      if (presenter.userID === userID) {
-        const notifyServerOnUnload = () => {
-          handleChangePresenterAfterQuitting(admin!.userID);
-        };
-
-        window.addEventListener("unload", notifyServerOnUnload);
-
-        return () => {
-          window.removeEventListener("unload", notifyServerOnUnload);
-        };
+      if (!response.ok) {
+        console.error(`HTTP error! Status: ${response.status}`);
+        return;
       }
+    } else {
+      console.log("No more users to present");
     }
-  }, [admin, presenter]);
+  };
 
-  useEffect(() => {
-    if (admin?.userID) {
-      if (admin.userID === userID) {
-        const notifyServerOnUnload = () => {
-          handleLeaveRoom();
-        };
-
-        window.addEventListener("unload", notifyServerOnUnload);
-
-        return () => {
-          window.removeEventListener("unload", notifyServerOnUnload);
-        };
+  /* If current presenter exit room, change presenter back to admin  */
+  const changePresenterAfterQuitting = async (userID: string) => {
+    const response = await fetch(
+      `${serverPort}/changePresenter?roomCode=${roomCode}&userID=${userID}`,
+      {
+        method: "POST",
       }
-    }
-  }, [admin]);
+    );
 
-  // main render
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+  };
+
+  /* -------- UI Component ---------- */
+
+  /* Main renderer */
   return render ? (
     <div className="page">
       <h1>
@@ -665,7 +688,7 @@ const WaitRoomPage = () => {
                   notPresented.some((npUser) =>
                     isSameUser(npUser, presenter)
                   ) &&
-                  presenter?.userID !== userID
+                  !isSameUser(presenter, user)
                 }
               >
                 View Profile
@@ -732,7 +755,7 @@ const WaitRoomPage = () => {
                       notPresented.some((npUser) =>
                         isSameUser(npUser, guest)
                       ) &&
-                      guest.userID !== userID
+                      !isSameUser(guest, user)
                     }
                   >
                     View Profile
@@ -742,8 +765,8 @@ const WaitRoomPage = () => {
                     {guest.completed && (
                       <div className="indicator input-status-indicator"></div>
                     )}
-                    {!notPresented.some(
-                      (npUser) => npUser.userID === guest.userID
+                    {!notPresented.some((npUser) =>
+                      isSameUser(npUser, guest)
                     ) && (
                       <div className="indicator presented-status-indicator"></div>
                     )}
@@ -791,7 +814,8 @@ const WaitRoomPage = () => {
           Leave Room
         </button>
       }
-      {/* dimmiss popup */}
+
+      {/* Dimmiss popup */}
       {showDismissPopup && (
         <div className="overlay-popup">
           <div className="popup">
@@ -810,7 +834,7 @@ const WaitRoomPage = () => {
         </div>
       )}
 
-      {/* kickout popup */}
+      {/* Kickout popup */}
       {showKickPopup && (
         <div className="overlay-popup">
           <div className="popup">
@@ -844,13 +868,13 @@ const WaitRoomPage = () => {
         </div>
       )}
 
-      {/* change presenter popup */}
+      {/* Change presenter popup */}
       {showChangePresenterPopup && (
         <div className="change-presenter-popup">
           <h3>Select New Presenter:</h3>
           <ul>
             {notPresented
-              .filter((user) => user.userID !== presenter?.userID)
+              .filter((user) => !isSameUser(user, presenter))
               .map((user) => (
                 <li
                   key={user.userID}
@@ -874,7 +898,7 @@ const WaitRoomPage = () => {
         </div>
       )}
 
-      {/* show profile popup */}
+      {/* Show profile popup */}
       {showProfilePopup && selectedUserProfile && (
         <div className="outside-popup">
           <p>First name: {selectedUserProfile.firstName}</p>
@@ -933,18 +957,18 @@ const WaitRoomPage = () => {
       )}
 
       {/* First time instruction popup */}
-      {instructionPopup &&
+      {showInstructionPopup &&
         (isSameUser(user, admin) ? (
           <Instructions
             instructionPics={waitRoomAdminInstructions}
             onlyShowPopup={true}
-            closeButtonFunction={() => setInstructionPopup(false)}
+            closeButtonFunction={() => setShowInstructionPopup(false)}
           />
         ) : (
           <Instructions
             instructionPics={waitRoomNormalInstructions}
             onlyShowPopup={true}
-            closeButtonFunction={() => setInstructionPopup(false)}
+            closeButtonFunction={() => setShowInstructionPopup(false)}
           />
         ))}
     </div>

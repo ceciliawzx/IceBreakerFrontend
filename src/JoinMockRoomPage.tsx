@@ -1,26 +1,37 @@
 import React, { useState, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import "./css/JoinRoomPage.css";
+
+/* Macro and Type */
 import { serverPort } from "./macro/MacroServer";
 import { User } from "./type/User";
+
+/* Image used */
 import joinPenguin from "./assets/JoinPenguin.png";
+
+/* CSS */
+import "./css/CreateRoomPage.css";
 
 const JoinMockRoomPage = () => {
   const navigate = useNavigate();
-  const [userID, setUserID] = useState("");
-  // const [roomCode, setRoomCode] = useState("");
-  const [message, setMessage] = useState("");
-  const [showPopup, setShowPopup] = useState(false);
-  const roomCode = "TEST";
 
+  /* Field */
+  const [userID, setUserID] = useState("");
+  const roomCode = "TEST";
+  const [errorMessage, setErrorMessage] = useState("");
+
+  /* Popup */
+  const [showEmptyNamePopup, setShowEmptyNamePopup] = useState(false);
+
+  /* -------- Button Handler ---------- */
+
+  /* When click submit button */
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     // Prevent default form submission behavior
     event.preventDefault();
 
-    // Get display name
+    // If empty userId, show alert
     if (!userID.trim()) {
-      // Display popup or alert for empty nickname
-      setShowPopup(true);
+      setShowEmptyNamePopup(true);
       return;
     }
 
@@ -37,7 +48,9 @@ const JoinMockRoomPage = () => {
 
       const userInfoData = await responseUserInfo.json();
 
+      // Fetch the according user info
       if (userInfoData) {
+        // Check if this user is admin
         const responseIsAdmin = await fetch(
           `${serverPort}/isAdmin?userID=${userID}&roomCode=${roomCode}`,
           { method: "GET" }
@@ -47,9 +60,9 @@ const JoinMockRoomPage = () => {
           throw new Error(`HTTP error! Status: ${responseIsAdmin.status}`); // Error message
         }
 
-        const userIsAdminData = await responseIsAdmin.json();
-        const isAdmin = userIsAdminData === true;
+        const isAdmin = await responseIsAdmin.json();
 
+        // Check if this user is presenter
         const responseIsPresenter = await fetch(
           `${serverPort}/isPresenter?userID=${userID}&roomCode=${roomCode}`,
           { method: "GET" }
@@ -59,10 +72,8 @@ const JoinMockRoomPage = () => {
           throw new Error(`HTTP error! Status: ${responseIsPresenter.status}`); // Error message
         }
 
-        const userIsPresenterData = await responseIsPresenter.json();
-        const isPresenter = userIsPresenterData === true;
+        const isPresenter = await responseIsPresenter.json();
 
-        // Joining room cannot be admin
         const user = new User(
           roomCode,
           userID,
@@ -72,19 +83,19 @@ const JoinMockRoomPage = () => {
           "",
           true
         );
-        // const user = new User(roomCode, userID, userID, false, false, "", false);
 
         navigate("/WaitRoomPage", {
           state: { user },
         });
       } else {
-        setMessage("Wrong room code"); // Error message
+        setErrorMessage("Wrong room code"); // Error message
       }
     } catch (error) {
-      setMessage("Join Room Failed"); // Error message
+      setErrorMessage("Join Room Failed"); // Error message
     }
   };
 
+  /* When click ResetMockRoom button */
   const handleResetMockServer = async () => {
     const responseResetRoom = await fetch(`${serverPort}/restartMockRoom`, {
       method: "POST",
@@ -94,10 +105,11 @@ const JoinMockRoomPage = () => {
       throw new Error(`HTTP error! Status: ${responseResetRoom.status}`); // Error message
     }
     console.log("Success");
-
-    const userIsAdminData = await responseResetRoom.json();
   };
 
+  /* -------- UI Component ---------- */
+
+  /* Main renderer */
   return (
     <div className="center-page">
       <img
@@ -119,7 +131,7 @@ const JoinMockRoomPage = () => {
           <button type="submit" className="button common-button">
             Join Room
           </button>
-          {message && <p className="message">{message}</p>}
+          {errorMessage && <p className="error-message">{errorMessage}</p>}
         </form>
         <button
           className="button admin-only-button"
@@ -129,12 +141,13 @@ const JoinMockRoomPage = () => {
         </button>
       </div>
 
-      {showPopup && (
+      {/* Show empty name error popup */}
+      {showEmptyNamePopup && (
         <div className="popup">
           <p>Please enter userID.</p>
           <button
             className="button common-button"
-            onClick={() => setShowPopup(false)}
+            onClick={() => setShowEmptyNamePopup(false)}
           >
             OK
           </button>

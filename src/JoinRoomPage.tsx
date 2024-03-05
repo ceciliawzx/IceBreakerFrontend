@@ -1,25 +1,37 @@
 import React, { useState, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import "./css/JoinRoomPage.css";
+
+/* Macro and Type */
 import { serverPort } from "./macro/MacroServer";
 import { User } from "./type/User";
+
+/* Image used */
 import joinPenguin from "./assets/JoinPenguin.png";
+
+/* CSS */
+import "./css/CreateRoomPage.css";
 
 const JoinRoomPage = () => {
   const navigate = useNavigate();
+
+  /* Field */
   const [displayName, setDisplayName] = useState("");
   const [roomCode, setRoomCode] = useState("");
-  const [message, setMessage] = useState("");
-  const [showPopup, setShowPopup] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
+  /* Popup */
+  const [showEmptyNamePopup, setShowEmptyNamePopup] = useState(false);
+
+  /* -------- Button Handler ---------- */
+
+  /* When click Submit button */
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     // Prevent default form submission behavior
     event.preventDefault();
 
-    // Get display name
+    // If empty display name, show alert
     if (!displayName.trim()) {
-      // Display popup or alert for empty nickname
-      setShowPopup(true);
+      setShowEmptyNamePopup(true);
       return;
     }
 
@@ -36,8 +48,8 @@ const JoinRoomPage = () => {
 
       const { userID } = await response.json();
 
+      // Create normal user
       if (userID) {
-        // Joining room cannot be admin
         const user = new User(
           roomCode,
           userID,
@@ -47,20 +59,26 @@ const JoinRoomPage = () => {
           "",
           false
         );
+
+        // Naviage with user info
         navigate("/WaitRoomPage", {
           state: { user },
         });
       } else {
-        setMessage("Wrong room code"); // Error message
+        // Error message
+        setErrorMessage("Wrong room code");
       }
-    } catch (error) {
-      setMessage("Join Room Failed"); // Error message
+    } catch (error: any) {
+      // Error message
+      setErrorMessage("Join Room Failed");
     }
   };
 
-  return (
-    <div className="page">
+  /* -------- UI Component ---------- */
 
+  /* Main rendereer */
+  return (
+    <div className="center-page">
       <img
         src={joinPenguin}
         alt="Joining Penguin"
@@ -86,13 +104,20 @@ const JoinRoomPage = () => {
           <button type="submit" className="button common-button">
             Join Room
           </button>
-          {message && <p>{message}</p>}
+          {errorMessage && <p className="error-message">{errorMessage}</p>}
         </form>
       </div>
-      {showPopup && (
+
+      {/* Show empty name error popup */}
+      {showEmptyNamePopup && (
         <div className="popup">
           <p>Please enter a displayname.</p>
-          <button className="button common-button" onClick={() => setShowPopup(false)}>OK</button>
+          <button
+            className="button common-button"
+            onClick={() => setShowEmptyNamePopup(false)}
+          >
+            OK
+          </button>
         </div>
       )}
     </div>
