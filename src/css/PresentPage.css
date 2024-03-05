@@ -48,7 +48,7 @@
 #game-selector {
   position: absolute;
   left: 55%;
-  z-index: 100;
+  z-index: var(--general-popup-layer);
   background: #b58560;
   border: 3px solid rgb(230, 168, 86);
   border-radius: 10px;

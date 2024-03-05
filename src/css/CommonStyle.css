@@ -30,10 +30,6 @@
   --instruction-layer: 800;
   --above-instruction-layer: 900;
   --top-layer: 1000;
-
-  --overlay-index: 1000;
-  --above-overlay-index: 1001;
-  --instruction-overlay-index: 2000;
 }
 
 .no-scroll {
@@ -181,7 +177,33 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: var(--overlay-index); /* Ensure it's above other content */
+  z-index: var(--general-overlay-layer);
+}
+
+.timer-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.75); /* Semi-transparent black background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: var(--timer-layer);
+}
+
+.modal-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.75); /* Semi-transparent black background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: var(--modal-layer);
 }
 
 .popup {
@@ -193,7 +215,7 @@
   background-color: white;
   border: 1px solid var(--grey-background);
   box-shadow: 0 0 10px var(--grey-background);
-  z-index: 999;
+  z-index: var(--general-popup-layer);
   text-align: center;
 }
 
@@ -206,7 +228,7 @@
   background-color: white;
   border: 1px solid var(--grey-background);
   box-shadow: 0 0 10px var(--grey-background);
-  z-index: 2000;
+  z-index: var(--general-popup-layer);
   text-align: center;
 }
 

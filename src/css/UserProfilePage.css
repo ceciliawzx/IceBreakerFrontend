@@ -16,7 +16,7 @@ input[type="file"] {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 100;
+  z-index: var(--general-popup-layer);
   background: white;
   padding: 20px;
   border-radius: 8px;

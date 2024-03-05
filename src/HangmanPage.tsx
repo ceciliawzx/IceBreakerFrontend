@@ -655,7 +655,7 @@ const HangmanPage = () => {
           <button
             className="button admin-only-button"
             onClick={handleBackButton}
-            style={{ zIndex: "var(--above-overlay-index)" }}
+            style={{ zIndex: "var(--above-timer-layer)" }}
           >
             Choose Another Game
           </button>
