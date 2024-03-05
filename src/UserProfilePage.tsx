@@ -380,7 +380,7 @@ const UserProfilePage = () => {
 
   /* Filter special characters in input */
   const filterInput = (input: any) => {
-    return input.trim().replace(/[^a-zA-Z0-9\s]/g, "");
+    return input.replace(/[^a-zA-Z0-9\s]/g, "");
   };
 
   /* Convert image into Base64 String */
