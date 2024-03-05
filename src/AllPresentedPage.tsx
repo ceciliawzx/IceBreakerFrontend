@@ -260,11 +260,48 @@ const AllPresentedPage: React.FC = () => {
       ); // Display a loading message or spinner
     }
 
+    // Initialize a variable to track if we have any report entries to display
+    let hasReportEntries = false;
+
     if (!similarityReports) {
       return (
         <div className="similarity-report">
+          <h2>Unable to fetch similarity report</h2>
+        </div>
+      );
+    }
+
+    const content = Object.entries(similarityReports).map(
+      ([category, report]) => {
+        const reportEntries = Object.entries(report);
+        if (reportEntries.length === 0) {
+          return null; // Skip rendering this category
+        }
+
+        // Since we have report entries, set hasReportEntries to true
+        hasReportEntries = true;
+
+        return (
+          <div key={category}>
+            <h3>{category.replaceAll("_", " ").toUpperCase()}</h3>
+            {reportEntries.map(([userId, details]) => (
+              <p key={userId}>{JSON.stringify(details)}</p> // Assuming `details` is the text to display
+            ))}
+          </div>
+        );
+      }
+    );
+
+    // If after going through all categories, we found no entries to display
+    if (!hasReportEntries) {
+      return (
+        <div className="similarity-report">
           <h2>Have You noticed that:</h2>
-          <h2>You are so unique!</h2>
+          <p>You are so unique!</p>
+          <p>
+            It's time to meet others from different cultures and with diverse
+            hobbies.
+          </p>
         </div>
       );
     }
@@ -272,22 +309,7 @@ const AllPresentedPage: React.FC = () => {
     return (
       <div className="similarity-report">
         <h2>Have You noticed that:</h2>
-        {Object.entries(similarityReports).map(([category, report]) => {
-          // Filter out categories with no entries
-          const reportEntries = Object.entries(report);
-          if (reportEntries.length === 0) {
-            return null; // Skip rendering this category
-          }
-
-          return (
-            <div key={category}>
-              <h3>{category.replaceAll("_", " ").toUpperCase()}</h3>
-              {reportEntries.map(([userId, details]) => (
-                <p key={userId}>{JSON.stringify(details)}</p> // Assuming `details` is the text to display
-              ))}
-            </div>
-          );
-        })}
+        {content}
       </div>
     );
   };
