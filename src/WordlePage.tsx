@@ -698,7 +698,7 @@ const Wordle = () => {
               alt="Presenter's Image"
               className="avatar"
             />
-            <p>{presenter?.displayName}</p>
+            <p>{presenter?.displayName}{isSameUser(user, presenter)? " (YOU)" : ""}</p>
             {
               <button
                 className="button common-button"
@@ -723,7 +723,7 @@ const Wordle = () => {
               alt="Admin's Image"
               className="avatar"
             />
-            <p>{admin?.displayName}</p>
+            <p>{admin?.displayName}{isSameUser(user, admin)? " (YOU)" : ""}</p>
 
             <button
               className="button common-button"
@@ -847,7 +847,7 @@ const Wordle = () => {
                     alt={`${guest}'s avatar`}
                     className="avatar"
                   />
-                  <p>{guest.displayName}</p>
+                  <p>{guest.displayName}{isSameUser(user, guest)? " (YOU)" : ""}</p>
                 </div>
                 {
                   <button

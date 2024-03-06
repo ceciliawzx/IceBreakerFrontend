@@ -516,7 +516,7 @@ const PresentPage = () => {
               alt={presenter?.displayName}
               className="avatar"
             />
-            <h2>{presenter?.displayName}</h2>
+            <h2>{presenter?.displayName}{isSameUser(user, presenter)? " (YOU)" : ""}</h2>
           </div>
 
           <div className="presenter-info-container">

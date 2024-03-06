@@ -633,7 +633,7 @@ const WaitRoomPage = () => {
             </div>
 
             <div style={{ color: "white" }}>
-              <p>{admin?.displayName}</p>
+              <p>{admin?.displayName}{isSameUser(user, admin)? " (YOU)" : ""}</p>
             </div>
 
             {
@@ -675,7 +675,7 @@ const WaitRoomPage = () => {
             </div>
 
             <div style={{ color: "white" }}>
-              <p>{presenter?.displayName}</p>
+              <p>{presenter?.displayName}{isSameUser(user, presenter)? " (YOU)" : ""}</p>
             </div>
 
             {
@@ -721,7 +721,7 @@ const WaitRoomPage = () => {
                       className="avatar"
                     />
                   </div>
-                  <p>{guest.displayName}</p>
+                  <p>{guest.displayName}{isSameUser(user, guest)? " (YOU)" : ""}</p>
                 </div>
 
                 <div

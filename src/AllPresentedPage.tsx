@@ -337,7 +337,7 @@ const AllPresentedPage: React.FC = () => {
                     className="avatar"
                   />
 
-                  <p>{guest.displayName}</p>
+                  <p>{guest.displayName}{user.userID === guest.userID? " (YOU)" : ""}</p>
                   <button
                     onClick={() => handleViewProfile(guest)}
                     className="button common-button"

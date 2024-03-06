@@ -564,7 +564,7 @@ const HangmanPage = () => {
               alt="Presenter's Image"
               className="avatar"
             />
-            <p>{presenter?.displayName}</p>
+            <p>{presenter?.displayName}{isSameUser(user, presenter)? " (YOU)" : ""}</p>
             {
               <button
                 className="button common-button"
@@ -589,7 +589,7 @@ const HangmanPage = () => {
               alt="Admin's Image"
               className="avatar"
             />
-            <p>{admin?.displayName}</p>
+            <p>{admin?.displayName}{isSameUser(user, admin)? " (YOU)" : ""}</p>
 
             <button
               className="button common-button"
@@ -617,7 +617,7 @@ const HangmanPage = () => {
         <h1>
           We are guessing: {presenter?.displayName}'s {selectedField}!
         </h1>
-        <h2>Current guesser is: {currentGuesser?.displayName}</h2>
+        <h2>Current guesser is: {currentGuesser?.displayName}{isSameUser(user, currentGuesser)? " (YOU)" : ""}</h2>
         <div className="column-container">
           <pre id="hangman-ascii" style={{ fontSize: "20px" }}>
             <p>{`Chances: ${6 - mistakes}`}</p>
@@ -678,7 +678,7 @@ const HangmanPage = () => {
                     alt={`${guest}'s avatar`}
                     className="avatar"
                   />
-                  <p>{guest.displayName}</p>
+                  <p>{guest.displayName}{isSameUser(user, guest)? " (YOU)" : ""}</p>
                 </div>
                 {
                   <button
