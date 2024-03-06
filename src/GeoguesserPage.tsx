@@ -664,7 +664,6 @@ const GeoguesserPage: React.FC = () => {
 
   /* Modal message */
   const modalContent = () => {
-    checkResult();
     return winnerPlayer ? (
       <>
         <h2>Winner:</h2>
